@@ -1,0 +1,14 @@
+name = "autobridge-kenya-nightly-scrape"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+# 23:00 UTC = 02:00 Africa/Nairobi (EAT, UTC+3). Cloudflare Cron Triggers are
+# always UTC — there is no timezone field, so the offset is baked into the
+# schedule itself. Adjust the hour here if you want a different local time.
+[triggers]
+crons = ["0 23 * * *"]
+
+[vars]
+# The deployed app's own URL — e.g. "https://autobridge-kenya.pages.dev" or
+# your custom domain. Not a secret, so it's fine as a plain var.
+TARGET_URL = "https://CHANGE-ME.pages.dev"

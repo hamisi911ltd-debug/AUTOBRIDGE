@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  BUYER
+  DEALER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role     @default(BUYER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Vehicle {
+  id               String    @id @default(cuid())
+  make             String
+  model            String
+  trim             String
+  year             Int
+  mileageKm        Int
+  fuel             String
+  transmission     String
+  engineCc         Int
+  bodyType         String
+  drive            String
+  seats            Int
+  color            String
+  sourceCountry    String
+  sourcePriceUsd   Float
+  imageUrl         String?
+  condition        String
+  badge            String?
+  lifestyle        String // JSON-encoded string[] (SQLite has no native array type)
+  eligible         Boolean   @default(true)
+  ineligibleReason String?
+  // Scraped-listing tracking — null for hand-entered admin vehicles.
+  // sourceSite + externalId together let the nightly scraper upsert instead
+  // of creating duplicates on every run.
+  sourceSite       String?
+  externalId       String?   @unique
+  sourceUrl        String? // direct link to the original listing on beforward.jp / sbtjapan.com
+  lastScrapedAt    DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  enquiries Enquiry[]
+
+  @@index([make, model])
+  @@index([sourceCountry])
+  @@index([bodyType])
+}
+
+enum ScopeType {
+  GLOBAL
+  COUNTRY
+  EXPORTER
+  BODY_TYPE
+  MAKE
+  MODEL
+  PRICE_BAND
+}
+
+enum MarkupType {
+  PERCENT
+  FIXED
+  TIERED
+}
+
+model PricingRule {
+  id            String     @id @default(cuid())
+  name          String
+  scopeType     ScopeType
+  scopeValue    String? // e.g. "Japan", "Toyota" — null for GLOBAL/PRICE_BAND
+  markupType    MarkupType
+  value         Float? // used by PERCENT (as fraction, e.g. 0.08) and FIXED (USD amount)
+  tiers         String? // JSON-encoded [{min, max, percent}] — used by TIERED
+  priceMinUsd   Float? // used by PRICE_BAND scope
+  priceMaxUsd   Float? // used by PRICE_BAND scope
+  minProfitUsd  Float?
+  maxProfitUsd  Float?
+  priority      Int        @default(0)
+  active        Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Enquiry {
+  id        String   @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle  @relation(fields: [vehicleId], references: [id])
+  name      String
+  phone     String
+  email     String?
+  message   String?
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([vehicleId])
+}

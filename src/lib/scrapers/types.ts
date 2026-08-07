@@ -1,0 +1,20 @@
+export type ScrapedVehicle = {
+  sourceSite: "beforward" | "sbtjapan";
+  externalId: string;
+  make: string;
+  model: string;
+  trim: string;
+  year: number;
+  mileageKm: number;
+  fuel: string;
+  transmission: string;
+  engineCc: number;
+  bodyType: string;
+  drive: string;
+  seats: number;
+  color: string;
+  sourceCountry: string;
+  sourcePriceUsd: number;
+  imageUrl: string | null;
+  sourceUrl: string;
+};
