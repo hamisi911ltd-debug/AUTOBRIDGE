@@ -32,7 +32,7 @@
     {
       "binding": "DB",
       "database_name": "autobridge-kenya-db",
-      "database_id": "<FILLED_IN_AFTER_D1_CREATE>"
+      "database_id": "f395552b-0aaf-4aed-9cf6-2e8cb7c3e8ab"
     }
   ],
   "images": {

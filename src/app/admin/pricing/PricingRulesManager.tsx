@@ -137,7 +137,7 @@ export function PricingRulesManager({ initialRules, vehicles }: { initialRules: 
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border overflow-hidden mb-8" style={{ borderColor: COLORS.line }}>
+      <div className="bg-white rounded-2xl border overflow-x-auto mb-8" style={{ borderColor: COLORS.line }}>
         <table className="w-full text-sm">
           <thead style={{ background: COLORS.card }}>
             <tr className="text-left">
@@ -312,12 +312,12 @@ export function PricingRulesManager({ initialRules, vehicles }: { initialRules: 
               </div>
               <div className="space-y-2">
                 {draft.tiers.map((t, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
+                  <div key={i} className="flex flex-wrap items-center gap-2 text-sm">
                     <input
                       type="number"
                       value={t.min}
                       onChange={(e) => updateTier(i, { min: Number(e.target.value) || 0 })}
-                      className="w-24 border rounded-lg px-2 py-1.5"
+                      className="w-20 sm:w-24 border rounded-lg px-2 py-1.5"
                       style={{ borderColor: "#D8DCE3" }}
                     />
                     <span style={{ color: COLORS.slate }}>–</span>
@@ -326,7 +326,7 @@ export function PricingRulesManager({ initialRules, vehicles }: { initialRules: 
                       value={t.max ?? ""}
                       placeholder="∞"
                       onChange={(e) => updateTier(i, { max: e.target.value === "" ? null : Number(e.target.value) })}
-                      className="w-24 border rounded-lg px-2 py-1.5"
+                      className="w-20 sm:w-24 border rounded-lg px-2 py-1.5"
                       style={{ borderColor: "#D8DCE3" }}
                     />
                     <span style={{ color: COLORS.slate }}>→</span>
@@ -334,7 +334,7 @@ export function PricingRulesManager({ initialRules, vehicles }: { initialRules: 
                       type="number"
                       value={Math.round(t.percent * 100)}
                       onChange={(e) => updateTier(i, { percent: (Number(e.target.value) || 0) / 100 })}
-                      className="w-20 border rounded-lg px-2 py-1.5"
+                      className="w-16 sm:w-20 border rounded-lg px-2 py-1.5"
                       style={{ borderColor: "#D8DCE3" }}
                     />
                     <span style={{ color: COLORS.slate }}>%</span>
