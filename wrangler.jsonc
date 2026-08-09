@@ -1,0 +1,41 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "autobridge-kenya-web",
+  "compatibility_date": "2026-08-09",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      // Self-reference service binding, the service name must match the worker name
+      // see https://opennext.js.org/cloudflare/caching
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "autobridge-kenya-web"
+    }
+  ],
+  "r2_buckets": [
+    {
+      // OpenNext's own ISR/data cache — not the vehicle-photo bucket
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "autobridge-kenya-web-cache"
+    },
+    {
+      // Vehicle photos migrated off the scraped sites' hotlinked CDNs
+      "binding": "VEHICLE_IMAGES",
+      "bucket_name": "autobridge-kenya-images"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "autobridge-kenya-db",
+      "database_id": "<FILLED_IN_AFTER_D1_CREATE>"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  }
+}

@@ -51,6 +51,11 @@ cron-worker/.wrangler
 *.db
 *.db-journal
 
+# Cloudflare / OpenNext build output and local secrets
+/.open-next/
+/.wrangler/
+.dev.vars
+
 # editor/tool scaffolding, not part of the app
 .claude/
 .agents/
