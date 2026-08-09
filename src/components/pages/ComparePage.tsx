@@ -1,8 +1,9 @@
 "use client";
 
-import { Car, Scale, X } from "lucide-react";
+import { Scale, X } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatKes, formatUsd } from "@/lib/format";
+import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import type { Page } from "@/components/AutoBridgeApp";
@@ -63,15 +64,10 @@ export function ComparePage({
             {vehicles.map((v) => (
               <th key={v.id} className="p-3 text-left align-top">
                 <div
-                  className="w-full h-20 rounded-xl flex items-center justify-center mb-2 overflow-hidden"
+                  className="relative w-full h-20 rounded-xl mb-2 overflow-hidden"
                   style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}
                 >
-                  {v.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
-                    <img src={v.imageUrl} alt={`${v.year} ${v.make} ${v.model}`} className="w-full h-full object-cover" />
-                  ) : (
-                    <Car size={28} color={COLORS.goldLight} />
-                  )}
+                  <VehicleImage src={v.imageUrl} alt={`${v.year} ${v.make} ${v.model}`} iconSize={28} />
                 </div>
                 <div className="font-semibold" style={{ color: COLORS.navy }}>
                   {v.year} {v.make} {v.model}

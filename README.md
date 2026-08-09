@@ -21,12 +21,14 @@ npm install
 cp .env.example .env      # fill in AUTH_SECRET and CRON_SECRET, see below
 npx prisma generate
 npx prisma db push        # creates prisma/dev.db from schema.prisma
-npx prisma db seed        # 23 sample vehicles, 1 admin user, default pricing rule
+npx prisma db seed        # admin user + default pricing rule only, no fake inventory
 npm run dev
 ```
 
 Open http://localhost:3000. Admin panel is at `/admin` — the seed script
-prints the admin email/password to the console when it runs.
+prints the admin email/password to the console when it runs. There's no
+sample/demo vehicle data by design — the site is empty until you run a
+scrape (see below) or add vehicles by hand in the admin panel.
 
 Generate the two secrets in `.env`:
 
@@ -60,7 +62,7 @@ invocation.
 
 ```
 prisma/schema.prisma        Vehicle, PricingRule, Enquiry, User models
-prisma/seed.ts               Sample data + admin user + default pricing rule
+prisma/seed.ts               Admin user + default pricing rule (idempotent, no fake inventory)
 src/lib/scrapers/            BE FORWARD + SBT Japan scrapers, shared HTTP/normalize helpers
 src/lib/pricing/engine.ts    Resolves the applicable PricingRule and computes selling price
 src/app/                     Public site (single page, client-side view state) + /admin/*

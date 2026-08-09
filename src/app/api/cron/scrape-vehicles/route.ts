@@ -14,6 +14,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const summary = await runScrape(2);
+  // 1 page/make across 22 makes on each site keeps this well under
+  // Cloudflare's free-tier subrequest cap (50/invocation) now that make
+  // coverage is broad; bump this once you're on the Workers paid plan
+  // (1000/invocation) if you want more listings per make.
+  const summary = await runScrape(1);
   return NextResponse.json(summary);
 }

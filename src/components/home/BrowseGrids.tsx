@@ -1,15 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
-import { Car, Truck, Bus, type LucideIcon } from "lucide-react";
 import { COLORS, FONT_DISPLAY, type Filters } from "@/lib/constants";
+import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { PublicVehicle } from "@/types/vehicle";
-
-const BODY_TYPE_ICON: Record<string, LucideIcon> = {
-  Pickup: Truck,
-  Truck: Truck,
-  Van: Bus,
-};
 
 // Real manufacturer badges sourced from Wikimedia Commons (the actual
 // official logo artwork, not a simplified single-colour glyph) for every
@@ -28,6 +22,11 @@ const MAKE_LOGO: Record<string, string> = {
   "Mercedes-Benz": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Mercedes-Benz_Logo_2010.svg/250px-Mercedes-Benz_Logo_2010.svg.png",
   Mitsubishi: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Mitsubishi_logo.svg/330px-Mitsubishi_logo.svg.png",
   Isuzu: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Isuzu.svg/330px-Isuzu.svg.png",
+  Daihatsu: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Daihatsu_Logo.svg/330px-Daihatsu_Logo.svg.png",
+  Hino: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Hino_Motors_logo.svg/330px-Hino_Motors_logo.svg.png",
+  Lexus: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Lexus.svg/330px-Lexus.svg.png",
+  "Land Rover": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Land_Rover_2023.svg/330px-Land_Rover_2023.svg.png",
+  Jaguar: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Jaguar_1966_logo.svg/330px-Jaguar_1966_logo.svg.png",
   Ford: "https://cdn.simpleicons.org/ford",
   Volkswagen: "https://cdn.simpleicons.org/volkswagen",
   Audi: "https://cdn.simpleicons.org/audi",
@@ -35,18 +34,19 @@ const MAKE_LOGO: Record<string, string> = {
   Jeep: "https://cdn.simpleicons.org/jeep",
   Hyundai: "https://cdn.simpleicons.org/hyundai",
   Chevrolet: "https://cdn.simpleicons.org/chevrolet",
+  Volvo: "https://cdn.simpleicons.org/volvo",
 };
 
-// Two-letter codes instead of flag emoji — emoji flag glyphs silently fall
-// back to plain text on systems without a colour-emoji font (common on
-// Windows Server / some browsers), so a styled badge renders consistently
-// everywhere instead of leaving it to chance.
-const COUNTRY_CODE: Record<string, string> = {
-  Japan: "JP",
-  UAE: "AE",
-  UK: "GB",
-  USA: "US",
-  "South Korea": "KR",
+// Real flag images (flagcdn.com) instead of emoji — flag emoji glyphs
+// silently fall back to plain two-letter text on systems without a
+// colour-emoji font (common on Windows Server / some browsers), so an actual
+// image renders consistently everywhere instead of leaving it to chance.
+const COUNTRY_ISO: Record<string, string> = {
+  Japan: "jp",
+  UAE: "ae",
+  UK: "gb",
+  USA: "us",
+  "South Korea": "kr",
 };
 
 function countBy<T extends string>(vehicles: PublicVehicle[], key: (v: PublicVehicle) => T): [T, number][] {
@@ -69,6 +69,18 @@ export function BrowseGrids({
   const byMake = useMemo(() => countBy(eligible, (v) => v.make), [eligible]);
   const byBodyType = useMemo(() => countBy(eligible, (v) => v.bodyType), [eligible]);
   const byCountry = useMemo(() => countBy(eligible, (v) => v.sourceCountry), [eligible]);
+
+  // One clean, sharp photo to represent each body type tile — real inventory,
+  // not a generic icon. Prefers a high-quality photo per category, falling
+  // back to any photo if that body type has none.
+  const bodyTypeImage = useMemo(() => {
+    const withPhotos = eligible.filter((v) => v.imageUrl);
+    const map: Record<string, string> = {};
+    for (const v of withPhotos) {
+      if (!map[v.bodyType] || (v.hqImage && v.imageUrl)) map[v.bodyType] = v.imageUrl!;
+    }
+    return map;
+  }, [eligible]);
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 py-14 space-y-12">
@@ -115,27 +127,26 @@ export function BrowseGrids({
           Browse by body type
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-          {byBodyType.map(([bodyType, count]) => {
-            const Icon = BODY_TYPE_ICON[bodyType] ?? Car;
-            return (
-              <button
-                key={bodyType}
-                onClick={() => goSearch({ bodyTypes: [bodyType] })}
-                className="flex flex-col items-center justify-center gap-2 p-4 rounded-xl border hover:shadow-md transition"
-                style={{ borderColor: COLORS.line }}
-              >
-                <Icon size={20} color={COLORS.burgundy} />
-                <div className="text-center">
-                  <div className="text-xs font-medium" style={{ color: COLORS.navy }}>
-                    {bodyType}
-                  </div>
-                  <div className="text-[11px]" style={{ color: COLORS.slate }}>
-                    {count}
-                  </div>
+          {byBodyType.map(([bodyType, count]) => (
+            <button
+              key={bodyType}
+              onClick={() => goSearch({ bodyTypes: [bodyType] })}
+              className="rounded-xl border overflow-hidden text-left hover:shadow-md transition"
+              style={{ borderColor: COLORS.line }}
+            >
+              <div className="relative h-20 overflow-hidden" style={{ background: COLORS.navy }}>
+                <VehicleImage src={bodyTypeImage[bodyType] ?? null} alt={`${bodyType} example`} iconSize={22} />
+              </div>
+              <div className="px-3 py-2">
+                <div className="text-xs font-medium" style={{ color: COLORS.navy }}>
+                  {bodyType}
                 </div>
-              </button>
-            );
-          })}
+                <div className="text-[11px]" style={{ color: COLORS.slate }}>
+                  {count}
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -152,10 +163,20 @@ export function BrowseGrids({
               style={{ borderColor: COLORS.line }}
             >
               <span
-                className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 text-[11px] font-bold tracking-wide"
+                className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center shrink-0 text-[11px] font-bold tracking-wide"
                 style={{ background: COLORS.card, color: COLORS.burgundy }}
               >
-                {COUNTRY_CODE[country] ?? "?"}
+                {COUNTRY_ISO[country] ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- external flag CDN
+                  <img
+                    src={`https://flagcdn.com/w80/${COUNTRY_ISO[country]}.png`}
+                    alt={`${country} flag`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  "?"
+                )}
               </span>
               <div>
                 <div className="text-sm font-semibold" style={{ color: COLORS.navy }}>

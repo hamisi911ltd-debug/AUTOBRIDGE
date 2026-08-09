@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { COLORS, FONT_DISPLAY, type Filters } from "@/lib/constants";
 import { matchesFilters, sortVehicles } from "@/lib/search";
 import type { LandedCost } from "@/lib/landedCost";
@@ -59,7 +59,18 @@ export function SearchPage({
             {filtered.length} vehicle{filtered.length !== 1 ? "s" : ""} match your filters
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="relative">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: COLORS.slate }} />
+            <input
+              type="text"
+              value={filters.keyword}
+              onChange={(e) => setFilters((f) => ({ ...f, keyword: e.target.value }))}
+              placeholder="Search make, model, trim…"
+              className="border rounded-full pl-9 pr-4 py-2 text-sm w-56"
+              style={{ borderColor: "#D8DCE3" }}
+            />
+          </div>
           <button
             onClick={() => setMobileFiltersOpen((o) => !o)}
             className="lg:hidden inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium"

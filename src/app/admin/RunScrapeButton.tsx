@@ -32,7 +32,7 @@ export function RunScrapeButton() {
         className="text-sm font-semibold px-4 py-2 rounded-full text-white disabled:opacity-60"
         style={{ background: COLORS.burgundy }}
       >
-        {running ? "Scraping… (takes 1–2 min)" : "Run scrape now"}
+        {running ? "Scraping… (can take a few minutes)" : "Run scrape now"}
       </button>
       {result && (
         <p className="text-xs mt-2" style={{ color: COLORS.slate }}>

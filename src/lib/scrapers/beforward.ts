@@ -3,6 +3,7 @@ import type { ScrapedVehicle } from "@/lib/scrapers/types";
 import { withRetry } from "@/lib/scrapers/http";
 import {
   guessBodyType,
+  IMPORT_ELIGIBLE_FROM_YEAR,
   normalizeDrive,
   normalizeFuel,
   normalizeTransmission,
@@ -24,6 +25,20 @@ export const BEFORWARD_MAKES: { id: number; make: string }[] = [
   { id: 7, make: "Suzuki" },
   { id: 8, make: "Isuzu" },
   { id: 94, make: "Subaru" },
+  { id: 10, make: "Daihatsu" },
+  { id: 103, make: "Hino" },
+  { id: 68, make: "Lexus" },
+  { id: 106, make: "Mercedes-Benz" },
+  { id: 83, make: "BMW" },
+  { id: 48, make: "Volkswagen" },
+  { id: 47, make: "Audi" },
+  { id: 73, make: "Peugeot" },
+  { id: 50, make: "Ford" },
+  { id: 57, make: "Volvo" },
+  { id: 52, make: "Land Rover" },
+  { id: 79, make: "Jaguar" },
+  { id: 44, make: "Hyundai" },
+  { id: 313, make: "Kia" },
 ];
 
 function urlFor(makeId: number, page: number): string {
@@ -96,6 +111,7 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
     const sourceUrl = detailHref ? new URL(detailHref, "https://www.beforward.jp").toString() : "https://www.beforward.jp";
 
     if (!year || !sourcePriceUsd) return; // incomplete listing — skip rather than store junk
+    if (year < IMPORT_ELIGIBLE_FROM_YEAR) return; // older than Kenya's import threshold — not buyable, don't store it
 
     vehicles.push({
       sourceSite: "beforward",

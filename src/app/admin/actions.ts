@@ -2,14 +2,16 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { runScrape, type ScrapeSummary } from "@/lib/scrapers/runScrape";
-import type { MarkupType, ScopeType } from "@/generated/prisma/enums";
+import type { MarkupType, Role, ScopeType } from "@/generated/prisma/enums";
 
 async function requireAdmin() {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") throw new Error("Not authorized");
+  return session;
 }
 
 function num(fd: FormData, key: string): number | null {
@@ -105,6 +107,7 @@ export async function saveVehicle(formData: FormData) {
     color: formData.get("color") as string,
     sourceCountry: formData.get("sourceCountry") as string,
     sourcePriceUsd: num(formData, "sourcePriceUsd") ?? 0,
+    imageUrl: (formData.get("imageUrl") as string)?.trim() || null,
     condition: (formData.get("condition") as string) || "Foreign Used",
     badge: (formData.get("badge") as string) || null,
     lifestyle: JSON.stringify(lifestyle),
@@ -138,12 +141,12 @@ export async function deleteVehicle(formData: FormData) {
 /**
  * Manual "run it now" trigger for the same nightly scrape the cron route
  * runs — lets the admin refresh inventory on demand instead of waiting for
- * the schedule. Runs synchronously (takes roughly 1–2 minutes for 2 pages
- * per make across both sites); the button that calls this should say so.
+ * the schedule. Runs synchronously; the button that calls this should say
+ * it can take a minute or two.
  */
 export async function runScrapeNow(): Promise<ScrapeSummary> {
   await requireAdmin();
-  const summary = await runScrape(2);
+  const summary = await runScrape(1);
   revalidatePath("/admin");
   revalidatePath("/admin/vehicles");
   revalidatePath("/");
@@ -157,4 +160,54 @@ export async function toggleEnquiryHandled(formData: FormData) {
   await prisma.enquiry.update({ where: { id }, data: { handled: !enquiry.handled } });
   revalidatePath("/admin/enquiries");
   revalidatePath("/admin");
+}
+
+export async function deleteEnquiry(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id") as string;
+  await prisma.enquiry.delete({ where: { id } });
+  revalidatePath("/admin/enquiries");
+  revalidatePath("/admin");
+}
+
+export async function saveUser(formData: FormData) {
+  const session = await requireAdmin();
+
+  const id = formData.get("id") as string | null;
+  const email = (formData.get("email") as string).trim().toLowerCase();
+  const name = (formData.get("name") as string).trim();
+  const role = formData.get("role") as Role;
+  const password = (formData.get("password") as string) || "";
+
+  if (!id && !password) throw new Error("Password is required for a new user");
+
+  const data: { email: string; name: string; role: Role; passwordHash?: string } = { email, name, role };
+  if (password) data.passwordHash = await bcrypt.hash(password, 10);
+
+  if (id) {
+    if (id === session?.user?.id && role !== "ADMIN") {
+      throw new Error("You can't remove your own admin role");
+    }
+    await prisma.user.update({ where: { id }, data });
+  } else {
+    await prisma.user.create({ data: data as { email: string; name: string; role: Role; passwordHash: string } });
+  }
+
+  revalidatePath("/admin/users");
+}
+
+export async function deleteUser(formData: FormData) {
+  const session = await requireAdmin();
+  const id = formData.get("id") as string;
+
+  if (id === session?.user?.id) throw new Error("You can't delete your own account");
+
+  const target = await prisma.user.findUniqueOrThrow({ where: { id } });
+  if (target.role === "ADMIN") {
+    const otherAdmins = await prisma.user.count({ where: { role: "ADMIN", id: { not: id } } });
+    if (otherAdmins === 0) throw new Error("Can't delete the last admin account");
+  }
+
+  await prisma.user.delete({ where: { id } });
+  revalidatePath("/admin/users");
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { Car, ChevronRight, Fuel, Gauge, Heart, MapPin, Scale } from "lucide-react";
+import { Car, ChevronRight, Cog, Fuel, Gauge, Heart, MapPin, Scale, Zap } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
+import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { PublicVehicle } from "@/types/vehicle";
 
 export function VehicleCard({
@@ -26,17 +27,7 @@ export function VehicleCard({
         className="relative h-48 flex items-center justify-center overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}
       >
-        {v.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts, no next/image domain allowlisting needed
-          <img
-            src={v.imageUrl}
-            alt={`${v.year} ${v.make} ${v.model}`}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <Car size={56} color={COLORS.goldLight} strokeWidth={1.2} />
-        )}
+        <VehicleImage src={v.imageUrl} alt={`${v.year} ${v.make} ${v.model}`} iconSize={56} />
         {v.badge && (
           <span
             className="absolute top-3 left-3 text-[11px] font-semibold px-2.5 py-1 rounded-full"
@@ -70,12 +61,21 @@ export function VehicleCard({
         <p className="text-xs mb-3" style={{ color: COLORS.slate }}>
           {v.trim}
         </p>
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs mb-4" style={{ color: COLORS.slate }}>
+        <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs mb-4" style={{ color: COLORS.slate }}>
           <span className="inline-flex items-center gap-1">
             <Gauge size={12} /> {v.mileageKm.toLocaleString()} km
           </span>
           <span className="inline-flex items-center gap-1">
+            <Cog size={12} /> {v.transmission}
+          </span>
+          <span className="inline-flex items-center gap-1">
             <Fuel size={12} /> {v.fuel}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Zap size={12} /> {v.engineCc}cc
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Car size={12} /> {v.bodyType}
           </span>
           <span className="inline-flex items-center gap-1">
             <MapPin size={12} /> {v.sourceCountry}

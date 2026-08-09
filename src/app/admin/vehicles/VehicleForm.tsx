@@ -1,6 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
+import Link from "next/link";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
+import { formatUsd, sourceSiteLabel } from "@/lib/format";
 import { saveVehicle, deleteVehicle } from "@/app/admin/actions";
 
 export type VehicleFormValues = {
@@ -19,6 +22,7 @@ export type VehicleFormValues = {
   color: string;
   sourceCountry: string;
   sourcePriceUsd: number;
+  imageUrl: string | null;
   condition: string;
   badge: string | null;
   lifestyle: string[];
@@ -26,38 +30,123 @@ export type VehicleFormValues = {
   ineligibleReason: string | null;
   sourceSite: string | null;
   sourceUrl: string | null;
+  externalId: string | null;
   lastScrapedAt: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  sellingPriceUsd?: number;
+  appliedRuleName?: string | null;
+  enquiryCount?: number;
 };
 
 const FIELD = "w-full border rounded-lg px-3 py-2 text-sm";
 const LABEL = "block text-xs font-semibold uppercase tracking-wide mb-1";
 
+function OverviewStat({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-wide" style={{ color: COLORS.slate }}>
+        {label}
+      </div>
+      <div className="text-sm font-semibold" style={{ color: COLORS.navy }}>
+        {value}
+      </div>
+      {sub && (
+        <div className="text-[11px]" style={{ color: COLORS.slate }}>
+          {sub}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function VehicleForm({ initial }: { initial?: VehicleFormValues }) {
   return (
-    <div className="max-w-3xl">
+    <div className="max-w-5xl">
+      {initial?.id && (
+        <div className="bg-white rounded-2xl border p-6 mb-6" style={{ borderColor: COLORS.line }}>
+          <div className="grid md:grid-cols-[220px_1fr] gap-6">
+            <div className="w-full h-40 rounded-xl overflow-hidden flex items-center justify-center shrink-0" style={{ background: COLORS.navy }}>
+              {initial.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
+                <img src={initial.imageUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-xs" style={{ color: COLORS.goldLight }}>
+                  No photo
+                </span>
+              )}
+            </div>
+
+            <div>
+              <div className="flex items-start justify-between flex-wrap gap-2 mb-4">
+                <div>
+                  <h1 className="text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                    {initial.year} {initial.make} {initial.model}
+                  </h1>
+                  <p className="text-sm" style={{ color: COLORS.slate }}>
+                    {initial.trim}
+                  </p>
+                </div>
+                {initial.sourceSite ? (
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: "#E8ECF3", color: COLORS.navy }}>
+                    {sourceSiteLabel(initial.sourceSite)}
+                  </span>
+                ) : (
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: "#F1F1EC", color: COLORS.slate }}>
+                    Hand-entered
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                <OverviewStat label="Source price" value={formatUsd(initial.sourcePriceUsd)} />
+                <OverviewStat
+                  label="Selling price"
+                  value={<span style={{ color: COLORS.burgundy }}>{formatUsd(initial.sellingPriceUsd ?? initial.sourcePriceUsd)}</span>}
+                  sub={initial.appliedRuleName ? `Rule: ${initial.appliedRuleName}` : "No rule matched"}
+                />
+                <OverviewStat
+                  label="Enquiries"
+                  value={
+                    <Link href="/admin/enquiries" style={{ color: COLORS.navy }} className="hover:underline">
+                      {initial.enquiryCount ?? 0}
+                    </Link>
+                  }
+                />
+                <OverviewStat label="Status" value={initial.eligible ? "Eligible" : "Not eligible"} />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5 text-xs pt-4 border-t" style={{ borderColor: COLORS.line, color: COLORS.slate }}>
+                {initial.externalId && <span>Ref: {initial.externalId}</span>}
+                {initial.lastScrapedAt && <span>Last synced {new Date(initial.lastScrapedAt).toLocaleString()}</span>}
+                {initial.createdAt && <span>Added {new Date(initial.createdAt).toLocaleDateString()}</span>}
+                {initial.sourceUrl && (
+                  <a
+                    href={initial.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold px-3 py-1.5 rounded-full"
+                    style={{ background: COLORS.burgundy, color: "white" }}
+                  >
+                    Open original listing ↗
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     <form action={saveVehicle} className="bg-white rounded-2xl border p-6" style={{ borderColor: COLORS.line }}>
       {initial?.id && <input type="hidden" name="id" value={initial.id} />}
-      <h1 className="text-xl font-semibold mb-6" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-        {initial?.id ? "Edit vehicle" : "New vehicle"}
-      </h1>
+      <h2 className="text-lg font-semibold mb-6" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+        {initial?.id ? "Edit details" : "New vehicle"}
+      </h2>
 
       {initial?.sourceSite && (
-        <div className="mb-6 rounded-xl px-4 py-3 text-sm flex flex-wrap items-center gap-x-6 gap-y-1" style={{ background: "#F5F6F9" }}>
-          <span style={{ color: COLORS.slate }}>
-            Sourced from{" "}
-            <span className="font-semibold" style={{ color: COLORS.navy }}>
-              {initial.sourceSite === "beforward" ? "BE FORWARD" : "SBT Japan"}
-            </span>{" "}
-            by the nightly scraper — fields will be overwritten on the next sync.
-          </span>
-          {initial.sourceUrl && (
-            <a href={initial.sourceUrl} target="_blank" rel="noreferrer" className="font-semibold" style={{ color: COLORS.burgundy }}>
-              View original listing ↗
-            </a>
-          )}
-          {initial.lastScrapedAt && (
-            <span style={{ color: COLORS.slate }}>Last synced {new Date(initial.lastScrapedAt).toLocaleString()}</span>
-          )}
+        <div className="mb-6 rounded-xl px-4 py-3 text-sm" style={{ background: "#FEF3C7", color: "#92400E" }}>
+          This vehicle is synced from {sourceSiteLabel(initial.sourceSite)} — any field you
+          change here will be overwritten the next time the scraper syncs this listing.
         </div>
       )}
 
@@ -188,6 +277,18 @@ export function VehicleForm({ initial }: { initial?: VehicleFormValues }) {
             Badge (optional)
           </label>
           <input name="badge" defaultValue={initial?.badge ?? ""} className={FIELD} style={{ borderColor: "#D8DCE3" }} placeholder="e.g. Popular" />
+        </div>
+        <div className="col-span-2 sm:col-span-3">
+          <label className={LABEL} style={{ color: COLORS.slate }}>
+            Image URL
+          </label>
+          <input
+            name="imageUrl"
+            defaultValue={initial?.imageUrl ?? ""}
+            className={FIELD}
+            style={{ borderColor: "#D8DCE3" }}
+            placeholder="https://…"
+          />
         </div>
       </div>
 

@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Car, ChevronRight, MessageCircle, Send, Sparkles, X } from "lucide-react";
+import { ChevronRight, MessageCircle, Send, Sparkles, X } from "lucide-react";
 import { COLORS } from "@/lib/constants";
 import { formatKes } from "@/lib/format";
 import { matchVehicles } from "@/lib/assistant";
+import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 
@@ -91,13 +92,8 @@ export function AIAssistant({
                             className="w-full text-left p-2.5 rounded-xl border flex items-center gap-3"
                             style={{ borderColor: COLORS.line }}
                           >
-                            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 overflow-hidden" style={{ background: COLORS.navy }}>
-                              {v.imageUrl ? (
-                                // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
-                                <img src={v.imageUrl} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                <Car size={16} color={COLORS.goldLight} />
-                              )}
+                            <div className="relative w-10 h-10 rounded-lg shrink-0 overflow-hidden" style={{ background: COLORS.navy }}>
+                              <VehicleImage src={v.imageUrl} alt="" iconSize={16} />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="text-xs font-semibold truncate" style={{ color: COLORS.navy }}>

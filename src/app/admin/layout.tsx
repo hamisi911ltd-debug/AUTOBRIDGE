@@ -26,6 +26,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <Link href="/admin/enquiries" style={{ color: COLORS.ink }}>
                 Enquiries
               </Link>
+              <Link href="/admin/users" style={{ color: COLORS.ink }}>
+                Users
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4 text-sm">

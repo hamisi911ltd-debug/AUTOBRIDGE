@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Car, Check, Heart, MapPin, Scale, ShieldCheck, Truck, Users } from "lucide-react";
+import { Check, Heart, MapPin, Scale, ShieldCheck, Truck, Users } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import type { Page } from "@/components/AutoBridgeApp";
 import { CostLadder } from "@/components/vehicles/CostLadder";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
+import { VehicleImage } from "@/components/vehicles/VehicleImage";
 
 const TRUST_POINTS = [
   { icon: ShieldCheck, title: "Vetted before listing", text: "Every exporter and listing is checked before it goes live on AutoBridge." },
@@ -93,16 +94,7 @@ export function DetailPage({
             className="h-72 sm:h-96 rounded-2xl flex items-center justify-center relative mb-6 overflow-hidden"
             style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}
           >
-            {vehicle.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
-              <img
-                src={vehicle.imageUrl}
-                alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <Car size={96} color={COLORS.goldLight} strokeWidth={1} />
-            )}
+            <VehicleImage src={vehicle.imageUrl} alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} iconSize={96} />
             {vehicle.badge && (
               <span className="absolute top-4 left-4 text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>
                 {vehicle.badge}

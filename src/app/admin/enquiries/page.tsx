@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { toggleEnquiryHandled } from "@/app/admin/actions";
+import { DeleteEnquiryButton } from "@/app/admin/enquiries/DeleteEnquiryButton";
 
 export default async function AdminEnquiriesPage({
   searchParams,
@@ -70,19 +71,22 @@ export default async function AdminEnquiriesPage({
                 <span>{e.createdAt.toLocaleString()}</span>
               </div>
             </div>
-            <form action={toggleEnquiryHandled}>
-              <input type="hidden" name="id" value={e.id} />
-              <button
-                type="submit"
-                className="text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap"
-                style={{
-                  background: e.handled ? "#F1F1EC" : COLORS.burgundy,
-                  color: e.handled ? COLORS.ink : "white",
-                }}
-              >
-                {e.handled ? "Mark unhandled" : "Mark handled"}
-              </button>
-            </form>
+            <div className="flex flex-col items-end gap-2">
+              <form action={toggleEnquiryHandled}>
+                <input type="hidden" name="id" value={e.id} />
+                <button
+                  type="submit"
+                  className="text-xs font-semibold px-3 py-1.5 rounded-full whitespace-nowrap"
+                  style={{
+                    background: e.handled ? "#F1F1EC" : COLORS.burgundy,
+                    color: e.handled ? COLORS.ink : "white",
+                  }}
+                >
+                  {e.handled ? "Mark unhandled" : "Mark handled"}
+                </button>
+              </form>
+              <DeleteEnquiryButton id={e.id} />
+            </div>
           </div>
         ))}
         {enquiries.length === 0 && (

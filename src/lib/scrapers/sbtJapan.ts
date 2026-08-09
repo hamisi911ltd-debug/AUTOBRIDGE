@@ -3,6 +3,7 @@ import type { ScrapedVehicle } from "@/lib/scrapers/types";
 import { withRetry } from "@/lib/scrapers/http";
 import {
   guessBodyType,
+  IMPORT_ELIGIBLE_FROM_YEAR,
   normalizeDrive,
   normalizeFuel,
   normalizeTransmission,
@@ -24,6 +25,20 @@ export const SBT_MAKES: { id: number; make: string }[] = [
   { id: 7, make: "Subaru" },
   { id: 9, make: "Suzuki" },
   { id: 12, make: "Isuzu" },
+  { id: 8, make: "Daihatsu" },
+  { id: 69, make: "Hino" },
+  { id: 13, make: "Lexus" },
+  { id: 72, make: "Mercedes-Benz" },
+  { id: 45, make: "BMW" },
+  { id: 53, make: "Volkswagen" },
+  { id: 44, make: "Audi" },
+  { id: 41, make: "Peugeot" },
+  { id: 21, make: "Ford" },
+  { id: 67, make: "Volvo" },
+  { id: 33, make: "Land Rover" },
+  { id: 32, make: "Jaguar" },
+  { id: 65, make: "Hyundai" },
+  { id: 79, make: "Kia" },
 ];
 
 function urlFor(makeId: number, page: number): string {
@@ -79,6 +94,28 @@ async function fetchWithSession(url: string, cookie: string | null): Promise<str
   });
 }
 
+/**
+ * SBT Japan's own photos (img.sbtjapan.com/img/carphoto/...) are clean and
+ * scale to 1200px+ on request. A chunk of listings instead point at
+ * img.sbtjapan.com/dealercarphoto/... — third-party dealer-network photos
+ * that carry another used-car platform's watermark baked into the image —
+ * or, occasionally, a relative /html/template/default/... path, which is
+ * SBT's own broken-image placeholder graphic, not a photo at all. Both are
+ * worse than no photo (falls back to the plain vehicle-icon placeholder in
+ * the UI), so treat them as no image rather than display them.
+ */
+function cleanSbtImage(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("https://img.sbtjapan.com/") || raw.includes("/dealercarphoto/")) return null;
+  try {
+    const url = new URL(raw);
+    url.searchParams.set("imwidth", "1200");
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function parsePage(html: string, make: string): ScrapedVehicle[] {
   const $ = cheerio.load(html);
   const vehicles: ScrapedVehicle[] = [];
@@ -114,9 +151,7 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
 
     let imageUrl = item.find(".card-product__image img").first().attr("src") || null;
     if (imageUrl?.startsWith("//")) imageUrl = "https:" + imageUrl;
-    // The listing page requests a 300px thumbnail; the CDN happily serves
-    // full detail-page resolution off the same file via imwidth.
-    if (imageUrl) imageUrl = imageUrl.replace(/imwidth=\d+/, "imwidth=1200");
+    imageUrl = cleanSbtImage(imageUrl);
 
     const detailHref = item.find(".card-product__wrap").first().attr("href");
     const sourceUrl = detailHref
@@ -124,6 +159,7 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
       : `https://www.sbtjapan.com/used-cars/${stockId}`;
 
     if (!year || !sourcePriceUsd) return;
+    if (year < IMPORT_ELIGIBLE_FROM_YEAR) return; // older than Kenya's import threshold — not buyable, don't store it
 
     vehicles.push({
       sourceSite: "sbtjapan",

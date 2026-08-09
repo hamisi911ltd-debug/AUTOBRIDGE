@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { computeSellingPriceUsd } from "@/lib/pricing/engine";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
-import { formatUsd } from "@/lib/format";
+import { formatUsd, sourceSiteLabel } from "@/lib/format";
 import type { Prisma } from "@/generated/prisma/client";
 
 const PAGE_SIZE = 50;
@@ -102,7 +102,9 @@ export default async function AdminVehiclesPage({
             <tr className="text-left">
               <th className="p-3"></th>
               <th className="p-3">Vehicle</th>
+              <th className="p-3">Spec</th>
               <th className="p-3">Source</th>
+              <th className="p-3">Ref</th>
               <th className="p-3">Source price</th>
               <th className="p-3">Selling price</th>
               <th className="p-3">Eligible</th>
@@ -130,16 +132,22 @@ export default async function AdminVehiclesPage({
                   <td className="p-3 font-medium">
                     {v.year} {v.make} {v.model} <span style={{ color: COLORS.slate }}>{v.trim}</span>
                   </td>
+                  <td className="p-3 text-xs whitespace-nowrap" style={{ color: COLORS.slate }}>
+                    {v.mileageKm.toLocaleString()} km · {v.fuel} · {v.transmission} · {v.bodyType}
+                  </td>
                   <td className="p-3">
                     {v.sourceSite ? (
                       <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: "#E8ECF3", color: COLORS.navy }}>
-                        {v.sourceSite === "beforward" ? "BE FORWARD" : "SBT Japan"}
+                        {sourceSiteLabel(v.sourceSite)}
                       </span>
                     ) : (
                       <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: "#F1F1EC", color: COLORS.slate }}>
                         Hand-entered
                       </span>
                     )}
+                  </td>
+                  <td className="p-3 text-xs" style={{ color: COLORS.slate }}>
+                    {v.externalId ? v.externalId.split(":")[1] ?? v.externalId : "—"}
                   </td>
                   <td className="p-3">{formatUsd(v.sourcePriceUsd)}</td>
                   <td className="p-3 font-semibold" style={{ color: COLORS.burgundy }}>
@@ -171,7 +179,7 @@ export default async function AdminVehiclesPage({
             })}
             {vehicles.length === 0 && (
               <tr>
-                <td colSpan={8} className="p-6 text-center text-sm" style={{ color: COLORS.slate }}>
+                <td colSpan={10} className="p-6 text-center text-sm" style={{ color: COLORS.slate }}>
                   No vehicles match this filter.
                 </td>
               </tr>
