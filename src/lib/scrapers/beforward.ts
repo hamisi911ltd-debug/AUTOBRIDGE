@@ -162,7 +162,7 @@ export async function scrapeBeforwardUnit(makeIndex: number, page: number): Prom
 /** Mutates v.imageUrl/v.imageWidthPx in place if a better detail-page photo is found; leaves the listing thumbnail untouched otherwise. */
 async function upgradeCoverImage(v: ScrapedVehicle): Promise<void> {
   const better = await fetchCoverImage("beforward", v.sourceUrl);
-  if (better) {
+  if (better && better !== "rate-limited") {
     v.imageUrl = better.url;
     v.imageWidthPx = better.widthPx;
   }

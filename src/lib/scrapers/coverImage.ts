@@ -15,9 +15,10 @@ const USER_AGENT = "Mozilla/5.0 (compatible; AutoBridgeKenyaBot/1.0; nightly inv
 export async function fetchCoverImage(
   site: "beforward" | "sbtjapan",
   detailUrl: string
-): Promise<{ url: string; widthPx: number } | null> {
+): Promise<{ url: string; widthPx: number } | "rate-limited" | null> {
   try {
     const detailRes = await fetch(detailUrl, { headers: { "User-Agent": USER_AGENT } });
+    if (detailRes.status === 429) return "rate-limited";
     if (!detailRes.ok) {
       console.error(`[fetchCoverImage] detail fetch ${detailRes.status} for ${detailUrl}`);
       return null;
