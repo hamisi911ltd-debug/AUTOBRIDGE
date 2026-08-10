@@ -1,6 +1,6 @@
 "use client";
 
-import { Car, ChevronRight, Cog, Fuel, Gauge, Heart, MapPin, Scale, Zap } from "lucide-react";
+import { Car, ChevronRight, Cog, Fuel, Gauge, Heart, Scale } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
 import { VehicleImage } from "@/components/vehicles/VehicleImage";
@@ -24,7 +24,7 @@ export function VehicleCard({
   return (
     <div className="bg-white rounded-2xl overflow-hidden border flex flex-col" style={{ borderColor: COLORS.line }}>
       <div
-        className="relative h-48 flex items-center justify-center overflow-hidden"
+        className="relative aspect-[4/3] flex items-center justify-center overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}
       >
         <VehicleImage src={v.imageUrl} alt={`${v.year} ${v.make} ${v.model}`} iconSize={56} />
@@ -54,47 +54,41 @@ export function VehicleCard({
           </button>
         </div>
       </div>
-      <div className="p-4 flex flex-col flex-1">
-        <h3 className="font-semibold leading-snug" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+      <div className="p-3 flex flex-col flex-1">
+        <h3 className="text-sm font-semibold leading-snug truncate" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
           {v.year} {v.make} {v.model}
         </h3>
-        <p className="text-xs mb-3" style={{ color: COLORS.slate }}>
+        <p className="text-[11px] mb-1.5 truncate" style={{ color: COLORS.slate }}>
           {v.trim}
         </p>
-        <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-xs mb-4" style={{ color: COLORS.slate }}>
+        <div className="flex flex-wrap gap-x-2.5 gap-y-1 text-[11px] mb-2" style={{ color: COLORS.slate }}>
           <span className="inline-flex items-center gap-1">
-            <Gauge size={12} /> {v.mileageKm.toLocaleString()} km
+            <Gauge size={11} /> {v.mileageKm.toLocaleString()} km
           </span>
           <span className="inline-flex items-center gap-1">
-            <Cog size={12} /> {v.transmission}
+            <Cog size={11} /> {v.transmission}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Fuel size={12} /> {v.fuel}
+            <Fuel size={11} /> {v.fuel}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Zap size={12} /> {v.engineCc}cc
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Car size={12} /> {v.bodyType}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <MapPin size={12} /> {v.sourceCountry}
+            <Car size={11} /> {v.bodyType}
           </span>
         </div>
-        <div className="mt-auto pt-3 border-t" style={{ borderColor: "#EEF0F3" }}>
-          <div className="text-[11px] uppercase tracking-wide" style={{ color: COLORS.slate }}>
+        <div className="mt-auto pt-2 border-t" style={{ borderColor: "#EEF0F3" }}>
+          <div className="text-[10px] uppercase tracking-wide" style={{ color: COLORS.slate }}>
             Vehicle Price
           </div>
-          <div className="text-lg font-bold" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
+          <div className="text-base font-bold" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
             {formatUsd(v.sellingPriceUsd)}
           </div>
         </div>
         <button
           onClick={onView}
-          className="mt-3 w-full py-2 rounded-full text-sm font-semibold flex items-center justify-center gap-1"
+          className="mt-2 w-full py-1.5 rounded-full text-xs font-semibold flex items-center justify-center gap-1"
           style={{ background: COLORS.navy, color: "#fff" }}
         >
-          View details <ChevronRight size={14} />
+          View details <ChevronRight size={13} />
         </button>
       </div>
     </div>
