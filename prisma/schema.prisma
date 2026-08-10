@@ -45,6 +45,7 @@ model Vehicle {
   sourcePriceUsd   Float
   imageUrl         String?
   imageUrls        String? // JSON-encoded string[] — up to 5 gallery photos; imageUrls[0] is always the same as imageUrl when present
+  imageWidthPx     Int? // actual verified pixel width of imageUrl — lets the public site filter out lingering low-res thumbnails without re-deriving quality from process history
   condition        String
   badge            String?
   lifestyle        String // JSON-encoded string[] (SQLite has no native array type)

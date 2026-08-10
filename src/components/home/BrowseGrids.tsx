@@ -1,24 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { Car, CarFront, CarTaxiFront, Caravan, Truck, Van, type LucideIcon } from "lucide-react";
 import { COLORS, FONT_DISPLAY, type Filters } from "@/lib/constants";
 import type { PublicVehicle } from "@/types/vehicle";
-
-// A real inventory photo per body-type tile looked inconsistent (odd crops,
-// whatever car happened to have the best photo that week) — a fixed icon per
-// category reads as a clean, deliberate silhouette instead. Lucide's car set
-// doesn't have a distinct icon for every possible body type, so unmapped
-// ones fall back to a plain Car glyph.
-const BODY_TYPE_ICON: Record<string, LucideIcon> = {
-  Sedan: Car,
-  SUV: CarFront,
-  Van: Van,
-  Hatchback: CarTaxiFront,
-  Wagon: Caravan,
-  Truck: Truck,
-  Pickup: Truck,
-};
 
 // Real manufacturer badges sourced from Wikimedia Commons (the actual
 // official logo artwork, not a simplified single-colour glyph) for every
@@ -82,7 +66,6 @@ export function BrowseGrids({
 }) {
   const eligible = useMemo(() => vehicles.filter((v) => v.eligible), [vehicles]);
   const byMake = useMemo(() => countBy(eligible, (v) => v.make), [eligible]);
-  const byBodyType = useMemo(() => countBy(eligible, (v) => v.bodyType), [eligible]);
   const byCountry = useMemo(() => countBy(eligible, (v) => v.sourceCountry), [eligible]);
 
   return (
@@ -122,40 +105,6 @@ export function BrowseGrids({
               </div>
             </button>
           ))}
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-xl font-semibold mb-4" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-          Browse by body type
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-          {byBodyType.map(([bodyType, count]) => {
-            const Icon = BODY_TYPE_ICON[bodyType] ?? Car;
-            return (
-              <button
-                key={bodyType}
-                onClick={() => goSearch({ bodyTypes: [bodyType] })}
-                className="rounded-xl border overflow-hidden text-left hover:shadow-md transition"
-                style={{ borderColor: COLORS.line }}
-              >
-                <div
-                  className="h-20 flex items-center justify-center"
-                  style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}
-                >
-                  <Icon size={30} color={COLORS.goldLight} strokeWidth={1.4} />
-                </div>
-                <div className="px-3 py-2">
-                  <div className="text-xs font-medium" style={{ color: COLORS.navy }}>
-                    {bodyType}
-                  </div>
-                  <div className="text-[11px]" style={{ color: COLORS.slate }}>
-                    {count}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
         </div>
       </div>
 
