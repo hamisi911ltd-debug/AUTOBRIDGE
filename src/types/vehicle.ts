@@ -20,10 +20,12 @@ export type PublicVehicle = {
   sourceCountry: string;
   sellingPriceUsd: number;
   imageUrl: string | null;
-  // True when the source CDN reliably serves large (1200px+) photos rather
-  // than a capped thumbnail — lets image-heavy sections (promo carousel,
-  // featured grid) prefer the sharpest photos without exposing which site
-  // a listing came from.
+  // Up to 5 gallery photos; imageUrls[0] is always the same as imageUrl.
+  // Empty when the vehicle only has a single cover photo.
+  imageUrls: string[];
+  // True when a real multi-photo gallery was fetched for this vehicle
+  // (rather than just a single listing thumbnail) — lets image-heavy
+  // sections (promo carousel, featured grid) prefer the sharpest photos.
   hqImage: boolean;
   condition: string;
   badge: string | null;

@@ -25,6 +25,7 @@ export async function getPublicVehicles(): Promise<PublicVehicle[]> {
 
   return vehicles.map((v) => {
     const { sellingPriceUsd } = computeSellingPriceUsd(v, rules);
+    const imageUrls = v.imageUrls ? (JSON.parse(v.imageUrls) as string[]) : [];
     return {
       id: v.id,
       make: v.make,
@@ -42,7 +43,10 @@ export async function getPublicVehicles(): Promise<PublicVehicle[]> {
       sourceCountry: v.sourceCountry,
       sellingPriceUsd,
       imageUrl: v.imageUrl,
-      hqImage: v.sourceSite === "sbtjapan",
+      imageUrls,
+      // A real multi-photo gallery is the strongest signal that this is a
+      // genuine large photo, not a capped listing thumbnail.
+      hqImage: imageUrls.length > 1,
       condition: v.condition,
       badge: v.badge,
       lifestyle: JSON.parse(v.lifestyle) as string[],

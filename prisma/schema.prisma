@@ -44,6 +44,7 @@ model Vehicle {
   sourceCountry    String
   sourcePriceUsd   Float
   imageUrl         String?
+  imageUrls        String? // JSON-encoded string[] — up to 5 gallery photos; imageUrls[0] is always the same as imageUrl when present
   condition        String
   badge            String?
   lifestyle        String // JSON-encoded string[] (SQLite has no native array type)

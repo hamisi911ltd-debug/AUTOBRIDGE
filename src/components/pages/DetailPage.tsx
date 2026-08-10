@@ -8,7 +8,7 @@ import type { PublicVehicle } from "@/types/vehicle";
 import type { Page } from "@/components/AutoBridgeApp";
 import { CostLadder } from "@/components/vehicles/CostLadder";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
-import { VehicleImage } from "@/components/vehicles/VehicleImage";
+import { VehicleGallery } from "@/components/vehicles/VehicleGallery";
 
 const TRUST_POINTS = [
   { icon: ShieldCheck, title: "Vetted before listing", text: "Every exporter and listing is checked before it goes live on AutoBridge." },
@@ -90,23 +90,25 @@ export function DetailPage({
 
       <div className="grid lg:grid-cols-[1.3fr_1fr] gap-8">
         <div>
-          <div
-            className="h-72 sm:h-96 rounded-2xl flex items-center justify-center relative mb-6 overflow-hidden"
-            style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}
-          >
-            <VehicleImage src={vehicle.imageUrl} alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} iconSize={96} />
-            {vehicle.badge && (
-              <span className="absolute top-4 left-4 text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>
-                {vehicle.badge}
-              </span>
-            )}
-            <span
-              className="absolute top-4 right-4 text-[11px] font-semibold px-2.5 py-1 rounded-full"
-              style={{ background: "rgba(11,31,58,0.55)", color: "white", backdropFilter: "blur(2px)" }}
-            >
-              Ref {ref}
-            </span>
-          </div>
+          <VehicleGallery
+            images={vehicle.imageUrls.length > 0 ? vehicle.imageUrls : vehicle.imageUrl ? [vehicle.imageUrl] : []}
+            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+            overlay={
+              <>
+                {vehicle.badge && (
+                  <span className="absolute top-4 left-4 text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>
+                    {vehicle.badge}
+                  </span>
+                )}
+                <span
+                  className="absolute top-4 right-4 text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                  style={{ background: "rgba(11,31,58,0.55)", color: "white", backdropFilter: "blur(2px)" }}
+                >
+                  Ref {ref}
+                </span>
+              </>
+            }
+          />
 
           <div className="flex items-start justify-between mb-2 flex-wrap gap-3">
             <div>
