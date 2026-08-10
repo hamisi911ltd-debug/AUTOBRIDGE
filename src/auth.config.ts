@@ -7,6 +7,10 @@ import type { NextAuthConfig } from "next-auth";
  * Node-runtime contexts (route handlers, server components, server actions).
  */
 export const authConfig = {
+  // Cloudflare Workers terminates the connection itself (no untrusted proxy
+  // in front), and the deployed host isn't known at build time — without
+  // this, Auth.js rejects every request with "UntrustedHost".
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [],

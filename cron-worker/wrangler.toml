@@ -11,4 +11,4 @@ crons = ["0 23 * * *"]
 [vars]
 # The deployed app's own URL — e.g. "https://autobridge-kenya.pages.dev" or
 # your custom domain. Not a secret, so it's fine as a plain var.
-TARGET_URL = "https://CHANGE-ME.pages.dev"
+TARGET_URL = "https://autobridge-kenya-web.glotech.workers.dev"

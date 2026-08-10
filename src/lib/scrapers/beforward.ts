@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio";
+import { parse, type HTMLElement } from "node-html-parser";
 import type { ScrapedVehicle } from "@/lib/scrapers/types";
 import { withRetry } from "@/lib/scrapers/http";
 import {
@@ -46,16 +46,16 @@ function urlFor(makeId: number, page: number): string {
   return page <= 1 ? `${base}/sortkey=n` : `${base}/page=${page}/sortkey=n`;
 }
 
-function detailedSpecMap($: cheerio.CheerioAPI, row: ReturnType<typeof $>): Record<string, string> {
+function detailedSpecMap(row: HTMLElement): Record<string, string> {
   const map: Record<string, string> = {};
-  row.find("table.table-detailed-spec tr").each((_, tr) => {
-    const cells = $(tr).children("th, td");
+  for (const tr of row.querySelectorAll("table.table-detailed-spec tr")) {
+    const cells = tr.querySelectorAll("th, td");
     for (let i = 0; i + 1 < cells.length; i += 2) {
-      const label = $(cells[i]).text().trim();
-      const value = $(cells[i + 1]).text().trim();
+      const label = cells[i].text.trim();
+      const value = cells[i + 1].text.trim();
       if (label) map[label] = value;
     }
-  });
+  }
   return map;
 }
 
@@ -68,16 +68,14 @@ async function fetchPage(url: string): Promise<string> {
 }
 
 function parsePage(html: string, make: string): ScrapedVehicle[] {
-  const $ = cheerio.load(html);
+  const root = parse(html);
   const vehicles: ScrapedVehicle[] = [];
 
-  $("tr.stocklist-row").each((_, el) => {
-    const row = $(el);
+  for (const row of root.querySelectorAll("tr.stocklist-row")) {
+    const refNo = (row.querySelector(".veh-stock-no span")?.text ?? "").replace(/Ref No\.?/i, "").trim();
+    if (!refNo) continue;
 
-    const refNo = row.find(".veh-stock-no span").first().text().replace(/Ref No\.?/i, "").trim();
-    if (!refNo) return;
-
-    const nameText = row.find(".make-model a").first().text().replace(/\s+/g, " ").trim();
+    const nameText = (row.querySelector(".make-model a")?.text ?? "").replace(/\s+/g, " ").trim();
     const yearMatch = nameText.match(/\b(19|20)\d{2}\b/);
     const year = yearMatch ? parseInt(yearMatch[0], 10) : 0;
     const afterYear = yearMatch ? nameText.slice(nameText.indexOf(yearMatch[0]) + 4).trim() : nameText;
@@ -87,31 +85,31 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
     const rest = words.slice(1); // drop the repeated make token
     const { model, trim } = splitModelTrim(rest);
 
-    const mileageKm = Math.round(parseNumber(row.find(".basic-spec-col.mileage .val").first().text()));
-    const engineCc = Math.round(parseNumber(row.find(".basic-spec-col.engine .val").first().text()));
-    const transmission = normalizeTransmission(row.find(".basic-spec-col.trans .val").first().text().trim() || "AT");
+    const mileageKm = Math.round(parseNumber(row.querySelector(".basic-spec-col.mileage .val")?.text ?? ""));
+    const engineCc = Math.round(parseNumber(row.querySelector(".basic-spec-col.engine .val")?.text ?? ""));
+    const transmission = normalizeTransmission((row.querySelector(".basic-spec-col.trans .val")?.text ?? "").trim() || "AT");
 
-    const priceText = row.find(".vehicle-price .price").first().text();
+    const priceText = row.querySelector(".vehicle-price .price")?.text ?? "";
     const sourcePriceUsd = Math.round(parseNumber(priceText));
 
-    const spec = detailedSpecMap($, row);
+    const spec = detailedSpecMap(row);
     const fuel = normalizeFuel(spec["Fuel"] || "Petrol");
     const drive = normalizeDrive(spec["Drive"] || "FWD");
     const color = spec["Color"] ? titleCase(spec["Color"]) : "White";
     const seats = parseInt(spec["Seats"] || "5", 10) || 5;
 
-    let imageUrl = row.find("img").first().attr("src") || null;
+    let imageUrl = row.querySelector("img")?.getAttribute("src") || null;
     if (imageUrl?.startsWith("//")) imageUrl = "https:" + imageUrl;
     // The listing page requests a 200px thumbnail (?w=200); the "medium"
     // folder's native resolution is closer to 480px, so ask for that
     // instead — same file, no extra request, noticeably sharper.
     if (imageUrl) imageUrl = imageUrl.replace(/([?&])w=\d+/, "$1w=640");
 
-    const detailHref = row.find(".veh-stock-no a").first().attr("href") || row.find(".make-model a").first().attr("href");
+    const detailHref = row.querySelector(".veh-stock-no a")?.getAttribute("href") || row.querySelector(".make-model a")?.getAttribute("href");
     const sourceUrl = detailHref ? new URL(detailHref, "https://www.beforward.jp").toString() : "https://www.beforward.jp";
 
-    if (!year || !sourcePriceUsd) return; // incomplete listing — skip rather than store junk
-    if (year < IMPORT_ELIGIBLE_FROM_YEAR) return; // older than Kenya's import threshold — not buyable, don't store it
+    if (!year || !sourcePriceUsd) continue; // incomplete listing — skip rather than store junk
+    if (year < IMPORT_ELIGIBLE_FROM_YEAR) continue; // older than Kenya's import threshold — not buyable, don't store it
 
     vehicles.push({
       sourceSite: "beforward",
@@ -133,31 +131,27 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
       sourcePriceUsd,
       imageUrl,
     });
-  });
+  }
 
   return vehicles;
 }
 
 /**
- * Scrapes a bounded number of pages per configured make from beforward.jp's
- * public stocklist. No auth, no API — this is a plain HTML scrape, so it's
- * intentionally conservative (few pages, one request at a time) to be a
- * light, respectful visitor rather than a bulk crawler.
+ * Scrapes a single page for a single configured make from beforward.jp's
+ * public stocklist. No auth, no API — this is a plain HTML scrape. Kept to
+ * one (make, page) per call so each call's parsing work stays small: on
+ * Cloudflare Workers this runs as one HTTP request per unit (see
+ * runScrapeUnit), which keeps every invocation well under the platform's
+ * per-request CPU budget instead of parsing dozens of pages in one shot.
  */
-export async function scrapeBeforward(pagesPerMake = 2): Promise<ScrapedVehicle[]> {
-  const all: ScrapedVehicle[] = [];
-  for (const { id, make } of BEFORWARD_MAKES) {
-    for (let page = 1; page <= pagesPerMake; page++) {
-      try {
-        const html = await fetchPage(urlFor(id, page));
-        const found = parsePage(html, make);
-        all.push(...found);
-        if (found.length === 0) break; // ran out of pages for this make
-      } catch (err) {
-        console.error(`[beforward] failed make=${make} page=${page}:`, err);
-        break;
-      }
-    }
+export async function scrapeBeforwardUnit(makeIndex: number, page: number): Promise<ScrapedVehicle[]> {
+  const entry = BEFORWARD_MAKES[makeIndex];
+  if (!entry) return [];
+  try {
+    const html = await fetchPage(urlFor(entry.id, page));
+    return parsePage(html, entry.make);
+  } catch (err) {
+    console.error(`[beforward] failed make=${entry.make} page=${page}:`, err);
+    return [];
   }
-  return all;
 }

@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio";
+import { parse } from "node-html-parser";
 import type { ScrapedVehicle } from "@/lib/scrapers/types";
 import { withRetry } from "@/lib/scrapers/http";
 import {
@@ -117,16 +117,14 @@ function cleanSbtImage(raw: string | null): string | null {
 }
 
 function parsePage(html: string, make: string): ScrapedVehicle[] {
-  const $ = cheerio.load(html);
+  const root = parse(html);
   const vehicles: ScrapedVehicle[] = [];
 
-  $("li.search-result__item").each((_, el) => {
-    const item = $(el);
+  for (const item of root.querySelectorAll("li.search-result__item")) {
+    const stockId = (item.querySelector(".card-product__stock-value")?.text ?? "").trim();
+    if (!stockId) continue;
 
-    const stockId = item.find(".card-product__stock-value").first().text().trim();
-    if (!stockId) return;
-
-    const heading = item.find("h2.card-product__product").first().text().replace(/\s+/g, " ").trim();
+    const heading = (item.querySelector("h2.card-product__product")?.text ?? "").replace(/\s+/g, " ").trim();
     const [yearPart, ...rest] = heading.split(" ");
     const year = parseInt((yearPart || "").split("/")[0], 10) || 0;
     const words = rest.filter(Boolean);
@@ -134,7 +132,7 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
     const { model, trim } = splitModelTrim(modelWords);
 
     const status = (cls: string) =>
-      item.find(`.card-product__status.-${cls}`).first().text().trim();
+      (item.querySelector(`.card-product__status.-${cls}`)?.text ?? "").trim();
 
     const mileageKm = Math.round(parseNumber(status("mileage")));
     const engineCc = Math.round(parseNumber(status("engine-capacity")));
@@ -146,20 +144,20 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
     const seatsRaw = status("seats");
     const seats = seatsRaw && seatsRaw !== "-" ? parseInt(seatsRaw, 10) || 5 : 5;
 
-    const priceText = item.find(".card-product__vehicle-price .card-product__price").first().text();
+    const priceText = item.querySelector(".card-product__vehicle-price .card-product__price")?.text ?? "";
     const sourcePriceUsd = Math.round(parseNumber(priceText));
 
-    let imageUrl = item.find(".card-product__image img").first().attr("src") || null;
+    let imageUrl = item.querySelector(".card-product__image img")?.getAttribute("src") || null;
     if (imageUrl?.startsWith("//")) imageUrl = "https:" + imageUrl;
     imageUrl = cleanSbtImage(imageUrl);
 
-    const detailHref = item.find(".card-product__wrap").first().attr("href");
+    const detailHref = item.querySelector(".card-product__wrap")?.getAttribute("href");
     const sourceUrl = detailHref
       ? new URL(detailHref, "https://www.sbtjapan.com").toString()
       : `https://www.sbtjapan.com/used-cars/${stockId}`;
 
-    if (!year || !sourcePriceUsd) return;
-    if (year < IMPORT_ELIGIBLE_FROM_YEAR) return; // older than Kenya's import threshold — not buyable, don't store it
+    if (!year || !sourcePriceUsd) continue;
+    if (year < IMPORT_ELIGIBLE_FROM_YEAR) continue; // older than Kenya's import threshold — not buyable, don't store it
 
     vehicles.push({
       sourceSite: "sbtjapan",
@@ -181,26 +179,27 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
       sourcePriceUsd,
       imageUrl,
     });
-  });
+  }
 
   return vehicles;
 }
 
-export async function scrapeSbtJapan(pagesPerMake = 2): Promise<ScrapedVehicle[]> {
-  const cookie = await establishSession();
-  const all: ScrapedVehicle[] = [];
-  for (const { id, make } of SBT_MAKES) {
-    for (let page = 1; page <= pagesPerMake; page++) {
-      try {
-        const html = await fetchWithSession(urlFor(id, page), cookie);
-        const found = parsePage(html, make);
-        all.push(...found);
-        if (found.length === 0) break;
-      } catch (err) {
-        console.error(`[sbtjapan] failed make=${make} page=${page}:`, err);
-        break;
-      }
-    }
+/**
+ * Scrapes a single page for a single configured make. Re-establishes the
+ * session cookie on every call rather than sharing it across a whole run —
+ * one extra request per unit, but it's I/O wait, not CPU, so it doesn't
+ * threaten the per-request CPU budget the way parsing many pages in one
+ * invocation would (see runScrapeUnit).
+ */
+export async function scrapeSbtJapanUnit(makeIndex: number, page: number): Promise<ScrapedVehicle[]> {
+  const entry = SBT_MAKES[makeIndex];
+  if (!entry) return [];
+  try {
+    const cookie = await establishSession();
+    const html = await fetchWithSession(urlFor(entry.id, page), cookie);
+    return parsePage(html, entry.make);
+  } catch (err) {
+    console.error(`[sbtjapan] failed make=${entry.make} page=${page}:`, err);
+    return [];
   }
-  return all;
 }

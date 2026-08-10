@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { runScrape, type ScrapeSummary } from "@/lib/scrapers/runScrape";
+import { runScrapeUnit, SCRAPE_MAKE_COUNTS, type ScrapeSite, type UnitScrapeSummary } from "@/lib/scrapers/runScrape";
 import type { MarkupType, Role, ScopeType } from "@/generated/prisma/enums";
 
 async function requireAdmin() {
@@ -138,19 +138,31 @@ export async function deleteVehicle(formData: FormData) {
   redirect("/admin/vehicles");
 }
 
+/** Lets the client enumerate every (site, makeIndex) unit to scrape without hardcoding the make counts. */
+export async function getScrapeManifest(): Promise<Record<ScrapeSite, number>> {
+  await requireAdmin();
+  return SCRAPE_MAKE_COUNTS;
+}
+
 /**
  * Manual "run it now" trigger for the same nightly scrape the cron route
  * runs — lets the admin refresh inventory on demand instead of waiting for
- * the schedule. Runs synchronously; the button that calls this should say
- * it can take a minute or two.
+ * the schedule. Scrapes exactly one (site, make) page per call; the button
+ * that calls this loops over every unit itself, calling this action once per
+ * unit so each individual invocation's parsing work stays under Cloudflare
+ * Workers' free-tier 10ms-CPU-per-request budget.
  */
-export async function runScrapeNow(): Promise<ScrapeSummary> {
+export async function runScrapeUnitNow(site: ScrapeSite, makeIndex: number): Promise<UnitScrapeSummary> {
   await requireAdmin();
-  const summary = await runScrape(1);
+  return runScrapeUnit(site, makeIndex, 1);
+}
+
+/** Call after the last unit in a scrape run finishes, to refresh cached pages with the new data. */
+export async function revalidateAfterScrape() {
+  await requireAdmin();
   revalidatePath("/admin");
   revalidatePath("/admin/vehicles");
   revalidatePath("/");
-  return summary;
 }
 
 export async function toggleEnquiryHandled(formData: FormData) {
