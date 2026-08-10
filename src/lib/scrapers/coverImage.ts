@@ -18,17 +18,27 @@ export async function fetchCoverImage(
 ): Promise<{ url: string; widthPx: number } | null> {
   try {
     const detailRes = await fetch(detailUrl, { headers: { "User-Agent": USER_AGENT } });
-    if (!detailRes.ok) return null;
+    if (!detailRes.ok) {
+      console.error(`[fetchCoverImage] detail fetch ${detailRes.status} for ${detailUrl}`);
+      return null;
+    }
     const html = await detailRes.text();
 
     const imageUrl = extractCoverImageUrl(site, html);
-    if (!imageUrl) return null;
+    if (!imageUrl) {
+      console.error(`[fetchCoverImage] no image match in detail HTML (len=${html.length}) for ${detailUrl}`);
+      return null;
+    }
 
     const widthPx = await measureImageWidthPx(imageUrl);
-    if (!widthPx) return null;
+    if (!widthPx) {
+      console.error(`[fetchCoverImage] width measurement failed for ${imageUrl}`);
+      return null;
+    }
 
     return { url: imageUrl, widthPx };
-  } catch {
+  } catch (err) {
+    console.error(`[fetchCoverImage] threw for ${detailUrl}:`, err instanceof Error ? err.message : err);
     return null;
   }
 }
@@ -38,10 +48,16 @@ export async function measureImageWidthPx(imageUrl: string | null): Promise<numb
   if (!imageUrl) return null;
   try {
     const res = await fetch(imageUrl, { headers: { "User-Agent": USER_AGENT, Range: "bytes=0-65535" } });
-    if (!res.ok && res.status !== 206) return null;
+    if (!res.ok && res.status !== 206) {
+      console.error(`[measureImageWidthPx] fetch ${res.status} for ${imageUrl}`);
+      return null;
+    }
     const buf = Buffer.from(await res.arrayBuffer());
-    return jpegWidth(buf);
-  } catch {
+    const width = jpegWidth(buf);
+    if (!width) console.error(`[measureImageWidthPx] no SOF marker found (${buf.length} bytes) for ${imageUrl}`);
+    return width;
+  } catch (err) {
+    console.error(`[measureImageWidthPx] threw for ${imageUrl}:`, err instanceof Error ? err.message : err);
     return null;
   }
 }
