@@ -3,6 +3,7 @@
 import type { Filters } from "@/lib/constants";
 import type { PublicVehicle } from "@/types/vehicle";
 import { PromoShowcase } from "@/components/home/PromoShowcase";
+import { StatsBar } from "@/components/home/StatsBar";
 import { BrowseGrids } from "@/components/home/BrowseGrids";
 import { BudgetLifestyleSection } from "@/components/home/BudgetLifestyleSection";
 import { IncomeEstimator } from "@/components/home/IncomeEstimator";
@@ -41,6 +42,7 @@ export function HomePage({
   return (
     <div>
       <PromoShowcase vehicles={vehicles} goDetail={goDetail} />
+      <StatsBar vehicles={vehicles} />
       <BrowseGrids vehicles={vehicles} goSearch={goSearch} />
       <BudgetLifestyleSection goSearch={goSearch} />
       <IncomeEstimator goSearch={goSearch} />

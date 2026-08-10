@@ -32,16 +32,20 @@ export function SearchPage({
 }) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const facets = useMemo(
-    () => ({
-      allMakes: [...new Set(vehicles.map((v) => v.make))].sort(),
+  const facets = useMemo(() => {
+    const makeCounts: Record<string, number> = {};
+    for (const v of vehicles) makeCounts[v.make] = (makeCounts[v.make] ?? 0) + 1;
+    const allMakes = Object.keys(makeCounts).sort((a, b) => makeCounts[b] - makeCounts[a]);
+
+    return {
+      allMakes,
+      makeCounts,
       allBodyTypes: [...new Set(vehicles.map((v) => v.bodyType))].sort(),
       allFuels: [...new Set(vehicles.map((v) => v.fuel))],
       allTransmissions: [...new Set(vehicles.map((v) => v.transmission))],
       allSourceCountries: [...new Set(vehicles.map((v) => v.sourceCountry))],
-    }),
-    [vehicles]
-  );
+    };
+  }, [vehicles]);
 
   const filtered = useMemo(() => {
     const list = vehicles.filter((v) => matchesFilters(v, filters, landedMap[v.id].total, favorites));

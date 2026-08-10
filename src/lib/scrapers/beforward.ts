@@ -1,6 +1,7 @@
 import { parse, type HTMLElement } from "node-html-parser";
 import type { ScrapedVehicle } from "@/lib/scrapers/types";
 import { withRetry } from "@/lib/scrapers/http";
+import { fetchCoverImage } from "@/lib/scrapers/coverImage";
 import {
   guessBodyType,
   IMPORT_ELIGIBLE_FROM_YEAR,
@@ -149,9 +150,20 @@ export async function scrapeBeforwardUnit(makeIndex: number, page: number): Prom
   if (!entry) return [];
   try {
     const html = await fetchPage(urlFor(entry.id, page));
-    return parsePage(html, entry.make);
+    const vehicles = parsePage(html, entry.make);
+    await Promise.all(vehicles.map(upgradeCoverImage));
+    return vehicles;
   } catch (err) {
     console.error(`[beforward] failed make=${entry.make} page=${page}:`, err);
     return [];
+  }
+}
+
+/** Mutates v.imageUrl/v.imageWidthPx in place if a better detail-page photo is found; leaves the listing thumbnail untouched otherwise. */
+async function upgradeCoverImage(v: ScrapedVehicle): Promise<void> {
+  const better = await fetchCoverImage("beforward", v.sourceUrl);
+  if (better) {
+    v.imageUrl = better.url;
+    v.imageWidthPx = better.widthPx;
   }
 }

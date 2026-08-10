@@ -4,10 +4,22 @@ import { ShieldCheck } from "lucide-react";
 import { COLORS, DEFAULT_FILTERS, YEARS, type Filters } from "@/lib/constants";
 import { CheckboxGroup } from "@/components/vehicles/CheckboxGroup";
 
+// Quick-jump landed-cost bands (KSh) — a denser, one-tap alternative to
+// typing exact min/max figures, spanning the range this catalog actually
+// spans after duty, VAT and shipping.
+const PRICE_BANDS: { label: string; min: number; max: number }[] = [
+  { label: "Under KSh 1.5M", min: 0, max: 1_500_000 },
+  { label: "KSh 1.5M – 2.5M", min: 1_500_000, max: 2_500_000 },
+  { label: "KSh 2.5M – 4M", min: 2_500_000, max: 4_000_000 },
+  { label: "KSh 4M – 6M", min: 4_000_000, max: 6_000_000 },
+  { label: "Over KSh 6M", min: 6_000_000, max: DEFAULT_FILTERS.priceMaxKes },
+];
+
 export function FilterSidebar({
   filters,
   setFilters,
   allMakes,
+  makeCounts,
   allBodyTypes,
   allFuels,
   allTransmissions,
@@ -16,6 +28,7 @@ export function FilterSidebar({
   filters: Filters;
   setFilters: (updater: (f: Filters) => Filters) => void;
   allMakes: string[];
+  makeCounts: Record<string, number>;
   allBodyTypes: string[];
   allFuels: string[];
   allTransmissions: string[];
@@ -92,6 +105,21 @@ export function FilterSidebar({
         <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
           Landed cost (KSh)
         </div>
+        <div className="flex flex-col gap-1 mb-2">
+          {PRICE_BANDS.map((band) => {
+            const active = filters.priceMinKes === band.min && filters.priceMaxKes === band.max;
+            return (
+              <button
+                key={band.label}
+                onClick={() => patch({ priceMinKes: band.min, priceMaxKes: band.max })}
+                className="text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition"
+                style={active ? { background: COLORS.navy, color: "#fff" } : { background: COLORS.card, color: COLORS.ink }}
+              >
+                {band.label}
+              </button>
+            );
+          })}
+        </div>
         <div className="flex items-center gap-2 text-sm">
           <input
             type="number"
@@ -113,7 +141,35 @@ export function FilterSidebar({
         </div>
       </div>
 
-      <CheckboxGroup title="Make" options={allMakes} selected={filters.makes} onToggle={(v) => toggleIn("makes", v)} />
+      <div className="mb-5">
+        <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
+          Make
+        </div>
+        <div className="flex flex-col max-h-64 overflow-y-auto pr-1">
+          {allMakes.map((make) => {
+            const active = filters.makes.includes(make);
+            return (
+              <button
+                key={make}
+                onClick={() => toggleIn("makes", make)}
+                className="flex items-center justify-between px-2 py-1.5 rounded-lg text-sm text-left"
+                style={active ? { background: COLORS.card } : undefined}
+              >
+                <span className="flex items-center gap-2">
+                  <span
+                    className="w-3.5 h-3.5 rounded border shrink-0"
+                    style={active ? { background: COLORS.navy, borderColor: COLORS.navy } : { borderColor: "#D8DCE3" }}
+                  />
+                  {make}
+                </span>
+                <span className="text-xs" style={{ color: COLORS.slate }}>
+                  ({makeCounts[make] ?? 0})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <CheckboxGroup title="Body type" options={allBodyTypes} selected={filters.bodyTypes} onToggle={(v) => toggleIn("bodyTypes", v)} />
       <CheckboxGroup title="Fuel" options={allFuels} selected={filters.fuels} onToggle={(v) => toggleIn("fuels", v)} />
       <CheckboxGroup title="Transmission" options={allTransmissions} selected={filters.transmissions} onToggle={(v) => toggleIn("transmissions", v)} />

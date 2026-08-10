@@ -16,5 +16,10 @@ export type ScrapedVehicle = {
   sourceCountry: string;
   sourcePriceUsd: number;
   imageUrl: string | null;
+  // Set when fetchCoverImage successfully upgraded imageUrl to a real
+  // detail-page photo, so upsertVehicle can skip re-measuring it. Left
+  // undefined when the upgrade failed and imageUrl is still the (possibly
+  // unreliable) listing-page thumbnail — that case still needs measuring.
+  imageWidthPx?: number;
   sourceUrl: string;
 };

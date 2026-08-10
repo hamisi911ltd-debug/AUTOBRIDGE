@@ -1,8 +1,8 @@
-import { Buffer } from "node:buffer";
 import { prisma } from "@/lib/prisma";
 import { BEFORWARD_MAKES, scrapeBeforwardUnit } from "@/lib/scrapers/beforward";
 import { SBT_MAKES, scrapeSbtJapanUnit } from "@/lib/scrapers/sbtJapan";
 import { computeEligibility, deriveLifestyle } from "@/lib/scrapers/normalize";
+import { measureImageWidthPx } from "@/lib/scrapers/coverImage";
 import type { ScrapedVehicle } from "@/lib/scrapers/types";
 
 export type ScrapeSite = "beforward" | "sbtjapan";
@@ -22,41 +22,14 @@ export type UnitScrapeSummary = {
   errors: number;
 };
 
-/**
- * getPublicVehicles() only shows vehicles with a verified-sharp cover photo
- * (imageWidthPx >= 500) — without measuring it here at scrape time, every
- * newly-scraped vehicle would sit invisible on the public site forever,
- * since nothing else ever revisits old rows to measure them. A ranged
- * request keeps this cheap: the JPEG SOF marker carrying the real
- * dimensions is always within the first few KB.
- */
-async function measureImageWidthPx(imageUrl: string | null): Promise<number | null> {
-  if (!imageUrl) return null;
-  try {
-    const res = await fetch(imageUrl, { headers: { Range: "bytes=0-65535" } });
-    if (!res.ok && res.status !== 206) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
-    let i = 2;
-    while (i < buf.length - 9) {
-      if (buf[i] !== 0xff) {
-        i++;
-        continue;
-      }
-      const marker = buf[i + 1];
-      if (marker >= 0xc0 && marker <= 0xc3) return buf.readUInt16BE(i + 7);
-      const len = buf.readUInt16BE(i + 2);
-      i += 2 + len;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
 async function upsertVehicle(v: ScrapedVehicle): Promise<"created" | "updated"> {
   const { eligible, ineligibleReason } = computeEligibility(v.year);
   const lifestyle = deriveLifestyle(v.bodyType, v.fuel, v.sourcePriceUsd);
-  const imageWidthPx = await measureImageWidthPx(v.imageUrl);
+  // beforward.ts already measures the width of any detail-page photo it
+  // upgrades to (see fetchCoverImage) — only fall back to measuring here
+  // when that didn't happen (sbtjapan's listing thumbnail, or an upgrade
+  // that failed and left the original listing-page thumbnail in place).
+  const imageWidthPx = v.imageWidthPx ?? (await measureImageWidthPx(v.imageUrl));
 
   const data = {
     make: v.make,

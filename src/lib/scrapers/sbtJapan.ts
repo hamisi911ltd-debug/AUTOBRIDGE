@@ -198,6 +198,12 @@ export async function scrapeSbtJapanUnit(makeIndex: number, page: number): Promi
     const cookie = await establishSession();
     const html = await fetchWithSession(urlFor(entry.id, page), cookie);
     return parsePage(html, entry.make);
+    // Deliberately not upgrading via fetchCoverImage here, unlike beforward:
+    // SBT's listing thumbnail already reliably serves a real ?imwidth=1200
+    // photo (unlike beforward's ?w= param, which some listings silently
+    // ignore), and this site's units are already hitting Workers' CPU limit
+    // on a meaningful fraction of runs — adding another fetch+parse per
+    // vehicle here would only make that worse for no real quality gain.
   } catch (err) {
     console.error(`[sbtjapan] failed make=${entry.make} page=${page}:`, err);
     return [];
