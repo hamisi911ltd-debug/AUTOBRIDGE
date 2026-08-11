@@ -1,7 +1,9 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ShieldCheck } from "lucide-react";
 import { COLORS, DEFAULT_FILTERS, YEARS, type Filters } from "@/lib/constants";
+import { MAKE_LOGO, COUNTRY_ISO } from "@/lib/vehicleBranding";
 import { CheckboxGroup } from "@/components/vehicles/CheckboxGroup";
 
 // Quick-jump landed-cost bands (KSh) — a denser, one-tap alternative to
@@ -15,29 +17,80 @@ const PRICE_BANDS: { label: string; min: number; max: number }[] = [
   { label: "Over KSh 6M", min: 6_000_000, max: DEFAULT_FILTERS.priceMaxKes },
 ];
 
+type ToggleKey = "makes" | "models" | "bodyTypes" | "fuels" | "transmissions" | "sourceCountries";
+
+/** A dense, scrollable list with a count and optional leading icon per row — used for Make, Model and Country, which all need more visual weight than a plain checkbox pill. */
+function IconCheckList({
+  items,
+  counts,
+  selected,
+  onToggle,
+  iconFor,
+}: {
+  items: string[];
+  counts: Record<string, number>;
+  selected: string[];
+  onToggle: (v: string) => void;
+  iconFor?: (item: string) => ReactNode;
+}) {
+  return (
+    <div className="flex flex-col max-h-56 overflow-y-auto pr-1">
+      {items.map((item) => {
+        const active = selected.includes(item);
+        return (
+          <button
+            key={item}
+            onClick={() => onToggle(item)}
+            className="flex items-center justify-between px-2 py-1.5 rounded-lg text-sm text-left"
+            style={active ? { background: COLORS.card } : undefined}
+          >
+            <span className="flex items-center gap-2 min-w-0">
+              <span
+                className="w-3.5 h-3.5 rounded border shrink-0"
+                style={active ? { background: COLORS.navy, borderColor: COLORS.navy } : { borderColor: "#D8DCE3" }}
+              />
+              {iconFor?.(item)}
+              <span className="truncate">{item}</span>
+            </span>
+            <span className="text-xs shrink-0 ml-1" style={{ color: COLORS.slate }}>
+              ({counts[item] ?? 0})
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function FilterSidebar({
   filters,
   setFilters,
   allMakes,
   makeCounts,
+  allModels,
+  modelCounts,
   allBodyTypes,
   allFuels,
   allTransmissions,
   allSourceCountries,
+  sourceCountryCounts,
 }: {
   filters: Filters;
   setFilters: (updater: (f: Filters) => Filters) => void;
   allMakes: string[];
   makeCounts: Record<string, number>;
+  allModels: string[];
+  modelCounts: Record<string, number>;
   allBodyTypes: string[];
   allFuels: string[];
   allTransmissions: string[];
   allSourceCountries: string[];
+  sourceCountryCounts: Record<string, number>;
 }) {
   function patch(p: Partial<Filters>) {
     setFilters((f) => ({ ...f, ...p }));
   }
-  function toggleIn(key: "makes" | "bodyTypes" | "fuels" | "transmissions" | "sourceCountries", val: string) {
+  function toggleIn(key: ToggleKey, val: string) {
     setFilters((f) => {
       const arr = f[key];
       const next = arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val];
@@ -46,7 +99,10 @@ export function FilterSidebar({
   }
 
   return (
-    <aside className="bg-white rounded-2xl border p-5" style={{ borderColor: COLORS.line }}>
+    <aside
+      className="bg-white rounded-2xl border p-5 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto"
+      style={{ borderColor: COLORS.line }}
+    >
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold" style={{ color: COLORS.navy }}>
           Filters
@@ -145,35 +201,52 @@ export function FilterSidebar({
         <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
           Make
         </div>
-        <div className="flex flex-col max-h-64 overflow-y-auto pr-1">
-          {allMakes.map((make) => {
-            const active = filters.makes.includes(make);
-            return (
-              <button
-                key={make}
-                onClick={() => toggleIn("makes", make)}
-                className="flex items-center justify-between px-2 py-1.5 rounded-lg text-sm text-left"
-                style={active ? { background: COLORS.card } : undefined}
-              >
-                <span className="flex items-center gap-2">
-                  <span
-                    className="w-3.5 h-3.5 rounded border shrink-0"
-                    style={active ? { background: COLORS.navy, borderColor: COLORS.navy } : { borderColor: "#D8DCE3" }}
-                  />
-                  {make}
-                </span>
-                <span className="text-xs" style={{ color: COLORS.slate }}>
-                  ({makeCounts[make] ?? 0})
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <IconCheckList
+          items={allMakes}
+          counts={makeCounts}
+          selected={filters.makes}
+          onToggle={(v) => toggleIn("makes", v)}
+          iconFor={(make) =>
+            MAKE_LOGO[make] ? (
+              // eslint-disable-next-line @next/next/no-img-element -- external logo CDN
+              <img src={MAKE_LOGO[make]} alt="" className="w-4 h-4 object-contain shrink-0" loading="lazy" />
+            ) : (
+              <span className="w-4 h-4 shrink-0" />
+            )
+          }
+        />
       </div>
+
+      <div className="mb-5">
+        <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
+          Model
+        </div>
+        <IconCheckList items={allModels} counts={modelCounts} selected={filters.models} onToggle={(v) => toggleIn("models", v)} />
+      </div>
+
       <CheckboxGroup title="Body type" options={allBodyTypes} selected={filters.bodyTypes} onToggle={(v) => toggleIn("bodyTypes", v)} />
       <CheckboxGroup title="Fuel" options={allFuels} selected={filters.fuels} onToggle={(v) => toggleIn("fuels", v)} />
       <CheckboxGroup title="Transmission" options={allTransmissions} selected={filters.transmissions} onToggle={(v) => toggleIn("transmissions", v)} />
-      <CheckboxGroup title="Source market" options={allSourceCountries} selected={filters.sourceCountries} onToggle={(v) => toggleIn("sourceCountries", v)} />
+
+      <div className="mb-1">
+        <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
+          Source market
+        </div>
+        <IconCheckList
+          items={allSourceCountries}
+          counts={sourceCountryCounts}
+          selected={filters.sourceCountries}
+          onToggle={(v) => toggleIn("sourceCountries", v)}
+          iconFor={(country) =>
+            COUNTRY_ISO[country] ? (
+              // eslint-disable-next-line @next/next/no-img-element -- external flag CDN
+              <img src={`https://flagcdn.com/w40/${COUNTRY_ISO[country]}.png`} alt="" className="w-4 h-3 object-cover shrink-0" loading="lazy" />
+            ) : (
+              <span className="w-4 h-3 shrink-0" />
+            )
+          }
+        />
+      </div>
     </aside>
   );
 }

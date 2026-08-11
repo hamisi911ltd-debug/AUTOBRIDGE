@@ -45,6 +45,7 @@ export type Filters = {
   priceMinKes: number;
   priceMaxKes: number;
   makes: string[];
+  models: string[];
   bodyTypes: string[];
   fuels: string[];
   transmissions: string[];
@@ -62,6 +63,7 @@ export const DEFAULT_FILTERS: Filters = {
   priceMinKes: 0,
   priceMaxKes: 20_000_000,
   makes: [],
+  models: [],
   bodyTypes: [],
   fuels: [],
   transmissions: [],

@@ -51,6 +51,17 @@ export function HomePage({
     <div>
       <PromoShowcase vehicles={vehicles} goDetail={goDetail} />
       <StatsBar vehicles={vehicles} />
+      <CatalogueSection
+        vehicles={vehicles}
+        landedMap={landedMap}
+        filters={filters}
+        setFilters={setFilters}
+        favorites={favorites}
+        toggleFavorite={toggleFavorite}
+        compareList={compareList}
+        toggleCompare={toggleCompare}
+        goDetail={goDetail}
+      />
       <OffersSlider vehicles={vehicles} goDetail={goDetail} />
       <BrowseGrids vehicles={vehicles} goSearch={goSearch} />
       <BudgetLifestyleSection goSearch={goSearch} />
@@ -67,17 +78,6 @@ export function HomePage({
         onViewAll={() => goSearch({})}
       />
       <HowItWorks />
-      <CatalogueSection
-        vehicles={vehicles}
-        landedMap={landedMap}
-        filters={filters}
-        setFilters={setFilters}
-        favorites={favorites}
-        toggleFavorite={toggleFavorite}
-        compareList={compareList}
-        toggleCompare={toggleCompare}
-        goDetail={goDetail}
-      />
       <WhyUs />
       <FAQSection />
     </div>

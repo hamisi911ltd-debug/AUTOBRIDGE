@@ -18,6 +18,7 @@ export function matchesFilters(
   if (v.year < f.yearMin || v.year > f.yearMax) return false;
   if (landedTotal < f.priceMinKes || landedTotal > f.priceMaxKes) return false;
   if (f.makes.length && !f.makes.includes(v.make)) return false;
+  if (f.models.length && !f.models.includes(`${v.make} ${v.model}`)) return false;
   if (f.bodyTypes.length && !f.bodyTypes.includes(v.bodyType)) return false;
   if (f.fuels.length && !f.fuels.includes(v.fuel)) return false;
   if (f.transmissions.length && !f.transmissions.includes(v.transmission)) return false;
