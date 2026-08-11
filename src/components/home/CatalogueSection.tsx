@@ -85,14 +85,15 @@ export function CatalogueSection({
   }
 
   return (
-    <section id="catalogue" className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+    <section id="catalogue" className="max-w-7xl mx-auto px-4 sm:px-6 pt-10 pb-14">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-            Browse the full catalogue
+          <div className="w-10 h-1 rounded-full mb-3" style={{ background: COLORS.gold }} />
+          <h2 className="text-2xl sm:text-3xl font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+            Find your car
           </h2>
           <p className="text-sm mt-1" style={{ color: COLORS.slate }}>
-            {filtered.length} vehicle{filtered.length !== 1 ? "s" : ""} match your filters
+            {filtered.length} vehicle{filtered.length !== 1 ? "s" : ""} match your filters — filter by make, model, price and more
           </p>
         </div>
         <button

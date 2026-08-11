@@ -6,13 +6,8 @@ import type { PublicVehicle } from "@/types/vehicle";
 import { PromoShowcase } from "@/components/home/PromoShowcase";
 import { StatsBar } from "@/components/home/StatsBar";
 import { OffersSlider } from "@/components/home/OffersSlider";
-import { BrowseGrids } from "@/components/home/BrowseGrids";
 import { CatalogueSection } from "@/components/home/CatalogueSection";
-import { BudgetLifestyleSection } from "@/components/home/BudgetLifestyleSection";
-import { IncomeEstimator } from "@/components/home/IncomeEstimator";
-import { HowItWorks } from "@/components/home/HowItWorks";
-import { WhyUs } from "@/components/home/WhyUs";
-import { FAQSection } from "@/components/home/FAQSection";
+import { SmallAdvertsSlider } from "@/components/home/SmallAdvertsSlider";
 import { VehicleGridSection } from "@/components/vehicles/VehicleGridSection";
 
 export function HomePage({
@@ -63,9 +58,6 @@ export function HomePage({
         goDetail={goDetail}
       />
       <OffersSlider vehicles={vehicles} goDetail={goDetail} />
-      <BrowseGrids vehicles={vehicles} goSearch={goSearch} />
-      <BudgetLifestyleSection goSearch={goSearch} />
-      <IncomeEstimator goSearch={goSearch} />
       <VehicleGridSection
         title="Featured this week"
         subtitle="Hand-picked listings with strong value after duty and shipping."
@@ -77,9 +69,7 @@ export function HomePage({
         goDetail={goDetail}
         onViewAll={() => goSearch({})}
       />
-      <HowItWorks />
-      <WhyUs />
-      <FAQSection />
+      <SmallAdvertsSlider />
     </div>
   );
 }
