@@ -14,7 +14,7 @@ const USER_AGENT =
 // Kept modest deliberately — the site occasionally serves a Cloudflare bot
 // challenge instead of the real page, so wide, slow coverage beats trying
 // to grab everything in one run.
-export const DUBICARS_PAGE_COUNT = 150;
+export const DUBICARS_PAGE_COUNT = 331;
 export const DUBICARS_MAKES: { id: number; make: string }[] = Array.from({ length: DUBICARS_PAGE_COUNT }, (_, i) => ({
   id: i + 1,
   make: `page-${i + 1}`,
