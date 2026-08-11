@@ -36,8 +36,8 @@ export function HomePage({
   const featured = vehicles
     .filter((v) => v.eligible && v.imageUrl)
     .sort((a, b) => Number(b.hqImage) - Number(a.hqImage) || b.sellingPriceUsd - a.sellingPriceUsd)
-    .slice(0, 4);
-  const latest = vehicles.filter((v) => v.eligible && v.imageUrl).slice(0, 8);
+    .slice(0, 8);
+  const latest = vehicles.filter((v) => v.eligible && v.imageUrl).slice(0, 24);
 
   return (
     <div>
@@ -55,16 +55,19 @@ export function HomePage({
         compareList={compareList}
         toggleCompare={toggleCompare}
         goDetail={goDetail}
+        onViewAll={() => goSearch({})}
       />
       <HowItWorks />
       <VehicleGridSection
         title="Latest arrivals"
+        subtitle="Every make, every source market — newest listings first."
         vehicles={latest}
         favorites={favorites}
         toggleFavorite={toggleFavorite}
         compareList={compareList}
         toggleCompare={toggleCompare}
         goDetail={goDetail}
+        onViewAll={() => goSearch({})}
       />
       <WhyUs />
       <FAQSection />

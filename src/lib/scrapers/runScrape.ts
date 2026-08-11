@@ -1,16 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { BEFORWARD_MAKES, scrapeBeforwardUnit } from "@/lib/scrapers/beforward";
 import { SBT_MAKES, scrapeSbtJapanUnit } from "@/lib/scrapers/sbtJapan";
+import { DUBICARS_MAKES, scrapeDubicarsUnit } from "@/lib/scrapers/dubicars";
 import { computeEligibility, deriveLifestyle } from "@/lib/scrapers/normalize";
 import { measureImageWidthPx } from "@/lib/scrapers/coverImage";
 import type { ScrapedVehicle } from "@/lib/scrapers/types";
 
-export type ScrapeSite = "beforward" | "sbtjapan";
+export type ScrapeSite = "beforward" | "sbtjapan" | "dubicars";
 
-/** How many configured makes exist per site — lets orchestrators (the cron-worker, the admin panel) enumerate every (site, makeIndex) unit without duplicating the make lists. */
+/** How many configured makes exist per site — lets orchestrators (the cron-worker, the admin panel) enumerate every (site, makeIndex) unit without duplicating the make lists. For dubicars, "make" is really a page number (see dubicars.ts). */
 export const SCRAPE_MAKE_COUNTS: Record<ScrapeSite, number> = {
   beforward: BEFORWARD_MAKES.length,
   sbtjapan: SBT_MAKES.length,
+  dubicars: DUBICARS_MAKES.length,
 };
 
 export type UnitScrapeSummary = {
@@ -83,7 +85,7 @@ async function upsertVehicle(v: ScrapedVehicle): Promise<"created" | "updated"> 
  * individual call's parsing work stays small.
  */
 export async function runScrapeUnit(site: ScrapeSite, makeIndex: number, page = 1): Promise<UnitScrapeSummary> {
-  const makes = site === "beforward" ? BEFORWARD_MAKES : SBT_MAKES;
+  const makes = site === "beforward" ? BEFORWARD_MAKES : site === "sbtjapan" ? SBT_MAKES : DUBICARS_MAKES;
   const entry = makes[makeIndex];
   if (!entry) {
     return { site, make: null, found: 0, created: 0, updated: 0, errors: 0 };
@@ -91,7 +93,12 @@ export async function runScrapeUnit(site: ScrapeSite, makeIndex: number, page = 
 
   let vehicles: ScrapedVehicle[];
   try {
-    vehicles = site === "beforward" ? await scrapeBeforwardUnit(makeIndex, page) : await scrapeSbtJapanUnit(makeIndex, page);
+    vehicles =
+      site === "beforward"
+        ? await scrapeBeforwardUnit(makeIndex, page)
+        : site === "sbtjapan"
+          ? await scrapeSbtJapanUnit(makeIndex, page)
+          : await scrapeDubicarsUnit(makeIndex);
   } catch (err) {
     console.error(`[runScrapeUnit] ${site} make=${entry.make} page=${page} failed entirely:`, err);
     return { site, make: entry.make, found: 0, created: 0, updated: 0, errors: 1 };

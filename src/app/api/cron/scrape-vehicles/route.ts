@@ -35,8 +35,8 @@ export async function POST(req: Request) {
   const makeIndex = parseInt(searchParams.get("makeIndex") ?? "", 10);
   const page = parseInt(searchParams.get("page") ?? "1", 10);
 
-  if (site !== "beforward" && site !== "sbtjapan") {
-    return NextResponse.json({ error: "invalid or missing 'site' (expected beforward|sbtjapan)" }, { status: 400 });
+  if (site !== "beforward" && site !== "sbtjapan" && site !== "dubicars") {
+    return NextResponse.json({ error: "invalid or missing 'site' (expected beforward|sbtjapan|dubicars)" }, { status: 400 });
   }
   if (Number.isNaN(makeIndex)) {
     return NextResponse.json({ error: "invalid or missing 'makeIndex'" }, { status: 400 });

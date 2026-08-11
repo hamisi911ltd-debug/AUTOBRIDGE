@@ -7,7 +7,7 @@ import type { ScrapeSite } from "@/lib/scrapers/runScrape";
 
 type Totals = { totalFound: number; created: number; updated: number; errors: number; bySite: Record<ScrapeSite, number> };
 
-const EMPTY_TOTALS: Totals = { totalFound: 0, created: 0, updated: 0, errors: 0, bySite: { beforward: 0, sbtjapan: 0 } };
+const EMPTY_TOTALS: Totals = { totalFound: 0, created: 0, updated: 0, errors: 0, bySite: { beforward: 0, sbtjapan: 0, dubicars: 0 } };
 
 export function RunScrapeButton() {
   const [running, setRunning] = useState(false);
@@ -26,7 +26,7 @@ export function RunScrapeButton() {
       const total = sites.reduce((sum, site) => sum + manifest[site], 0);
       setProgress({ done: 0, total });
 
-      const totals: Totals = { ...EMPTY_TOTALS, bySite: { beforward: 0, sbtjapan: 0 } };
+      const totals: Totals = { ...EMPTY_TOTALS, bySite: { beforward: 0, sbtjapan: 0, dubicars: 0 } };
       let done = 0;
 
       // One call per (site, make) — each call is its own request, keeping
@@ -70,7 +70,7 @@ export function RunScrapeButton() {
       {result && (
         <p className="text-xs mt-2" style={{ color: COLORS.slate }}>
           Found {result.totalFound} listings ({result.bySite.beforward} BE FORWARD, {result.bySite.sbtjapan} SBT
-          Japan) — {result.created} new, {result.updated} updated
+          Japan, {result.bySite.dubicars} Dubicars) — {result.created} new, {result.updated} updated
           {result.errors > 0 ? `, ${result.errors} errors` : ""}.
         </p>
       )}

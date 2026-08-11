@@ -3,7 +3,7 @@ export interface Env {
   CRON_SECRET: string;
 }
 
-type ScrapeSite = "beforward" | "sbtjapan";
+type ScrapeSite = "beforward" | "sbtjapan" | "dubicars";
 
 /**
  * The app's /api/cron/scrape-vehicles route scrapes one (site, make) page
