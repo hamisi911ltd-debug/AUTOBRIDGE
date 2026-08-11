@@ -110,6 +110,9 @@ export function AutoBridgeApp({ vehicles }: { vehicles: PublicVehicle[] }) {
         {page === "home" && (
           <HomePage
             vehicles={vehicles}
+            landedMap={landedMap}
+            filters={filters}
+            setFilters={setFilters}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
             compareList={compareList}

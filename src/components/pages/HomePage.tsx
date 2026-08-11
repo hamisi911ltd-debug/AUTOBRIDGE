@@ -1,10 +1,13 @@
 "use client";
 
 import type { Filters } from "@/lib/constants";
+import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import { PromoShowcase } from "@/components/home/PromoShowcase";
 import { StatsBar } from "@/components/home/StatsBar";
+import { OffersSlider } from "@/components/home/OffersSlider";
 import { BrowseGrids } from "@/components/home/BrowseGrids";
+import { CatalogueSection } from "@/components/home/CatalogueSection";
 import { BudgetLifestyleSection } from "@/components/home/BudgetLifestyleSection";
 import { IncomeEstimator } from "@/components/home/IncomeEstimator";
 import { HowItWorks } from "@/components/home/HowItWorks";
@@ -14,6 +17,9 @@ import { VehicleGridSection } from "@/components/vehicles/VehicleGridSection";
 
 export function HomePage({
   vehicles,
+  landedMap,
+  filters,
+  setFilters,
   favorites,
   toggleFavorite,
   compareList,
@@ -22,6 +28,9 @@ export function HomePage({
   goSearch,
 }: {
   vehicles: PublicVehicle[];
+  landedMap: Record<string, LandedCost>;
+  filters: Filters;
+  setFilters: (updater: (f: Filters) => Filters) => void;
   favorites: Set<string>;
   toggleFavorite: (id: string) => void;
   compareList: string[];
@@ -37,12 +46,12 @@ export function HomePage({
     .filter((v) => v.eligible && v.imageUrl)
     .sort((a, b) => Number(b.hqImage) - Number(a.hqImage) || b.sellingPriceUsd - a.sellingPriceUsd)
     .slice(0, 8);
-  const latest = vehicles.filter((v) => v.eligible && v.imageUrl).slice(0, 24);
 
   return (
     <div>
       <PromoShowcase vehicles={vehicles} goDetail={goDetail} />
       <StatsBar vehicles={vehicles} />
+      <OffersSlider vehicles={vehicles} goDetail={goDetail} />
       <BrowseGrids vehicles={vehicles} goSearch={goSearch} />
       <BudgetLifestyleSection goSearch={goSearch} />
       <IncomeEstimator goSearch={goSearch} />
@@ -58,16 +67,16 @@ export function HomePage({
         onViewAll={() => goSearch({})}
       />
       <HowItWorks />
-      <VehicleGridSection
-        title="Latest arrivals"
-        subtitle="Every make, every source market — newest listings first."
-        vehicles={latest}
+      <CatalogueSection
+        vehicles={vehicles}
+        landedMap={landedMap}
+        filters={filters}
+        setFilters={setFilters}
         favorites={favorites}
         toggleFavorite={toggleFavorite}
         compareList={compareList}
         toggleCompare={toggleCompare}
         goDetail={goDetail}
-        onViewAll={() => goSearch({})}
       />
       <WhyUs />
       <FAQSection />

@@ -52,7 +52,7 @@ export function PromoShowcase({
   return (
     <section className="relative" style={{ background: COLORS.navyDeep }}>
       <div
-        className="relative h-[420px] sm:h-[520px] overflow-hidden"
+        className="relative h-72 sm:h-[380px] overflow-hidden"
         onMouseEnter={() => (pausedRef.current = true)}
         onMouseLeave={() => (pausedRef.current = false)}
         onTouchStart={() => (pausedRef.current = true)}
@@ -65,15 +65,18 @@ export function PromoShowcase({
             src={v.imageUrl!}
             alt={`${v.year} ${v.make} ${v.model}`}
             loading={i === 0 ? "eager" : "lazy"}
-            className="absolute inset-x-0 top-0 w-full h-full object-cover transition-opacity duration-700"
+            className="absolute inset-0 w-full h-full object-contain transition-opacity duration-700"
             style={{ opacity: i === index ? 1 : 0, pointerEvents: i === index ? "auto" : "none" }}
           />
         ))}
 
-        {/* Scrim so light-coloured cars still leave the overlay text readable. */}
-        <div className="absolute inset-0" style={{ background: "linear-gradient(0deg, rgba(7,21,39,0.92) 0%, rgba(7,21,39,0.35) 45%, rgba(7,21,39,0.15) 100%)" }} />
+        {/* A light scrim only at the very bottom, just enough to keep the
+            caption readable where it happens to sit over the photo — the
+            image itself shows whole and un-zoomed (object-contain) rather
+            than filling the frame by cropping into it. */}
+        <div className="absolute inset-x-0 bottom-0 h-28" style={{ background: "linear-gradient(0deg, rgba(7,21,39,0.85) 0%, rgba(7,21,39,0) 100%)" }} />
 
-        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 flex flex-col justify-end pb-14 sm:pb-16">
+        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 flex flex-col justify-end pb-6 sm:pb-8">
           <div className="text-xs font-semibold tracking-wide uppercase mb-2" style={{ color: COLORS.goldLight }}>
             On the lot right now
           </div>
