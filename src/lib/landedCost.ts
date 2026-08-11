@@ -42,17 +42,29 @@ function exciseRateFor(v: Pick<LandedCostInput, "fuel" | "engineCc">): number {
  * registration) computed off the customer-facing selling price — the
  * AutoBridge margin is folded into that price upstream (Model 1: Reseller),
  * so there is no separate service-fee line here.
+ *
+ * Rates per KRA's published guidance: import duty 35% of CIF (raised from
+ * 25% as of the 2025 CRSP revision — KRA's own blog post states the rate
+ * "increased from 25% in 2019 to 35% in 2025"), excise per the bracket
+ * below, VAT 16% of (CIF + duty + excise), IDF 3.5% of CIF (KRA's text
+ * says 3.5%; a worked example on the same page mislabels the row "4%" but
+ * its own arithmetic — 21,834.94 / 623,855.40 — comes out to 3.5%, so the
+ * prose and the math agree even though the label doesn't), RDL 2% of CIF.
+ * KRA actually values used vehicles off its CRSP (Current Retail Selling
+ * Price) schedule with age-based depreciation, not the invoice price —
+ * that schedule isn't public data we can replicate here, so CIF is still
+ * approximated from the selling price; see the disclaimer in CostLadder.
  */
 export function computeLandedCost(v: LandedCostInput, fx: number): LandedCost {
   const freight = FREIGHT_USD[v.sourceCountry] || 1000;
   const insurance = Math.round(v.sellingPriceUsd * 0.01);
   const cifUsd = v.sellingPriceUsd + freight + insurance;
   const cifKes = cifUsd * fx;
-  const importDuty = 0.25 * cifKes;
+  const importDuty = 0.35 * cifKes;
   const exciseRate = exciseRateFor(v);
   const excise = exciseRate * (cifKes + importDuty);
   const vat = 0.16 * (cifKes + importDuty + excise);
-  const idf = Math.max(0.0225 * cifKes, 5000);
+  const idf = Math.max(0.035 * cifKes, 5000);
   const rdl = 0.02 * cifKes;
   const portClearing = 150000;
   const registration = 10000;

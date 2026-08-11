@@ -17,7 +17,7 @@ export function CostLadder({
   const rows = [
     { label: "Vehicle price", value: vehicle.sellingPriceUsd * fx },
     { label: "Freight & insurance", value: (landed.freight + landed.insurance) * fx },
-    { label: "Import duty · 25%", value: landed.importDuty },
+    { label: "Import duty · 35%", value: landed.importDuty },
     { label: `Excise duty · ${Math.round(landed.exciseRate * 100)}%`, value: landed.excise },
     { label: "VAT · 16%", value: landed.vat },
     { label: "IDF + RDL", value: landed.idf + landed.rdl },

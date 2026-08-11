@@ -1,3 +1,5 @@
+import { IMPORT_ELIGIBLE_FROM_YEAR } from "@/lib/scrapers/normalize";
+
 export const COLORS = {
   navy: "#0B1F3A",
   navyDeep: "#071527",
@@ -14,7 +16,8 @@ export const COLORS = {
 export const FONT_DISPLAY = "var(--font-fraunces), Georgia, 'Times New Roman', serif";
 export const FONT_BODY = "var(--font-inter), -apple-system, 'Segoe UI', sans-serif";
 
-export const YEARS = Array.from({ length: 2026 - 2014 + 1 }, (_, i) => 2014 + i);
+const CURRENT_YEAR = new Date().getFullYear();
+export const YEARS = Array.from({ length: CURRENT_YEAR - 2014 + 1 }, (_, i) => 2014 + i);
 
 export const BUDGET_TILES = [
   { label: "Under KSh 2M", min: 0, max: 2_000_000 },
@@ -32,7 +35,10 @@ export const HOW_IT_WORKS = [
 ];
 
 export const FAQS = [
-  { q: "Why do you only list cars from 2019 onward?", a: "Kenya restricts imports based on vehicle age, and focusing on 2019-and-newer keeps every listing on this platform straightforwardly importable, so you never waste time on a car you legally can't bring in." },
+  {
+    q: `Why do you only list cars from ${IMPORT_ELIGIBLE_FROM_YEAR} onward?`,
+    a: `KRA caps used-vehicle imports at 8 years old from year of manufacture (KS 1515:2000), so ${IMPORT_ELIGIBLE_FROM_YEAR} is the oldest model year still importable this year — the threshold moves forward each year, and every listing here stays inside it so you never waste time on a car you legally can't bring in.`,
+  },
   { q: "How accurate is the landed cost shown on each listing?", a: "It's a close estimate built from the same duty, excise and VAT structure KRA applies at Mombasa, plus typical freight, port and registration costs. KRA's actual assessment uses its own valuation table and can vary, so confirm the final figure with a licensed clearing agent before paying a deposit." },
   { q: "How long does the import process take?", a: "Most shipments from Japan take six to eight weeks door to Mombasa, plus roughly one to two weeks for clearing and registration. UK and US shipments typically run a little longer." },
   { q: "Is the vehicle price shown the final price?", a: "Yes — the price on every listing is AutoBridge's all-in vehicle price, already covering sourcing, vetting and exporter coordination. The landed-cost breakdown below it adds Kenya's duty, VAT and clearing costs on top, so you see the true cost of ownership before you enquire." },
@@ -58,8 +64,8 @@ export type Filters = {
 
 export const DEFAULT_FILTERS: Filters = {
   eligibleOnly: true,
-  yearMin: 2019,
-  yearMax: 2026,
+  yearMin: IMPORT_ELIGIBLE_FROM_YEAR,
+  yearMax: CURRENT_YEAR,
   priceMinKes: 0,
   priceMaxKes: 20_000_000,
   makes: [],

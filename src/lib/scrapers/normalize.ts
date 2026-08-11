@@ -1,4 +1,9 @@
-export const IMPORT_ELIGIBLE_FROM_YEAR = 2019;
+// KRA (KS 1515:2000) caps used-vehicle imports at 8 years old from year of
+// manufacture — a rolling window, not a fixed year, so this is computed off
+// the current date rather than hardcoded. Was pinned to 2019, which quietly
+// went stale and started excluding 2018-built vehicles that are actually
+// still importable.
+export const IMPORT_ELIGIBLE_FROM_YEAR = new Date().getFullYear() - 8;
 
 /** Strips non-digit characters (commas, "km", "cc", "$", etc.) and parses an int. */
 export function parseNumber(raw: string | null | undefined): number {
