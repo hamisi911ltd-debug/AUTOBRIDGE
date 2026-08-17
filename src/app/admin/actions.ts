@@ -182,6 +182,37 @@ export async function deleteEnquiry(formData: FormData) {
   revalidatePath("/admin");
 }
 
+/** Real customer feedback only — this form exists for an admin to transcribe an actual conversation, not to invent testimonials. */
+export async function createReview(formData: FormData) {
+  await requireAdmin();
+  const customerName = (formData.get("customerName") as string).trim();
+  const rating = Number(formData.get("rating"));
+  const text = (formData.get("text") as string).trim();
+  const vehicleLabel = (formData.get("vehicleLabel") as string | null)?.trim() || null;
+  if (!customerName || !text || rating < 1 || rating > 5) throw new Error("Missing or invalid review fields");
+
+  await prisma.review.create({ data: { customerName, rating, text, vehicleLabel, published: true } });
+  revalidatePath("/admin/reviews");
+  revalidatePath("/");
+}
+
+export async function togglePublished(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id") as string;
+  const review = await prisma.review.findUniqueOrThrow({ where: { id } });
+  await prisma.review.update({ where: { id }, data: { published: !review.published } });
+  revalidatePath("/admin/reviews");
+  revalidatePath("/");
+}
+
+export async function deleteReview(formData: FormData) {
+  await requireAdmin();
+  const id = formData.get("id") as string;
+  await prisma.review.delete({ where: { id } });
+  revalidatePath("/admin/reviews");
+  revalidatePath("/");
+}
+
 export async function saveUser(formData: FormData) {
   const session = await requireAdmin();
 

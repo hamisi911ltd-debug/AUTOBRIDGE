@@ -48,7 +48,7 @@ export function RunScrapeButton() {
       await revalidateAfterScrape();
       setResult(totals);
     } catch {
-      setError("Scrape failed — check the server log for details.");
+      setError("Scrape failed. Check the server log for details.");
     } finally {
       setRunning(false);
       setProgress(null);
@@ -70,7 +70,7 @@ export function RunScrapeButton() {
       {result && (
         <p className="text-xs mt-2" style={{ color: COLORS.slate }}>
           Found {result.totalFound} listings ({result.bySite.beforward} BE FORWARD, {result.bySite.sbtjapan} SBT
-          Japan, {result.bySite.dubicars} Dubicars) — {result.created} new, {result.updated} updated
+          Japan, {result.bySite.dubicars} Dubicars): {result.created} new, {result.updated} updated
           {result.errors > 0 ? `, ${result.errors} errors` : ""}.
         </p>
       )}

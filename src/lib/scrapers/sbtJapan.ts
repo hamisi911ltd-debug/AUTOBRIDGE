@@ -38,7 +38,10 @@ export const SBT_MAKES: { id: number; make: string }[] = [
   { id: 33, make: "Land Rover" },
   { id: 32, make: "Jaguar" },
   { id: 65, make: "Hyundai" },
-  { id: 79, make: "Kia" },
+  // Kia deliberately excluded — removed from inventory at the user's
+  // request (over-represented relative to Kenya's actual popular-import
+  // mix); keeping it out of the make list stops future scrapes from
+  // silently reintroducing it.
 ];
 
 function urlFor(makeId: number, page: number): string {
@@ -70,12 +73,22 @@ async function establishSession(): Promise<string | null> {
   return parseSetCookie(setCookie);
 }
 
+export class RateLimitedError extends Error {}
+
+// See the matching constant in beforward.ts — 429 alone missed real
+// throttling incidents, where the edge returned other codes an ELB/WAF
+// hands back under load; retry all of them rather than treating "not
+// literally 429" as a genuine parse-failure/empty result.
+const RETRYABLE_STATUSES = new Set([429, 403, 502, 503, 504]);
+
 async function fetchWithSession(url: string, cookie: string | null): Promise<string> {
   return withRetry(async () => {
     const res = await fetch(url, {
       headers: { "User-Agent": USER_AGENT, ...(cookie ? { Cookie: cookie } : {}) },
       redirect: "manual",
     });
+
+    if (RETRYABLE_STATUSES.has(res.status)) throw new RateLimitedError(`SBT Japan rate-limited (${res.status}) ${url}`);
 
     // The session cookie can expire mid-run; if we get redirected again,
     // re-establish it once and retry this single request.
@@ -84,6 +97,7 @@ async function fetchWithSession(url: string, cookie: string | null): Promise<str
       if (setCookie) {
         const fresh = parseSetCookie(setCookie);
         const retry = await fetch(url, { headers: { "User-Agent": USER_AGENT, Cookie: fresh } });
+        if (RETRYABLE_STATUSES.has(retry.status)) throw new RateLimitedError(`SBT Japan rate-limited (${retry.status}) ${url}`);
         if (!retry.ok) throw new Error(`SBT Japan request failed: ${retry.status} ${url}`);
         return retry.text();
       }
@@ -144,8 +158,20 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
     const seatsRaw = status("seats");
     const seats = seatsRaw && seatsRaw !== "-" ? parseInt(seatsRaw, 10) || 5 : 5;
 
-    const priceText = item.querySelector(".card-product__vehicle-price .card-product__price")?.text ?? "";
-    const sourcePriceUsd = Math.round(parseNumber(priceText));
+    // SBT shows two prices per listing: "Vehicle Price" (the bare unit cost)
+    // and "Total Price" — their own C&F (Cost & Freight) figure to Mombasa,
+    // the default destination port on every listing this site has served us.
+    // The Total Price is what a Kenyan buyer actually pays before duty, so
+    // it's used as sourcePriceUsd whenever present — freightIncluded then
+    // tells landedCost.ts not to add freight again on top of it. Falls back
+    // to the bare Vehicle Price (freightIncluded left false) on the rare
+    // listing where Total Price isn't rendered.
+    const totalPriceText = item.querySelector(".card-product__total-price .card-product__price")?.text ?? "";
+    const totalPriceUsd = Math.round(parseNumber(totalPriceText));
+    const vehiclePriceText = item.querySelector(".card-product__vehicle-price .card-product__price")?.text ?? "";
+    const vehiclePriceUsd = Math.round(parseNumber(vehiclePriceText));
+    const freightIncluded = totalPriceUsd > 0;
+    const sourcePriceUsd = freightIncluded ? totalPriceUsd : vehiclePriceUsd;
 
     let imageUrl = item.querySelector(".card-product__image img")?.getAttribute("src") || null;
     if (imageUrl?.startsWith("//")) imageUrl = "https:" + imageUrl;
@@ -177,6 +203,7 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
       color,
       sourceCountry: "Japan",
       sourcePriceUsd,
+      freightIncluded,
       imageUrl,
     });
   }
@@ -191,7 +218,7 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
  * threaten the per-request CPU budget the way parsing many pages in one
  * invocation would (see runScrapeUnit).
  */
-export async function scrapeSbtJapanUnit(makeIndex: number, page: number): Promise<ScrapedVehicle[]> {
+export async function scrapeSbtJapanUnit(makeIndex: number, page: number): Promise<ScrapedVehicle[] | "rate-limited"> {
   const entry = SBT_MAKES[makeIndex];
   if (!entry) return [];
   try {
@@ -205,6 +232,7 @@ export async function scrapeSbtJapanUnit(makeIndex: number, page: number): Promi
     // on a meaningful fraction of runs — adding another fetch+parse per
     // vehicle here would only make that worse for no real quality gain.
   } catch (err) {
+    if (err instanceof RateLimitedError) return "rate-limited";
     console.error(`[sbtjapan] failed make=${entry.make} page=${page}:`, err);
     return [];
   }

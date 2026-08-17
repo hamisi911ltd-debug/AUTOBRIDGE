@@ -145,7 +145,7 @@ export function VehicleForm({ initial }: { initial?: VehicleFormValues }) {
 
       {initial?.sourceSite && (
         <div className="mb-6 rounded-xl px-4 py-3 text-sm" style={{ background: "#FEF3C7", color: "#92400E" }}>
-          This vehicle is synced from {sourceSiteLabel(initial.sourceSite)} — any field you
+          This vehicle is synced from {sourceSiteLabel(initial.sourceSite)}. Any field you
           change here will be overwritten the next time the scraper syncs this listing.
         </div>
       )}

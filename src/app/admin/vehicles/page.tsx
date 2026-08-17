@@ -97,19 +97,19 @@ export default async function AdminVehiclesPage({
       </form>
 
       <div className="bg-white rounded-2xl border overflow-x-auto" style={{ borderColor: COLORS.line }}>
-        <table className="w-full text-sm">
+        <table className="w-full text-xs sm:text-sm">
           <thead style={{ background: COLORS.card }}>
             <tr className="text-left">
-              <th className="p-3"></th>
-              <th className="p-3">Vehicle</th>
-              <th className="p-3">Spec</th>
-              <th className="p-3">Source</th>
-              <th className="p-3">Ref</th>
-              <th className="p-3">Source price</th>
-              <th className="p-3">Selling price</th>
-              <th className="p-3">Eligible</th>
-              <th className="p-3"></th>
-              <th className="p-3"></th>
+              <th className="p-1.5 sm:p-3"></th>
+              <th className="p-1.5 sm:p-3">Vehicle</th>
+              <th className="p-1.5 sm:p-3">Spec</th>
+              <th className="p-1.5 sm:p-3">Source</th>
+              <th className="p-1.5 sm:p-3">Ref</th>
+              <th className="p-1.5 sm:p-3">Source price</th>
+              <th className="p-1.5 sm:p-3">Selling price</th>
+              <th className="p-1.5 sm:p-3">Eligible</th>
+              <th className="p-1.5 sm:p-3"></th>
+              <th className="p-1.5 sm:p-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -117,7 +117,7 @@ export default async function AdminVehiclesPage({
               const { sellingPriceUsd } = computeSellingPriceUsd(v, rules);
               return (
                 <tr key={v.id} className="border-t" style={{ borderColor: COLORS.line }}>
-                  <td className="p-3">
+                  <td className="p-1.5 sm:p-3">
                     <div className="w-14 h-10 rounded-md overflow-hidden flex items-center justify-center" style={{ background: COLORS.navy }}>
                       {v.imageUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
@@ -129,13 +129,13 @@ export default async function AdminVehiclesPage({
                       )}
                     </div>
                   </td>
-                  <td className="p-3 font-medium">
+                  <td className="p-1.5 sm:p-3 font-medium">
                     {v.year} {v.make} {v.model} <span style={{ color: COLORS.slate }}>{v.trim}</span>
                   </td>
-                  <td className="p-3 text-xs whitespace-nowrap" style={{ color: COLORS.slate }}>
+                  <td className="p-1.5 sm:p-3 text-xs whitespace-nowrap" style={{ color: COLORS.slate }}>
                     {v.mileageKm.toLocaleString()} km · {v.fuel} · {v.transmission} · {v.bodyType}
                   </td>
-                  <td className="p-3">
+                  <td className="p-1.5 sm:p-3">
                     {v.sourceSite ? (
                       <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: "#E8ECF3", color: COLORS.navy }}>
                         {sourceSiteLabel(v.sourceSite)}
@@ -146,14 +146,14 @@ export default async function AdminVehiclesPage({
                       </span>
                     )}
                   </td>
-                  <td className="p-3 text-xs" style={{ color: COLORS.slate }}>
-                    {v.externalId ? v.externalId.split(":")[1] ?? v.externalId : "—"}
+                  <td className="p-1.5 sm:p-3 text-xs" style={{ color: COLORS.slate }}>
+                    {v.externalId ? v.externalId.split(":")[1] ?? v.externalId : "N/A"}
                   </td>
-                  <td className="p-3">{formatUsd(v.sourcePriceUsd)}</td>
-                  <td className="p-3 font-semibold" style={{ color: COLORS.burgundy }}>
+                  <td className="p-1.5 sm:p-3">{formatUsd(v.sourcePriceUsd)}</td>
+                  <td className="p-1.5 sm:p-3 font-semibold" style={{ color: COLORS.burgundy }}>
                     {formatUsd(sellingPriceUsd)}
                   </td>
-                  <td className="p-3">
+                  <td className="p-1.5 sm:p-3">
                     {v.eligible ? (
                       <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ background: "#DCFCE7", color: "#166534" }}>
                         Eligible
@@ -162,14 +162,14 @@ export default async function AdminVehiclesPage({
                       <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-100 text-red-700">Not eligible</span>
                     )}
                   </td>
-                  <td className="p-3">
+                  <td className="p-1.5 sm:p-3">
                     {v.sourceUrl && (
                       <a href={v.sourceUrl} target="_blank" rel="noreferrer" className="text-xs font-medium" style={{ color: COLORS.slate }}>
                         Original listing ↗
                       </a>
                     )}
                   </td>
-                  <td className="p-3">
+                  <td className="p-1.5 sm:p-3">
                     <Link href={`/admin/vehicles/${v.id}/edit`} className="text-xs font-medium" style={{ color: COLORS.navy }}>
                       Edit
                     </Link>

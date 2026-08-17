@@ -15,6 +15,11 @@ export type ScrapedVehicle = {
   color: string;
   sourceCountry: string;
   sourcePriceUsd: number;
+  // True when sourcePriceUsd is a freight-inclusive figure (SBT Japan's own
+  // "Total Price" — their C&F to Mombasa) rather than the bare vehicle/FOB
+  // price. Left undefined (treated as false) for sources that only ever
+  // report a bare price, like BE FORWARD.
+  freightIncluded?: boolean;
   imageUrl: string | null;
   // Set when fetchCoverImage successfully upgraded imageUrl to a real
   // detail-page photo, so upsertVehicle can skip re-measuring it. Left

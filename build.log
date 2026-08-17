@@ -1,0 +1,50 @@
+
+> autobridge-kenya-web@0.1.0 build
+> next build
+
+▲ Next.js 16.2.12 (Turbopack)
+- Environments: .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.7s
+  Running TypeScript ...
+  Finished TypeScript in 15.2s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/20) ...
+  Generating static pages using 7 workers (5/20) 
+  Generating static pages using 7 workers (10/20) 
+  Generating static pages using 7 workers (15/20) 
+✓ Generating static pages using 7 workers (20/20) in 1770ms
+  Finalizing page optimization ...
+
+Route (app)                    Revalidate  Expire
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin
+├ ƒ /admin/enquiries
+├ ƒ /admin/pricing
+├ ƒ /admin/reviews
+├ ƒ /admin/users
+├ ƒ /admin/users/[id]/edit
+├ ƒ /admin/users/new
+├ ƒ /admin/vehicles
+├ ƒ /admin/vehicles/[id]/edit
+├ ƒ /admin/vehicles/new
+├ ƒ /api/assistant
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/cron/scrape-vehicles
+├ ƒ /api/enquiries
+├ ○ /api/vehicles/full                 5m      1y
+├ ○ /apple-icon.png
+├ ○ /icon.svg
+├ ○ /login
+├ ○ /robots.txt
+└ ○ /sitemap.xml
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

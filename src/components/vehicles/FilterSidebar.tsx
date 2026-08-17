@@ -1,15 +1,15 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { ShieldCheck } from "lucide-react";
+import { Search, ShieldCheck } from "lucide-react";
 import { COLORS, DEFAULT_FILTERS, YEARS, type Filters } from "@/lib/constants";
 import { MAKE_LOGO, COUNTRY_ISO } from "@/lib/vehicleBranding";
 import { CheckboxGroup } from "@/components/vehicles/CheckboxGroup";
+import { IconCheckList } from "@/components/vehicles/IconCheckList";
 
 // Quick-jump landed-cost bands (KSh) — a denser, one-tap alternative to
 // typing exact min/max figures, spanning the range this catalog actually
 // spans after duty, VAT and shipping.
-const PRICE_BANDS: { label: string; min: number; max: number }[] = [
+export const PRICE_BANDS: { label: string; min: number; max: number }[] = [
   { label: "Under KSh 1.5M", min: 0, max: 1_500_000 },
   { label: "KSh 1.5M – 2.5M", min: 1_500_000, max: 2_500_000 },
   { label: "KSh 2.5M – 4M", min: 2_500_000, max: 4_000_000 },
@@ -17,75 +17,28 @@ const PRICE_BANDS: { label: string; min: number; max: number }[] = [
   { label: "Over KSh 6M", min: 6_000_000, max: DEFAULT_FILTERS.priceMaxKes },
 ];
 
-type ToggleKey = "makes" | "models" | "bodyTypes" | "fuels" | "transmissions" | "sourceCountries";
-
-/** A dense, scrollable list with a count and optional leading icon per row — used for Make, Model and Country, which all need more visual weight than a plain checkbox pill. */
-function IconCheckList({
-  items,
-  counts,
-  selected,
-  onToggle,
-  iconFor,
-}: {
-  items: string[];
-  counts: Record<string, number>;
-  selected: string[];
-  onToggle: (v: string) => void;
-  iconFor?: (item: string) => ReactNode;
-}) {
-  return (
-    <div className="flex flex-col max-h-56 overflow-y-auto pr-1">
-      {items.map((item) => {
-        const active = selected.includes(item);
-        return (
-          <button
-            key={item}
-            onClick={() => onToggle(item)}
-            className="flex items-center justify-between px-2 py-1.5 rounded-lg text-sm text-left"
-            style={active ? { background: COLORS.card } : undefined}
-          >
-            <span className="flex items-center gap-2 min-w-0">
-              <span
-                className="w-3.5 h-3.5 rounded border shrink-0"
-                style={active ? { background: COLORS.navy, borderColor: COLORS.navy } : { borderColor: "#D8DCE3" }}
-              />
-              {iconFor?.(item)}
-              <span className="truncate">{item}</span>
-            </span>
-            <span className="text-xs shrink-0 ml-1" style={{ color: COLORS.slate }}>
-              ({counts[item] ?? 0})
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+type ToggleKey = "makes" | "models" | "bodyTypes" | "fuels" | "transmissions" | "drives" | "sourceCountries";
 
 export function FilterSidebar({
   filters,
   setFilters,
   allMakes,
-  makeCounts,
   allModels,
-  modelCounts,
   allBodyTypes,
   allFuels,
   allTransmissions,
+  allDrives,
   allSourceCountries,
-  sourceCountryCounts,
 }: {
   filters: Filters;
   setFilters: (updater: (f: Filters) => Filters) => void;
   allMakes: string[];
-  makeCounts: Record<string, number>;
   allModels: string[];
-  modelCounts: Record<string, number>;
   allBodyTypes: string[];
   allFuels: string[];
   allTransmissions: string[];
+  allDrives: string[];
   allSourceCountries: string[];
-  sourceCountryCounts: Record<string, number>;
 }) {
   function patch(p: Partial<Filters>) {
     setFilters((f) => ({ ...f, ...p }));
@@ -100,7 +53,7 @@ export function FilterSidebar({
 
   return (
     <aside
-      className="bg-white rounded-2xl border p-5 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto"
+      className="bg-white rounded-2xl border p-5 lg:sticky lg:top-4 lg:h-full lg:flex lg:flex-col"
       style={{ borderColor: COLORS.line }}
     >
       <div className="flex items-center justify-between mb-4">
@@ -110,6 +63,23 @@ export function FilterSidebar({
         <button onClick={() => setFilters(() => DEFAULT_FILTERS)} className="text-xs font-medium" style={{ color: COLORS.burgundy }}>
           Reset
         </button>
+      </div>
+
+      <div className="mb-5">
+        <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
+          Search by name
+        </div>
+        <div className="relative">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: COLORS.slate }} />
+          <input
+            type="text"
+            value={filters.keyword}
+            onChange={(e) => patch({ keyword: e.target.value })}
+            placeholder="e.g. Toyota Prado"
+            className="border rounded-lg pl-9 pr-3 py-2 text-sm w-full"
+            style={{ borderColor: "#D8DCE3" }}
+          />
+        </div>
       </div>
 
       <label className="flex items-center justify-between mb-5 p-3 rounded-xl cursor-pointer" style={{ background: COLORS.card }}>
@@ -159,7 +129,7 @@ export function FilterSidebar({
 
       <div className="mb-5">
         <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
-          Landed cost (KSh)
+          Total price (KSh): vehicle + freight &amp; insurance
         </div>
         <div className="flex flex-col gap-1 mb-2">
           {PRICE_BANDS.map((band) => {
@@ -203,7 +173,6 @@ export function FilterSidebar({
         </div>
         <IconCheckList
           items={allMakes}
-          counts={makeCounts}
           selected={filters.makes}
           onToggle={(v) => toggleIn("makes", v)}
           iconFor={(make) =>
@@ -221,20 +190,19 @@ export function FilterSidebar({
         <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
           Model
         </div>
-        <IconCheckList items={allModels} counts={modelCounts} selected={filters.models} onToggle={(v) => toggleIn("models", v)} />
+        <IconCheckList items={allModels} selected={filters.models} onToggle={(v) => toggleIn("models", v)} />
       </div>
 
       <CheckboxGroup title="Body type" options={allBodyTypes} selected={filters.bodyTypes} onToggle={(v) => toggleIn("bodyTypes", v)} />
       <CheckboxGroup title="Fuel" options={allFuels} selected={filters.fuels} onToggle={(v) => toggleIn("fuels", v)} />
       <CheckboxGroup title="Transmission" options={allTransmissions} selected={filters.transmissions} onToggle={(v) => toggleIn("transmissions", v)} />
 
-      <div className="mb-1">
+      <div className="mb-5">
         <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
           Source market
         </div>
         <IconCheckList
           items={allSourceCountries}
-          counts={sourceCountryCounts}
           selected={filters.sourceCountries}
           onToggle={(v) => toggleIn("sourceCountries", v)}
           iconFor={(country) =>
@@ -247,6 +215,8 @@ export function FilterSidebar({
           }
         />
       </div>
+
+      <CheckboxGroup title="Drive type" options={allDrives} selected={filters.drives} onToggle={(v) => toggleIn("drives", v)} />
     </aside>
   );
 }

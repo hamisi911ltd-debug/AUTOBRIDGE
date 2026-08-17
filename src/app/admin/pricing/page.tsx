@@ -4,9 +4,13 @@ import { PricingRulesManager } from "@/app/admin/pricing/PricingRulesManager";
 export default async function AdminPricingPage() {
   const [rules, vehicles] = await Promise.all([
     prisma.pricingRule.findMany({ orderBy: [{ priority: "desc" }, { createdAt: "asc" }] }),
+    // Just enough for a representative preview picker, not the full 27k+
+    // table — that was fetched (and rendered as a 27,000-option <select>)
+    // on every single visit to this page, the main reason it was slow.
     prisma.vehicle.findMany({
       select: { id: true, make: true, model: true, bodyType: true, sourceCountry: true, sourcePriceUsd: true, year: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: "desc" },
+      take: 300,
     }),
   ]);
 

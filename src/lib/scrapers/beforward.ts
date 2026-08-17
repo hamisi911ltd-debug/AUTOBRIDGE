@@ -39,11 +39,16 @@ export const BEFORWARD_MAKES: { id: number; make: string }[] = [
   { id: 52, make: "Land Rover" },
   { id: 79, make: "Jaguar" },
   { id: 44, make: "Hyundai" },
-  { id: 313, make: "Kia" },
+  // Kia deliberately excluded — removed from inventory at the user's
+  // request (over-represented relative to Kenya's actual popular-import
+  // mix); keeping it out of the make list stops future scrapes from
+  // silently reintroducing it.
 ];
 
-function urlFor(makeId: number, page: number): string {
-  const base = `https://www.beforward.jp/stocklist/make=${makeId}`;
+function urlFor(makeId: number, page: number, modelId?: number): string {
+  const base = modelId
+    ? `https://www.beforward.jp/stocklist/make=${makeId}/model=${modelId}`
+    : `https://www.beforward.jp/stocklist/make=${makeId}`;
   return page <= 1 ? `${base}/sortkey=n` : `${base}/page=${page}/sortkey=n`;
 }
 
@@ -60,9 +65,21 @@ function detailedSpecMap(row: HTMLElement): Record<string, string> {
   return map;
 }
 
+export class RateLimitedError extends Error {}
+
+// Any of these on a stocklist page means "the request failed," never
+// "genuinely zero vehicles" — a real incident showed 429 wasn't the only
+// status BE FORWARD's edge (AWS ELB) hands back under load; 403/502/503/504
+// are the standard set an ELB/WAF can return while it's throttling or
+// unhealthy. Treating only literal 429 as retry-worthy let those other
+// codes fall through to the generic "log and treat as empty" path, which
+// silently masked real stock as "no listings for this model."
+const RETRYABLE_STATUSES = new Set([429, 403, 502, 503, 504]);
+
 async function fetchPage(url: string): Promise<string> {
   return withRetry(async () => {
     const res = await fetch(url, { headers: { "User-Agent": USER_AGENT } });
+    if (RETRYABLE_STATUSES.has(res.status)) throw new RateLimitedError(`BE FORWARD rate-limited (${res.status}) ${url}`);
     if (!res.ok) throw new Error(`BE FORWARD request failed: ${res.status} ${url}`);
     return res.text();
   });
@@ -165,5 +182,26 @@ async function upgradeCoverImage(v: ScrapedVehicle): Promise<void> {
   if (better && better !== "rate-limited") {
     v.imageUrl = better.url;
     v.imageWidthPx = better.widthPx;
+  }
+}
+
+/**
+ * Model-filtered listing fetch, used for one-off deep-dive batches (e.g. a
+ * specific make's most popular models) run from a local script rather than
+ * the Workers-deployed nightly unit. Deliberately skips the cover-image
+ * upgrade step here — callers that want it should upgrade sequentially
+ * themselves (see scripts/scrapeToyotaModels.ts): scrapeBeforwardUnit's
+ * Promise.all-of-30 detail-page fetches is fine for a single nightly page
+ * but tripped BE FORWARD's rate limiter when run repeatedly across many
+ * pages in one sitting (confirmed while building fixLowResImages.ts).
+ */
+export async function scrapeBeforwardModelPage(makeId: number, make: string, modelId: number, page: number): Promise<ScrapedVehicle[] | "rate-limited"> {
+  try {
+    const html = await fetchPage(urlFor(makeId, page, modelId));
+    return parsePage(html, make);
+  } catch (err) {
+    if (err instanceof RateLimitedError) return "rate-limited";
+    console.error(`[beforward] failed make=${make} model=${modelId} page=${page}:`, err);
+    return [];
   }
 }

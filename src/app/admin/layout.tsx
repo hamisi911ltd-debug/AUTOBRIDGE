@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { auth, signOut } from "@/auth";
-import { COLORS, FONT_DISPLAY } from "@/lib/constants";
-import { AdminNav } from "@/app/admin/AdminNav";
+import { COLORS } from "@/lib/constants";
+import { AdminSidebar } from "@/app/admin/AdminSidebar";
+import { AdminBottomNav } from "@/app/admin/AdminBottomNav";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -12,18 +12,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div style={{ fontFamily: "var(--font-inter)", background: COLORS.paper, minHeight: "100vh" }}>
-      <header className="relative bg-white border-b" style={{ borderColor: COLORS.line }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <Link href="/" className="text-lg font-semibold shrink-0" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-            Auto<span style={{ color: COLORS.burgundy }}>Bridge</span> <span className="text-xs font-normal" style={{ color: COLORS.slate }}>Admin</span>
-          </Link>
-          <div className="flex items-center gap-8">
-            <AdminNav email={session?.user?.email} signOutAction={signOutAction} />
-          </div>
-        </div>
-      </header>
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">{children}</main>
+    <div style={{ fontFamily: "var(--font-inter)", background: COLORS.paper, minHeight: "100vh" }} className="md:flex pb-16 md:pb-0 pt-[3.25rem] md:pt-0">
+      <AdminSidebar email={session?.user?.email} signOutAction={signOutAction} />
+      <main className="flex-1 min-w-0 max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-8 w-full">{children}</main>
+      <AdminBottomNav email={session?.user?.email} signOutAction={signOutAction} />
     </div>
   );
 }

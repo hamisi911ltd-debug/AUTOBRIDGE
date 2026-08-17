@@ -43,6 +43,12 @@ model Vehicle {
   color            String
   sourceCountry    String
   sourcePriceUsd   Float
+  // True when sourcePriceUsd is SBT Japan's own "Total Price" (their C&F —
+  // Cost & Freight — figure to Mombasa) rather than the bare vehicle/FOB
+  // price — landedCost.ts must not add freight again on top for these, or
+  // it double-counts shipping already baked into the price shown. BE
+  // FORWARD has no equivalent field on its site; always false there.
+  freightIncluded  Boolean   @default(false)
   imageUrl         String?
   imageUrls        String? // JSON-encoded string[] — up to 5 gallery photos; imageUrls[0] is always the same as imageUrl when present
   imageWidthPx     Int? // actual verified pixel width of imageUrl — lets the public site filter out lingering low-res thumbnails without re-deriving quality from process history
@@ -114,4 +120,18 @@ model Enquiry {
   createdAt DateTime @default(now())
 
   @@index([vehicleId])
+}
+
+// Real customer feedback only — entered by an admin from an actual
+// conversation (WhatsApp, call, email), never generated. `published`
+// gates whether it's live on the homepage, so a review can be logged
+// internally before being made public.
+model Review {
+  id             String   @id @default(cuid())
+  customerName   String
+  rating         Int // 1-5
+  text           String
+  vehicleLabel   String? // free-text e.g. "Toyota Harrier" — no FK, the vehicle listing itself may be long gone by the time a review comes in
+  published      Boolean  @default(true)
+  createdAt      DateTime @default(now())
 }

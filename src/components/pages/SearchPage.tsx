@@ -18,20 +18,16 @@ export function SearchPage({
   filters,
   setFilters,
   favorites,
-  toggleFavorite,
-  compareList,
-  toggleCompare,
   goDetail,
+  isLoadingFullCatalogue,
 }: {
   vehicles: PublicVehicle[];
   landedMap: Record<string, LandedCost>;
   filters: Filters;
   setFilters: (updater: (f: Filters) => Filters) => void;
   favorites: Set<string>;
-  toggleFavorite: (id: string) => void;
-  compareList: string[];
-  toggleCompare: (id: string) => void;
   goDetail: (id: string) => void;
+  isLoadingFullCatalogue?: boolean;
 }) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -40,11 +36,16 @@ export function SearchPage({
     const makeCounts: Record<string, number> = {};
     const modelCounts: Record<string, number> = {};
     const sourceCountryCounts: Record<string, number> = {};
+    // Once a make is selected, the model list should only offer that make's
+    // own models, not every model across the whole catalogue.
+    const modelPool = filters.makes.length > 0 ? vehicles.filter((v) => filters.makes.includes(v.make)) : vehicles;
     for (const v of vehicles) {
       makeCounts[v.make] = (makeCounts[v.make] ?? 0) + 1;
+      sourceCountryCounts[v.sourceCountry] = (sourceCountryCounts[v.sourceCountry] ?? 0) + 1;
+    }
+    for (const v of modelPool) {
       const modelLabel = `${v.make} ${v.model}`;
       modelCounts[modelLabel] = (modelCounts[modelLabel] ?? 0) + 1;
-      sourceCountryCounts[v.sourceCountry] = (sourceCountryCounts[v.sourceCountry] ?? 0) + 1;
     }
     const allMakes = Object.keys(makeCounts).sort((a, b) => makeCounts[b] - makeCounts[a]);
     const allModels = Object.keys(modelCounts).sort((a, b) => modelCounts[b] - modelCounts[a]);
@@ -52,16 +53,14 @@ export function SearchPage({
 
     return {
       allMakes,
-      makeCounts,
       allModels,
-      modelCounts,
       allBodyTypes: [...new Set(vehicles.map((v) => v.bodyType))].sort(),
       allFuels: [...new Set(vehicles.map((v) => v.fuel))],
       allTransmissions: [...new Set(vehicles.map((v) => v.transmission))],
+      allDrives: [...new Set(vehicles.map((v) => v.drive))],
       allSourceCountries,
-      sourceCountryCounts,
     };
-  }, [vehicles]);
+  }, [vehicles, filters.makes]);
 
   const filtered = useMemo(() => {
     const list = vehicles.filter((v) => matchesFilters(v, filters, landedMap[v.id].total, favorites));
@@ -89,7 +88,9 @@ export function SearchPage({
             Search vehicles
           </h1>
           <p className="text-sm mt-1" style={{ color: COLORS.slate }}>
-            {filtered.length} vehicle{filtered.length !== 1 ? "s" : ""} match your filters
+            {isLoadingFullCatalogue
+              ? "Loading the full inventory…"
+              : `${filtered.length} vehicle${filtered.length !== 1 ? "s" : ""} match your filters`}
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
@@ -118,8 +119,8 @@ export function SearchPage({
             style={{ borderColor: "#D8DCE3" }}
           >
             <option value="recent">Recently added</option>
-            <option value="priceAsc">Landed cost: low to high</option>
-            <option value="priceDesc">Landed cost: high to low</option>
+            <option value="priceAsc">Total price: low to high</option>
+            <option value="priceDesc">Total price: high to low</option>
             <option value="mileageAsc">Mileage: low to high</option>
           </select>
         </div>
@@ -139,17 +140,9 @@ export function SearchPage({
             </div>
           ) : (
             <>
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
                 {paged.map((v) => (
-                  <VehicleCard
-                    key={v.id}
-                    vehicle={v}
-                    isFavorite={favorites.has(v.id)}
-                    onFavorite={() => toggleFavorite(v.id)}
-                    inCompare={compareList.includes(v.id)}
-                    onCompare={() => toggleCompare(v.id)}
-                    onView={() => goDetail(v.id)}
-                  />
+                  <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
                 ))}
               </div>
               <Pagination page={page} pageCount={pageCount} onPageChange={goToPage} />

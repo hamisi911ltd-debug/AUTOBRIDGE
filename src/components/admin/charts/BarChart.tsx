@@ -20,9 +20,13 @@ const GRID = "#e1e0d9";
 const AXIS_TEXT = COLORS.slate;
 
 /**
- * Horizontal bar chart — single measure across categories. One hue for all
- * bars (this is magnitude, not multi-series identity), value labelled at
- * the tip of each bar per the mark spec, thin bars with a rounded end.
+ * Horizontal bar chart — single measure across categories, or (when
+ * `compareValue` is set per row) a bullet-style pair: a light full-width
+ * track for the comparison figure with the main value overlaid as a
+ * narrower, solid bar — e.g. "visible" over "scraped" per make, without
+ * resorting to a plain table. One hue for the main measure (this is
+ * magnitude, not multi-series identity), value labelled at the tip of each
+ * bar per the mark spec, thin bars with a rounded end.
  */
 export function BarChart({
   data,
@@ -30,12 +34,15 @@ export function BarChart({
   height = 22,
   gap = 10,
   formatValue = (v: number) => v.toLocaleString(),
+  compareLabel,
 }: {
-  data: { label: string; value: number }[];
+  data: { label: string; value: number; compareValue?: number }[];
   color?: string;
   height?: number;
   gap?: number;
   formatValue?: (v: number) => string;
+  /** e.g. "visible / scraped" — shown once above the chart when rows carry a compareValue. */
+  compareLabel?: string;
 }) {
   if (data.length === 0) {
     return (
@@ -45,44 +52,60 @@ export function BarChart({
     );
   }
 
-  const max = Math.max(...data.map((d) => d.value), 1);
-  const labelWidth = 108;
-  const chartWidth = 100; // percent-based track, label/value sit outside in flex
+  const hasCompare = data.some((d) => d.compareValue != null);
+  const max = Math.max(...data.map((d) => Math.max(d.value, d.compareValue ?? 0)), 1);
+  const labelWidth = 92;
 
   return (
-    <div className="space-y-0" style={{ display: "flex", flexDirection: "column", gap }}>
-      {data.map((d) => {
-        const pct = Math.max((d.value / max) * 100, 2);
-        return (
-          <div key={d.label} className="flex items-center gap-3" title={`${d.label}: ${formatValue(d.value)}`}>
+    <div>
+      {hasCompare && compareLabel && (
+        <div className="text-[10px] sm:text-[11px] mb-2 text-right" style={{ color: COLORS.slate }}>
+          {compareLabel}
+        </div>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap }}>
+        <style>{`@keyframes barGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }`}</style>
+        {data.map((d, i) => {
+          const pct = Math.max((d.value / max) * 100, 2);
+          const comparePct = d.compareValue != null ? Math.max((d.compareValue / max) * 100, 2) : null;
+          return (
             <div
-              className="text-xs shrink-0 truncate text-right"
-              style={{ width: labelWidth, color: COLORS.ink }}
+              key={d.label}
+              className="flex items-center gap-2 sm:gap-3"
+              title={comparePct != null ? `${d.label}: ${formatValue(d.value)} / ${formatValue(d.compareValue!)}` : `${d.label}: ${formatValue(d.value)}`}
             >
-              {d.label}
+              <div className="text-[11px] sm:text-xs shrink-0 truncate text-right" style={{ width: labelWidth, color: COLORS.ink }}>
+                {d.label}
+              </div>
+              <div className="flex-1 relative" style={{ height }}>
+                <div className="absolute inset-y-0 left-0 rounded-r" style={{ width: "100%", background: GRID, height: 1, top: "100%" }} />
+                {comparePct != null && (
+                  <div
+                    className="absolute left-0 top-0 rounded-r"
+                    style={{ width: `${comparePct}%`, height: "100%", background: `${color}26`, borderTopRightRadius: 4, borderBottomRightRadius: 4 }}
+                  />
+                )}
+                <div
+                  className="absolute left-0 rounded-r"
+                  style={{
+                    width: `${pct}%`,
+                    height: comparePct != null ? "55%" : "100%",
+                    top: comparePct != null ? "22.5%" : 0,
+                    background: color,
+                    borderTopRightRadius: 4,
+                    borderBottomRightRadius: 4,
+                    transformOrigin: "left center",
+                    animation: `barGrow 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 0.04}s both`,
+                  }}
+                />
+              </div>
+              <div className="text-[11px] sm:text-xs font-semibold shrink-0 text-right" style={{ minWidth: 40, color: COLORS.navy }}>
+                {formatValue(d.value)}
+              </div>
             </div>
-            <div className="flex-1 relative" style={{ height }}>
-              <div
-                className="absolute inset-y-0 left-0 rounded-r"
-                style={{ width: `${chartWidth}%`, background: GRID, height: 1, top: "100%" }}
-              />
-              <div
-                className="absolute left-0 top-0 rounded-r"
-                style={{
-                  width: `${pct}%`,
-                  height: "100%",
-                  background: color,
-                  borderTopRightRadius: 4,
-                  borderBottomRightRadius: 4,
-                }}
-              />
-            </div>
-            <div className="text-xs font-semibold shrink-0 w-14 text-right" style={{ color: COLORS.navy }}>
-              {formatValue(d.value)}
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

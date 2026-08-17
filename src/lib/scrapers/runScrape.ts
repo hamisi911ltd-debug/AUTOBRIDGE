@@ -48,6 +48,7 @@ async function upsertVehicle(v: ScrapedVehicle): Promise<"created" | "updated"> 
     color: v.color,
     sourceCountry: v.sourceCountry,
     sourcePriceUsd: v.sourcePriceUsd,
+    freightIncluded: v.freightIncluded ?? false,
     imageUrl: v.imageUrl,
     imageWidthPx,
     condition: "Foreign Used",
@@ -93,12 +94,16 @@ export async function runScrapeUnit(site: ScrapeSite, makeIndex: number, page = 
 
   let vehicles: ScrapedVehicle[];
   try {
-    vehicles =
+    const result =
       site === "beforward"
         ? await scrapeBeforwardUnit(makeIndex, page)
         : site === "sbtjapan"
           ? await scrapeSbtJapanUnit(makeIndex, page)
           : await scrapeDubicarsUnit(makeIndex);
+    // A single nightly unit isn't worth a cooldown-and-retry loop — treat a
+    // rate-limited page the same as "nothing found this run", same as any
+    // other transient failure; the next scheduled run picks it up again.
+    vehicles = result === "rate-limited" ? [] : result;
   } catch (err) {
     console.error(`[runScrapeUnit] ${site} make=${entry.make} page=${page} failed entirely:`, err);
     return { site, make: entry.make, found: 0, created: 0, updated: 0, errors: 1 };

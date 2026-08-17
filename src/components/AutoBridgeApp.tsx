@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
 import { COLORS, DEFAULT_FILTERS, FONT_BODY, type Filters } from "@/lib/constants";
 import { computeLandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
+import type { PublicReview } from "@/types/review";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { CompareBar } from "@/components/layout/CompareBar";
-import { AIAssistant } from "@/components/assistant/AIAssistant";
+import { BottomNav } from "@/components/layout/BottomNav";
+import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { HomePage } from "@/components/pages/HomePage";
 import { SearchPage } from "@/components/pages/SearchPage";
 import { DetailPage } from "@/components/pages/DetailPage";
@@ -16,18 +16,44 @@ import { ComparePage } from "@/components/pages/ComparePage";
 
 export type Page = "home" | "search" | "detail" | "compare";
 
-const FAVORITES_KEY = "autobridge:favorites";
-const COMPARE_KEY = "autobridge:compare";
+// Bumped to v2 to start every visitor fresh (a one-off reset, requested
+// directly) — old data under the v1 keys is simply never read again.
+const FAVORITES_KEY = "ferbil:favorites:v2";
+const COMPARE_KEY = "ferbil:compare:v2";
 
-export function AutoBridgeApp({ vehicles }: { vehicles: PublicVehicle[] }) {
+export function AutoBridgeApp({ initialVehicles, reviews }: { initialVehicles: PublicVehicle[]; reviews: PublicReview[] }) {
   const [page, setPage] = useState<Page>("home");
   const [fx, setFx] = useState(129);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
   const [compareList, setCompareList] = useState<string[]>([]);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
-  const [bannerOpen, setBannerOpen] = useState(true);
-  const [chatOpen, setChatOpen] = useState(false);
+
+  // The home page only gets a recent-first slice of the catalogue (see
+  // src/app/page.tsx) so the initial payload stays small. Search needs the
+  // real, unbounded inventory to answer correctly, so this swaps in the
+  // full list — fetched once, lazily — the first time it's actually opened,
+  // rather than paying that cost on every visit.
+  const [vehicles, setVehicles] = useState<PublicVehicle[]>(initialVehicles);
+  const [fullCatalogueLoaded, setFullCatalogueLoaded] = useState(false);
+  const [fullCatalogueLoading, setFullCatalogueLoading] = useState(false);
+
+  const needsFullCatalogue = page === "search";
+  useEffect(() => {
+    if (!needsFullCatalogue || fullCatalogueLoaded || fullCatalogueLoading) return;
+    setFullCatalogueLoading(true);
+    fetch("/api/vehicles/full")
+      .then((r) => r.json())
+      .then((data: { vehicles: PublicVehicle[] }) => {
+        setVehicles(data.vehicles);
+        setFullCatalogueLoaded(true);
+      })
+      .catch(() => {
+        // Leave the bounded initial set in place — Search/Ferbot still work,
+        // just over a smaller pool, rather than breaking outright.
+      })
+      .finally(() => setFullCatalogueLoading(false));
+  }, [needsFullCatalogue, fullCatalogueLoaded, fullCatalogueLoading]);
 
   useEffect(() => {
     // One-time hydration from a browser-only API: this can't run during SSR
@@ -88,15 +114,7 @@ export function AutoBridgeApp({ vehicles }: { vehicles: PublicVehicle[] }) {
   const selectedVehicle = vehicles.find((v) => v.id === selectedId) || null;
 
   return (
-    <div style={{ fontFamily: FONT_BODY, background: COLORS.paper, minHeight: "100vh", color: COLORS.ink }} className="w-full">
-      {bannerOpen && (
-        <div className="text-xs text-center py-2 px-4 flex items-center justify-center gap-3" style={{ background: COLORS.gold, color: COLORS.navyDeep }}>
-          <span>Kenya&apos;s import marketplace — the AI assistant runs locally against current listings.</span>
-          <button onClick={() => setBannerOpen(false)}>
-            <X size={13} />
-          </button>
-        </div>
-      )}
+    <div style={{ fontFamily: FONT_BODY, background: COLORS.paper, minHeight: "100vh", color: COLORS.ink }} className="w-full pb-16 md:pb-0 pt-[3.25rem] sm:pt-[4.5rem]">
       <Header
         setPage={setPage}
         favoritesCount={favorites.size}
@@ -112,13 +130,10 @@ export function AutoBridgeApp({ vehicles }: { vehicles: PublicVehicle[] }) {
             vehicles={vehicles}
             landedMap={landedMap}
             filters={filters}
-            setFilters={setFilters}
             favorites={favorites}
-            toggleFavorite={toggleFavorite}
-            compareList={compareList}
-            toggleCompare={toggleCompare}
             goDetail={goDetail}
             goSearch={goSearch}
+            reviews={reviews}
           />
         )}
         {page === "search" && (
@@ -128,10 +143,8 @@ export function AutoBridgeApp({ vehicles }: { vehicles: PublicVehicle[] }) {
             filters={filters}
             setFilters={setFilters}
             favorites={favorites}
-            toggleFavorite={toggleFavorite}
-            compareList={compareList}
-            toggleCompare={toggleCompare}
             goDetail={goDetail}
+            isLoadingFullCatalogue={fullCatalogueLoading && !fullCatalogueLoaded}
           />
         )}
         {page === "detail" && selectedVehicle && (
@@ -154,16 +167,23 @@ export function AutoBridgeApp({ vehicles }: { vehicles: PublicVehicle[] }) {
             vehicles={vehicles.filter((v) => compareList.includes(v.id))}
             landedMap={landedMap}
             toggleCompare={toggleCompare}
+            onClearAll={() => setCompareList([])}
             setPage={setPage}
           />
         )}
       </main>
 
       <Footer />
-      {compareList.length > 0 && page !== "compare" && (
-        <CompareBar count={compareList.length} onView={() => setPage("compare")} onClear={() => setCompareList([])} />
-      )}
-      <AIAssistant vehicles={vehicles} landedMap={landedMap} open={chatOpen} setOpen={setChatOpen} goDetail={goDetail} />
+      <WhatsAppButton />
+      <BottomNav
+        page={page}
+        setPage={setPage}
+        favoritesCount={favorites.size}
+        compareCount={compareList.length}
+        onGoSearch={() => goSearch({})}
+        onGoFavorites={() => goSearch({ favoritesOnly: true })}
+        onGoCompare={() => setPage("compare")}
+      />
     </div>
   );
 }

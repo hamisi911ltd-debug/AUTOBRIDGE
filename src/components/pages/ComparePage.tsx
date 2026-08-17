@@ -14,11 +14,13 @@ export function ComparePage({
   vehicles,
   landedMap,
   toggleCompare,
+  onClearAll,
   setPage,
 }: {
   vehicles: PublicVehicle[];
   landedMap: Record<string, LandedCost>;
   toggleCompare: (id: string) => void;
+  onClearAll: () => void;
   setPage: (p: Page) => void;
 }) {
   if (vehicles.length < 2) {
@@ -39,7 +41,7 @@ export function ComparePage({
   }
 
   const rows: Row[] = [
-    ["Landed cost", (v) => formatKes(landedMap[v.id].total), (v) => landedMap[v.id].total, "min"],
+    ["Total price", (v) => formatKes(landedMap[v.id].total), (v) => landedMap[v.id].total, "min"],
     ["Vehicle price", (v) => formatUsd(v.sellingPriceUsd), (v) => v.sellingPriceUsd, "min"],
     ["Year", (v) => String(v.year), (v) => v.year, "max"],
     ["Mileage", (v) => `${v.mileageKm.toLocaleString()} km`, (v) => v.mileageKm, "min"],
@@ -49,14 +51,18 @@ export function ComparePage({
     ["Drive", (v) => v.drive, () => 0, null],
     ["Body type", (v) => v.bodyType, () => 0, null],
     ["Source market", (v) => v.sourceCountry, () => 0, null],
-    ["Excise applied", (v) => `${Math.round(landedMap[v.id].exciseRate * 100)}%`, () => 0, null],
   ];
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 overflow-x-auto">
-      <h1 className="text-2xl font-semibold mb-6" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-        Compare vehicles
-      </h1>
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+        <h1 className="text-2xl font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+          Compare vehicles
+        </h1>
+        <button onClick={onClearAll} className="text-sm font-medium flex items-center gap-1.5" style={{ color: COLORS.burgundy }}>
+          <X size={14} /> Clear all
+        </button>
+      </div>
       <table className="w-full text-sm border-collapse" style={{ minWidth: "640px" }}>
         <thead>
           <tr>
@@ -64,7 +70,7 @@ export function ComparePage({
             {vehicles.map((v) => (
               <th key={v.id} className="p-3 text-left align-top">
                 <div
-                  className="relative w-full h-20 rounded-xl mb-2 overflow-hidden"
+                  className="relative w-full aspect-[4/3] rounded-xl mb-2 overflow-hidden"
                   style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}
                 >
                   <VehicleImage src={v.imageUrl} alt={`${v.year} ${v.make} ${v.model}`} iconSize={28} />
