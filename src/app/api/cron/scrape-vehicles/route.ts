@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { runScrapeUnit, SCRAPE_MAKE_COUNTS, type ScrapeSite } from "@/lib/scrapers/runScrape";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function checkAuth(req: Request): boolean {
   const secret = req.headers.get("x-cron-secret");
   return !!process.env.CRON_SECRET && secret === process.env.CRON_SECRET;

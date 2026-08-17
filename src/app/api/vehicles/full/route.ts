@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { getPublicVehicles } from "@/lib/getPublicVehicles";
 
-// The unbounded catalogue (27,000+ vehicles) — fetched lazily by Search and
-// Ferbot once a visitor actually opens them, instead of shipping it on every
-// homepage load. Cached briefly since the underlying data only changes on a
-// nightly scrape, so repeat visits within the window don't re-hit D1.
-export const revalidate = 300;
+// These routes depend on the request-time D1 binding and must not be
+// prerendered during the Next.js build step.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   const vehicles = await getPublicVehicles();

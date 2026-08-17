@@ -11,6 +11,9 @@ import { formatKes } from "@/lib/format";
 const DEFAULT_FX = 129;
 const NVIDIA_MODEL = "meta/llama-3.3-70b-instruct";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // The LLM is deliberately never given individual vehicle names/prices to
 // restate — a real test caught it inventing a "2019 Honda Grace LX" that
 // didn't exist while still linking the correct (unrelated) real vehicle ID,
