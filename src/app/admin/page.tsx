@@ -7,6 +7,9 @@ import { BarChart } from "@/components/admin/charts/BarChart";
 import { DonutChart } from "@/components/admin/charts/DonutChart";
 import { formatUsd } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // The dashboard's own three brand hues, reused as the chart palette here
 // per direct request, in place of the general-purpose validated chart
 // palette used elsewhere (this page is internal-only, not the public site).
