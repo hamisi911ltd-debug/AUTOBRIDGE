@@ -34,15 +34,41 @@ export async function flushToD1(pending: PendingRow[]): Promise<void> {
   const scratchDir = await mkdtemp(path.join(tmpdir(), "d1-upsert-sql-"));
   const now = sqlNow();
 
+  // Extended spec-sheet columns. On a re-scrape these are only ever FILLED,
+  // never blanked: `COALESCE(excluded.col, col)` keeps a value already in the
+  // row if this pass didn't capture one (a detail-page fetch that failed, a
+  // source that doesn't publish that field). The core columns above still
+  // overwrite outright, so price/mileage/etc. stay refreshed.
+  const SPEC_COLS = [
+    "refNo", "chassisNo", "modelCode", "engineCode", "steering", "location", "versionClass",
+    "doors", "dimensions", "weightKg", "registrationYearMonth", "manufactureYearMonth", "features",
+  ] as const;
+
   const statements = pending.map((v) => {
     const { eligible, ineligibleReason } = computeEligibility(v.year);
     const lifestyle = JSON.stringify(deriveLifestyle(v.bodyType, v.fuel, v.sourcePriceUsd));
     const id = randomUUID();
+    const specVals: Record<(typeof SPEC_COLS)[number], string> = {
+      refNo: sqlVal(v.refNo ?? null),
+      chassisNo: sqlVal(v.chassisNo ?? null),
+      modelCode: sqlVal(v.modelCode ?? null),
+      engineCode: sqlVal(v.engineCode ?? null),
+      steering: sqlVal(v.steering ?? null),
+      location: sqlVal(v.location ?? null),
+      versionClass: sqlVal(v.versionClass ?? null),
+      doors: sqlVal(v.doors ?? null),
+      dimensions: sqlVal(v.dimensions ?? null),
+      weightKg: sqlVal(v.weightKg ?? null),
+      registrationYearMonth: sqlVal(v.registrationYearMonth ?? null),
+      manufactureYearMonth: sqlVal(v.manufactureYearMonth ?? null),
+      features: sqlVal(v.features && v.features.length ? JSON.stringify(v.features) : null),
+    };
     const cols = [
       "id", "make", "model", "trim", "year", "mileageKm", "fuel", "transmission", "engineCc",
       "bodyType", "drive", "seats", "color", "sourceCountry", "sourcePriceUsd", "freightIncluded", "imageUrl",
       "imageWidthPx", "condition", "lifestyle", "eligible", "ineligibleReason", "sourceSite",
       "externalId", "sourceUrl", "lastScrapedAt", "createdAt", "updatedAt",
+      ...SPEC_COLS,
     ];
     const vals = [
       sqlVal(id), sqlVal(v.make), sqlVal(v.model), sqlVal(v.trim), sqlVal(v.year), sqlVal(v.mileageKm),
@@ -50,9 +76,13 @@ export async function flushToD1(pending: PendingRow[]): Promise<void> {
       sqlVal(v.seats), sqlVal(v.color), sqlVal(v.sourceCountry), sqlVal(v.sourcePriceUsd), sqlVal(v.freightIncluded ?? false), sqlVal(v.imageUrl),
       sqlVal(v.imageWidthPx), sqlVal("Foreign Used"), sqlVal(lifestyle), sqlVal(eligible), sqlVal(ineligibleReason),
       sqlVal(v.sourceSite), sqlVal(v.externalId), sqlVal(v.sourceUrl), sqlVal(now), sqlVal(now), sqlVal(now),
+      ...SPEC_COLS.map((c) => specVals[c]),
     ];
+    const specSet = new Set<string>(SPEC_COLS);
     const updateCols = cols.filter((c) => c !== "id" && c !== "externalId" && c !== "createdAt");
-    const updateSet = updateCols.map((c) => `${c}=excluded.${c}`).join(", ");
+    const updateSet = updateCols
+      .map((c) => (specSet.has(c) ? `${c}=COALESCE(excluded.${c}, ${c})` : `${c}=excluded.${c}`))
+      .join(", ");
     return `INSERT INTO Vehicle (${cols.join(", ")}) VALUES (${vals.join(", ")}) ON CONFLICT(externalId) DO UPDATE SET ${updateSet};`;
   });
 

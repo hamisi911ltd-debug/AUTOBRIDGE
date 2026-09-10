@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { scrapeAutocomPage, AUTOCOM_PAGE_SIZE } from "@/lib/scrapers/autocom";
+import { scrapeAutocomPage, scrapeAutocomDetail, AUTOCOM_PAGE_SIZE } from "@/lib/scrapers/autocom";
 import { measureImageWidthPx } from "@/lib/scrapers/coverImage";
 import { flushToD1, countVehicles, sleep, type PendingRow } from "./lib/d1Upsert";
 
@@ -75,7 +75,24 @@ async function main() {
       if (width !== null && width !== undefined && width < MIN_SHARP_WIDTH_PX) {
         continue;
       }
-      pending.push({ ...v, imageWidthPx: width ?? null });
+      // Detail page adds the full chassis/engine numbers (when the car has
+      // them), doors, seats, dimensions and model code — the search feed has
+      // none of that.
+      const refno = v.externalId.replace(/^autocom:/, "");
+      const specs = await scrapeAutocomDetail(refno);
+      if (specs === "rate-limited") {
+        cooldowns++;
+        if (cooldowns > MAX_COOLDOWNS) {
+          console.log(`Rate-limited on detail — stopping. Resume: npx tsx scripts/scrapeAutocom.ts ${WANT_NEW} ${page}`);
+          await flush("rate-limit stop");
+          console.log(`\nDone (rate-limit stop). Catalogue ${startCount} -> ${liveCount}.`);
+          return;
+        }
+        console.log(`  detail ${refno}: rate limited — cooling ${COOLDOWN_MS / 1000}s (${cooldowns}/${MAX_COOLDOWNS})`);
+        await sleep(COOLDOWN_MS);
+      }
+      const merged = specs === "rate-limited" ? v : { ...v, ...specs };
+      pending.push({ ...merged, imageWidthPx: width ?? null });
       if (pending.length >= FLUSH_EVERY) await flush("batch full");
       if (addedThisRun + pending.length >= WANT_NEW) break;
       await sleep(REQUEST_DELAY_MS);

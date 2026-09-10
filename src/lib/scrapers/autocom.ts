@@ -138,6 +138,69 @@ function toVehicle(c: AutocomCar): ScrapedVehicle | null {
   };
 }
 
+export type AutocomSpecs = Partial<
+  Pick<ScrapedVehicle, "chassisNo" | "engineCode" | "modelCode" | "doors" | "seats" | "dimensions" | "steering">
+>;
+
+function pick(re: RegExp, text: string): string | undefined {
+  const m = text.match(re);
+  return m ? m[1] : undefined;
+}
+
+/**
+ * Extra spec sheet from a single car's detail page — the search feed only
+ * carries make/model/price/photo, but `/usedcar?stock=<ref>` (as RSC) adds
+ * the full chassis & engine numbers when the car has them, plus doors,
+ * seats, dimensions and the full model code. Anything the page leaves null
+ * (AUTOCOM often has no chassis/engine number on hand) is simply omitted so
+ * the caller keeps whatever the feed already gave.
+ */
+export async function scrapeAutocomDetail(refno: string): Promise<AutocomSpecs | "rate-limited"> {
+  let t: string;
+  try {
+    t = await withRetry(async () => {
+      const res = await fetch(`${BASE}/usedcar?stock=${refno}`, {
+        headers: { "User-Agent": USER_AGENT, RSC: "1", Accept: "*/*" },
+      });
+      if (RETRYABLE.has(res.status)) throw new AutocomRateLimited(`autocom detail ${res.status} ${refno}`);
+      if (!res.ok) throw new Error(`autocom detail failed: ${res.status} ${refno}`);
+      return res.text();
+    });
+  } catch (err) {
+    if (err instanceof AutocomRateLimited) return "rate-limited";
+    console.error(`[autocom] detail ${refno} failed:`, err);
+    return {};
+  }
+
+  const specs: AutocomSpecs = {};
+  // Real chassis / engine numbers — a bare frame code ("NRE161") from the
+  // feed is not one, so require at least one digit and a length that reads
+  // like a stamped number; skip the i18n label ("Chassis") and null.
+  const chassis = pick(/"chassis":"([A-Z0-9][A-Z0-9-]{4,})"/, t);
+  if (chassis && /\d/.test(chassis) && chassis !== "Chassis") specs.chassisNo = chassis;
+  const engineNo = pick(/"engineNo":"([A-Z0-9][A-Z0-9-]{3,})"/, t);
+  if (engineNo && engineNo !== "Engine No") specs.engineCode = engineNo;
+
+  const modelCode = pick(/"model":"([0-9A-Z]{2,4}-[0-9A-Z-]{3,})"/, t);
+  if (modelCode) specs.modelCode = modelCode;
+
+  const doors = pick(/"door":(\d{1,2})/, t);
+  if (doors) specs.doors = parseInt(doors, 10);
+  const seats = pick(/"seat":"(\d{1,2})"/, t);
+  if (seats) specs.seats = parseInt(seats, 10);
+
+  // length / width / height come back in cm as bare integers.
+  const l = pick(/"length":(\d{2,4})/, t);
+  const w = pick(/"width":(\d{2,4})/, t);
+  const h = pick(/"height":(\d{2,4})/, t);
+  if (l && w && h) specs.dimensions = `${(+l / 100).toFixed(2)} x ${(+w / 100).toFixed(2)} x ${(+h / 100).toFixed(2)} m`;
+
+  // AUTOCOM's stock is JDM — right-hand drive unless a listing says otherwise.
+  specs.steering = "Right";
+
+  return specs;
+}
+
 /**
  * One search-results page (25 cars). Returns "rate-limited" so callers can
  * cool down and retry — same contract as scrapeBeforwardModelPage /
