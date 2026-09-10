@@ -6,7 +6,7 @@ import { COLORS } from "@/lib/constants";
 
 // Same number DetailPage's enquiry flow sends to — kept in sync manually
 // since there's no shared config module for it yet.
-const WHATSAPP_NUMBER = "254759159881";
+const WHATSAPP_NUMBER = "254725745777";
 const DEFAULT_MESSAGE = "Hi, I'd like help finding a car on Ferbil Autos.";
 
 const GREET_AFTER_MS = 4000;

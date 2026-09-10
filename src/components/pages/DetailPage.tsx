@@ -13,7 +13,7 @@ import { VehicleGallery } from "@/components/vehicles/VehicleGallery";
 
 // Business WhatsApp number for enquiry notifications, in international
 // format (no leading 0, no +) as wa.me requires.
-const WHATSAPP_NUMBER = "254759159881";
+const WHATSAPP_NUMBER = "254725745777";
 
 const TRUST_POINTS = [
   { icon: ShieldCheck, title: "Vetted before listing", text: "Every exporter and listing is checked before it goes live on Ferbil Autos." },
