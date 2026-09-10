@@ -1,117 +1,25 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Camera, Check, Heart, MapPin, X } from "lucide-react";
+import { useState } from "react";
+import { Check, Heart, MapPin, Scale, ShieldCheck, Truck, Users } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatKes } from "@/lib/format";
-import { whatsAppLink, vehicleDetailBlock } from "@/lib/whatsapp";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import type { Page } from "@/components/AutoBridgeApp";
 import { CostLadder } from "@/components/vehicles/CostLadder";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
 import { VehicleGallery } from "@/components/vehicles/VehicleGallery";
-import { MorePhotosPoster } from "@/components/vehicles/MorePhotosPoster";
 
-/**
- * A fixed checklist of common equipment most vehicles in this catalogue
- * carry — checked against whatever the scraper actually captured in
- * vehicle.features. Unlike the old free-form pill list (which just showed
- * whatever features happened to be present, and rendered nothing at all for
- * a vehicle with none captured), this always renders the same list with a
- * tick or a cross, so every vehicle gets this section — including ones the
- * scraper couldn't pull a features list for at all.
- */
-const STANDARD_FEATURES = [
-  "A/C",
-  "Power Steering",
-  "Power Window",
-  "ABS",
-  "Airbag",
-  "Alloy Wheels",
-  "Navigation",
-  "Back Camera",
-  "Keyless Entry",
-  "Leather Seat",
+// Business WhatsApp number for enquiry notifications, in international
+// format (no leading 0, no +) as wa.me requires.
+const WHATSAPP_NUMBER = "254725745777";
+
+const TRUST_POINTS = [
+  { icon: ShieldCheck, title: "Vetted before listing", text: "Every exporter and listing is checked before it goes live on Ferbil Autos." },
+  { icon: Truck, title: "We handle the whole import", text: "Purchase, ocean freight and KRA clearing at Mombasa — all coordinated for you." },
+  { icon: Users, title: "Kenya-based support", text: "Real people in Kenya to talk to before and after you reserve." },
 ];
-
-function hasFeature(features: string[], standard: string): boolean {
-  const needle = standard.toLowerCase();
-  return features.some((f) => f.toLowerCase().includes(needle));
-}
-
-/**
- * Full spec sheet as a real vertical table — one row per spec, label on the
- * left and value on the right, spreading downward rather than sideways.
- * Lives in the narrow price sidebar, where a row-per-line layout reads far
- * better than a wide table needing its own horizontal scroll. The numbered
- * spec rows only show fields the scraper actually captured (older/
- * hand-entered vehicles render fewer of them), and the standard-features
- * checklist below only renders when a features list actually exists —
- * with none captured, "unsure" is left blank rather than shown as a wall
- * of red crosses that would read as "confirmed missing."
- */
-function SpecTable({ vehicle }: { vehicle: PublicVehicle }) {
-  const rows: [string, string | number | null][] = [
-    ["Ref. No.", vehicle.refNo],
-    ["Chassis No.", vehicle.chassisNo],
-    ["Model Code", vehicle.modelCode],
-    ["Engine Code", vehicle.engineCode],
-    ["Steering", vehicle.steering],
-    ["Location", vehicle.location],
-    ["Version/Class", vehicle.versionClass],
-    ["Doors", vehicle.doors],
-    ["Dimensions", vehicle.dimensions],
-    ["Weight", vehicle.weightKg ? `${vehicle.weightKg.toLocaleString()} kg` : null],
-    ["Registration", vehicle.registrationYearMonth],
-    ["Manufactured", vehicle.manufactureYearMonth],
-  ].filter(([, v]) => v !== null && v !== undefined && v !== "") as [string, string | number][];
-
-  if (rows.length === 0 && vehicle.features.length === 0) return null;
-
-  return (
-    <div className="rounded-2xl border p-4 mb-6" style={{ borderColor: COLORS.line }}>
-      {rows.length > 0 && (
-        <table className="w-full border-collapse mb-4 pb-4 border-b" style={{ borderColor: COLORS.line }}>
-          <tbody>
-            {rows.map(([label, value], i) => (
-              <tr key={label} style={{ background: i % 2 === 0 ? COLORS.card : "transparent" }}>
-                <td className="text-xs py-2 pl-2 pr-3 align-top" style={{ color: COLORS.slate }}>
-                  {label}
-                </td>
-                <td className="text-sm font-medium py-2 pr-2 text-right align-top" style={{ color: COLORS.ink }}>
-                  {value}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      {/* Only shown when the scraper actually captured a features list for
-         this vehicle — with none at all, every item would show a red cross,
-         which reads as "confirmed missing" when the truth is just "unknown."
-         Leaving the whole section out is more honest than guessing. */}
-      {vehicle.features.length > 0 && (
-        <>
-          <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: COLORS.slate }}>
-            Standard features
-          </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
-            {STANDARD_FEATURES.map((f) => {
-              const present = hasFeature(vehicle.features, f);
-              return (
-                <div key={f} className="flex items-center gap-1.5 text-xs">
-                  {present ? <Check size={14} color="#16A34A" className="shrink-0" /> : <X size={14} color="#DC2626" className="shrink-0" />}
-                  <span style={{ color: present ? COLORS.ink : COLORS.slate }}>{f}</span>
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
 
 export function DetailPage({
   vehicle,
@@ -120,10 +28,11 @@ export function DetailPage({
   setFx,
   favorites,
   toggleFavorite,
+  compareList,
+  toggleCompare,
   vehicles,
   goDetail,
   setPage,
-  goQuote,
 }: {
   vehicle: PublicVehicle;
   landed: LandedCost;
@@ -131,36 +40,21 @@ export function DetailPage({
   setFx: (fx: number) => void;
   favorites: Set<string>;
   toggleFavorite: (id: string) => void;
+  compareList: string[];
+  toggleCompare: (id: string) => void;
   vehicles: PublicVehicle[];
   goDetail: (id: string) => void;
   setPage: (p: Page) => void;
-  goQuote: () => void;
 }) {
   const [reserved, setReserved] = useState(false);
   const [sending, setSending] = useState(false);
-  const desktopMessageRef = useRef<HTMLTextAreaElement | null>(null);
-  const mobileMessageRef = useRef<HTMLTextAreaElement | null>(null);
-
-  /**
-   * The fastest path to "I want more photos/details" — rather than a
-   * separate WhatsApp/email channel, this jumps straight to the existing
-   * enquiry form (already wired to notify the team) and pre-fills the
-   * request so the visitor only has to add their name and phone.
-   */
-  function requestMoreInfo(ref: React.RefObject<HTMLTextAreaElement | null>) {
-    const el = ref.current;
-    if (!el) return;
-    if (!el.value.trim()) el.value = "Please send more photos and full details about this vehicle.";
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.focus();
-  }
   // Same make+model first — "more of the same car" is what a shopper
   // actually wants after clicking a specific listing — then fill any
   // remaining slots with the wider body-type/brand match as before.
   const others = vehicles.filter((v) => v.id !== vehicle.id && v.eligible);
   const sameModel = others.filter((v) => v.make === vehicle.make && v.model === vehicle.model);
   const wider = others.filter((v) => !(v.make === vehicle.make && v.model === vehicle.model) && (v.bodyType === vehicle.bodyType || v.make === vehicle.make));
-  const similar = [...sameModel, ...wider].slice(0, 6); // divisible by both 2 (mobile) and 3 (desktop) — no dangling gap in either grid
+  const similar = [...sameModel, ...wider].slice(0, 6); // multiple of 3 — no dangling gap in the mobile 3-across grid
 
   async function submitEnquiry(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -192,21 +86,20 @@ export function DetailPage({
       setReserved(true);
 
       // Enquiry is saved either way (above) — this just also puts it in
-      // front of a person immediately on WhatsApp, with the full vehicle
-      // picture and a link straight to it in admin rather than making them
-      // go find it (the admin page's own "Original listing" link tracks it
-      // back to the exporter from there).
+      // front of a person immediately on WhatsApp, with a link straight to
+      // the admin list rather than making them go find it.
+      const adminLink = `${window.location.origin}/admin/enquiries`;
       const waText = [
-        `New enquiry`,
-        vehicleDetailBlock(vehicle, ref, window.location.origin),
+        `New enquiry — ${vehicle.year} ${vehicle.make} ${vehicle.model} (Ref ${ref})`,
         `Name: ${data.get("name")}`,
         `Phone: ${data.get("phone")}`,
         data.get("email") ? `Email: ${data.get("email")}` : null,
         message ? `Message: ${message}` : null,
+        `View in admin: ${adminLink}`,
       ]
         .filter(Boolean)
         .join("\n");
-      window.open(whatsAppLink(waText), "_blank", "noopener,noreferrer");
+      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`, "_blank", "noopener,noreferrer");
     } finally {
       setSending(false);
     }
@@ -214,9 +107,19 @@ export function DetailPage({
 
   const ref = `AB-${vehicle.id.slice(-7).toUpperCase()}`;
 
+  // Toggling compare used to also surface a floating "Compare now" bar —
+  // removed since it duplicated the bottom nav's own Compare badge and
+  // collided with it on mobile. Without that bar, adding a car had no
+  // visible effect at all, so this takes you straight to the compare page
+  // instead (only on ADD — removing a car just removes it, no navigation).
+  function handleToggleCompare() {
+    const adding = !compareList.includes(vehicle.id);
+    toggleCompare(vehicle.id);
+    if (adding) setPage("compare");
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <MorePhotosPoster key={vehicle.id} vehicle={vehicle} />
       <div className="flex items-center gap-1.5 text-xs mb-5 flex-wrap" style={{ color: COLORS.slate }}>
         <button onClick={() => setPage("home")} className="hover:underline">
           Home
@@ -254,17 +157,32 @@ export function DetailPage({
               >
                 Ref {ref}
               </span>
+              {vehicle.isRepresentativePhoto && (
+                <span
+                  className="absolute bottom-3 left-3 text-[11px] font-medium px-2.5 py-1 rounded-full"
+                  style={{ background: "rgba(7,21,39,0.7)", color: "#fff", backdropFilter: "blur(2px)" }}
+                >
+                  Photo of a similar {vehicle.make} {vehicle.model} in stock — this unit&apos;s own photo isn&apos;t in yet
+                </span>
+              )}
             </>
           }
         />
 
         <div className="mt-4 flex items-start justify-between gap-2">
           <h1 className="min-w-0 flex-1 text-lg font-semibold leading-snug" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
+            {vehicle.year} {vehicle.make} {vehicle.model}
           </h1>
           <div className="flex gap-1.5 shrink-0">
             <button onClick={() => toggleFavorite(vehicle.id)} className="w-8 h-8 rounded-full border flex items-center justify-center" style={{ borderColor: COLORS.line }}>
               <Heart size={14} fill={favorites.has(vehicle.id) ? COLORS.burgundy : "none"} color={COLORS.burgundy} />
+            </button>
+            <button
+              onClick={handleToggleCompare}
+              className="w-8 h-8 rounded-full border flex items-center justify-center"
+              style={{ borderColor: COLORS.line, background: compareList.includes(vehicle.id) ? COLORS.gold : "transparent" }}
+            >
+              <Scale size={14} color={COLORS.navy} />
             </button>
           </div>
         </div>
@@ -275,12 +193,12 @@ export function DetailPage({
             {formatKes(landed.total)}
           </span>
           <span className="text-[11px]" style={{ color: COLORS.slate }}>
-            total price, incl. freight &amp; insurance
+            total price
           </span>
         </div>
 
         <p className="text-xs mt-1.5" style={{ color: COLORS.slate }}>
-          {vehicle.condition}
+          {vehicle.trim} · {vehicle.condition}
         </p>
         <p className="text-xs mt-0.5 inline-flex items-center gap-1" style={{ color: COLORS.slate }}>
           <MapPin size={12} /> {vehicle.sourceCountry}
@@ -321,20 +239,8 @@ export function DetailPage({
             />
             <span style={{ color: COLORS.slate }}>KSh/USD</span>
           </div>
-          <CostLadder landed={landed} fx={fx} />
+          <CostLadder vehicle={vehicle} landed={landed} fx={fx} />
         </div>
-
-        <button
-          onClick={() => requestMoreInfo(mobileMessageRef)}
-          className="w-full mt-4 rounded-2xl p-4 text-left text-white flex items-center gap-3"
-          style={{ background: "linear-gradient(135deg, #3B1F63 0%, #D6336C 100%)" }}
-        >
-          <Camera size={22} />
-          <div>
-            <div className="text-sm font-semibold">Want more photos or details?</div>
-            <div className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>Request them below, takes 10 seconds</div>
-          </div>
-        </button>
 
         {!vehicle.eligible && (
           <div className="p-4 rounded-xl mt-4 text-sm" style={{ background: "#FEF2F2", color: "#B91C1C" }}>
@@ -342,8 +248,20 @@ export function DetailPage({
           </div>
         )}
 
-        <div className="mt-6">
-          <SpecTable vehicle={vehicle} />
+        <div className="grid gap-3 mt-6 mb-6">
+          {TRUST_POINTS.map(({ icon: Icon, title, text }) => (
+            <div key={title} className="p-4 rounded-xl border flex items-start gap-3" style={{ borderColor: COLORS.line }}>
+              <Icon size={18} color={COLORS.burgundy} className="shrink-0 mt-0.5" />
+              <div>
+                <div className="text-sm font-semibold" style={{ color: COLORS.navy }}>
+                  {title}
+                </div>
+                <div className="text-xs mt-1" style={{ color: COLORS.slate }}>
+                  {text}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="p-5 rounded-2xl border mb-6" style={{ borderColor: COLORS.line }}>
@@ -360,7 +278,6 @@ export function DetailPage({
               <input name="phone" required placeholder="Phone number" className="border rounded-lg px-3 py-2 text-sm" style={{ borderColor: "#D8DCE3" }} />
               <input name="email" placeholder="Email (optional)" className="border rounded-lg px-3 py-2 text-sm" style={{ borderColor: "#D8DCE3" }} />
               <textarea
-                ref={mobileMessageRef}
                 name="message"
                 placeholder="Anything specific you'd like us to know?"
                 className="border rounded-lg px-3 py-2 text-sm"
@@ -374,9 +291,6 @@ export function DetailPage({
               <button type="submit" disabled={sending} className="py-2.5 rounded-full text-sm font-semibold text-white disabled:opacity-60" style={{ background: COLORS.burgundy }}>
                 {sending ? "Sending…" : "Send enquiry"}
               </button>
-              <button type="button" onClick={goQuote} className="text-xs font-semibold text-center" style={{ color: COLORS.burgundy }}>
-                Or get a printable official quote &rarr;
-              </button>
             </form>
           )}
         </div>
@@ -386,7 +300,7 @@ export function DetailPage({
             <h3 className="font-semibold mb-4" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
               Similar vehicles
             </h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {similar.map((v) => (
                 <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
               ))}
@@ -397,7 +311,7 @@ export function DetailPage({
 
       {/* ── Desktop (lg and up): the original full two-column layout. ── */}
       <div className="hidden lg:grid lg:grid-cols-[1.3fr_1fr] gap-8">
-        <div className="min-w-0">
+        <div>
           <VehicleGallery
             images={vehicle.imageUrls.length > 0 ? vehicle.imageUrls : vehicle.imageUrl ? [vehicle.imageUrl] : []}
             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
@@ -416,6 +330,14 @@ export function DetailPage({
                 >
                   Ref {ref}
                 </span>
+                {vehicle.isRepresentativePhoto && (
+                  <span
+                    className="absolute bottom-9 sm:bottom-10 left-3 text-[11px] font-medium px-2.5 py-1 rounded-full max-w-[80%]"
+                    style={{ background: "rgba(7,21,39,0.7)", color: "#fff", backdropFilter: "blur(2px)" }}
+                  >
+                    Photo of a similar {vehicle.make} {vehicle.model} in stock — this unit&apos;s own photo isn&apos;t in yet
+                  </span>
+                )}
               </>
             }
           />
@@ -423,11 +345,11 @@ export function DetailPage({
           <div className="flex items-start justify-between mb-2 flex-wrap gap-3">
             <div>
               <h1 className="text-2xl sm:text-3xl font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-                {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
+                {vehicle.year} {vehicle.make} {vehicle.model}
               </h1>
               <p className="text-sm mt-1 flex items-center gap-3 flex-wrap" style={{ color: COLORS.slate }}>
                 <span>
-                  {vehicle.condition}
+                  {vehicle.trim} · {vehicle.condition}
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <MapPin size={13} /> Sourced from {vehicle.sourceCountry}
@@ -437,6 +359,13 @@ export function DetailPage({
             <div className="flex gap-2">
               <button onClick={() => toggleFavorite(vehicle.id)} className="w-10 h-10 rounded-full border flex items-center justify-center" style={{ borderColor: COLORS.line }}>
                 <Heart size={17} fill={favorites.has(vehicle.id) ? COLORS.burgundy : "none"} color={COLORS.burgundy} />
+              </button>
+              <button
+                onClick={handleToggleCompare}
+                className="w-10 h-10 rounded-full border flex items-center justify-center"
+                style={{ borderColor: COLORS.line, background: compareList.includes(vehicle.id) ? COLORS.gold : "transparent" }}
+              >
+                <Scale size={17} color={COLORS.navy} />
               </button>
             </div>
           </div>
@@ -472,6 +401,20 @@ export function DetailPage({
             </div>
           )}
 
+          <div className="grid sm:grid-cols-3 gap-3 mb-6">
+            {TRUST_POINTS.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="p-4 rounded-xl border" style={{ borderColor: COLORS.line }}>
+                <Icon size={18} color={COLORS.burgundy} />
+                <div className="text-sm font-semibold mt-2" style={{ color: COLORS.navy }}>
+                  {title}
+                </div>
+                <div className="text-xs mt-1" style={{ color: COLORS.slate }}>
+                  {text}
+                </div>
+              </div>
+            ))}
+          </div>
+
           <div className="p-5 rounded-2xl border mb-6" style={{ borderColor: COLORS.line }}>
             <h3 className="font-semibold mb-3" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
               Enquire about this vehicle
@@ -486,7 +429,6 @@ export function DetailPage({
                 <input name="phone" required placeholder="Phone number" className="border rounded-lg px-3 py-2 text-sm" style={{ borderColor: "#D8DCE3" }} />
                 <input name="email" placeholder="Email (optional)" className="border rounded-lg px-3 py-2 text-sm sm:col-span-2" style={{ borderColor: "#D8DCE3" }} />
                 <textarea
-                  ref={desktopMessageRef}
                   name="message"
                   placeholder="Anything specific you'd like us to know?"
                   className="border rounded-lg px-3 py-2 text-sm sm:col-span-2"
@@ -500,17 +442,14 @@ export function DetailPage({
                 <button type="submit" disabled={sending} className="sm:col-span-2 py-2.5 rounded-full text-sm font-semibold text-white disabled:opacity-60" style={{ background: COLORS.burgundy }}>
                   {sending ? "Sending…" : "Send enquiry"}
                 </button>
-                <button type="button" onClick={goQuote} className="sm:col-span-2 text-xs font-semibold text-center" style={{ color: COLORS.burgundy }}>
-                  Or get a printable official quote &rarr;
-                </button>
               </form>
             )}
           </div>
 
         </div>
 
-        <div className="lg:h-full min-w-0">
-          <div className="lg:sticky lg:h-full lg:flex lg:flex-col min-w-0" style={{ top: "1.5rem" }}>
+        <div className="lg:h-full">
+          <div className="lg:sticky lg:h-full lg:flex lg:flex-col" style={{ top: "1.5rem" }}>
             <div className="mb-4 flex items-center gap-2 text-xs">
               <span style={{ color: COLORS.slate }}>Exchange rate</span>
               <input
@@ -522,25 +461,7 @@ export function DetailPage({
               />
               <span style={{ color: COLORS.slate }}>KSh / USD</span>
             </div>
-            <CostLadder landed={landed} fx={fx} />
-
-            <div className="mt-4">
-              <SpecTable vehicle={vehicle} />
-            </div>
-
-            <div className="hidden lg:flex flex-col gap-3">
-              <button
-                onClick={() => requestMoreInfo(desktopMessageRef)}
-                className="rounded-2xl p-4 text-left text-white flex items-center gap-3"
-                style={{ background: "linear-gradient(135deg, #3B1F63 0%, #D6336C 100%)" }}
-              >
-                <Camera size={22} />
-                <div>
-                  <div className="text-sm font-semibold">Want more photos or details?</div>
-                  <div className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>Request them below, takes 10 seconds</div>
-                </div>
-              </button>
-            </div>
+            <CostLadder vehicle={vehicle} landed={landed} fx={fx} />
           </div>
         </div>
       </div>

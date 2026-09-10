@@ -1,51 +1,9 @@
-// KRA (KS 1515:2000) caps used-vehicle imports at under 8 years old from
-// year of manufacture — a rolling window, not a fixed year, so this is
-// computed off the current date rather than hardcoded. "Under 8 years"
-// excludes a car turning exactly 8 this year, so -7 (not -8) is the correct
-// floor; explicitly requested to exclude 2018 stock going forward.
-export const IMPORT_ELIGIBLE_FROM_YEAR = new Date().getFullYear() - 7;
-
-// BE FORWARD's detail-page "Location" spec field holds a Japanese
-// prefecture/region name for the vast majority of stock (it's physically in
-// Japan) but occasionally a real country name instead, for units held at an
-// overseas satellite yard (confirmed live: a UK-based Isuzu Forward truck)
-// — that vehicle's landed cost is completely different (a different port,
-// different freight economics) from a Japan-origin unit, so getting this
-// wrong isn't cosmetic. Rather than enumerate every possible overseas
-// country BE FORWARD might use, this enumerates the finite, known set of
-// Japanese place names instead — anything else in that field is treated as
-// the vehicle's real country.
-const JAPAN_PLACE_NAMES = new Set(
-  [
-    "Hokkaido", "Aomori", "Iwate", "Miyagi", "Akita", "Yamagata", "Fukushima",
-    "Ibaraki", "Tochigi", "Gunma", "Saitama", "Chiba", "Tokyo", "Kanagawa",
-    "Niigata", "Toyama", "Ishikawa", "Fukui", "Yamanashi", "Nagano", "Gifu",
-    "Shizuoka", "Aichi", "Mie", "Shiga", "Kyoto", "Osaka", "Hyogo", "Nara",
-    "Wakayama", "Tottori", "Shimane", "Okayama", "Hiroshima", "Yamaguchi",
-    "Tokushima", "Kagawa", "Ehime", "Kochi", "Fukuoka", "Saga", "Nagasaki",
-    "Kumamoto", "Oita", "Miyazaki", "Kagoshima", "Okinawa",
-    // Regions spanning several prefectures, and major cities, both seen used
-    // in place of a prefecture name on real listings.
-    "Kanto", "Kansai", "Kinki", "Chubu", "Chugoku", "Tohoku", "Kyushu", "Shikoku",
-    "Yokohama", "Nagoya", "Kobe", "Sendai", "Chiba-Ken", "Saitama-Ken",
-  ].map((s) => s.toUpperCase())
-);
-
-/**
- * BE FORWARD-specific: turns the detail page's "Location" spec value into a
- * source country, defaulting to Japan (matching the overwhelming majority of
- * real stock, and the safe fallback when the field is empty/unparsed).
- */
-export function deriveBeforwardSourceCountry(location: string | null | undefined): string {
-  const raw = (location ?? "").trim();
-  if (!raw || JAPAN_PLACE_NAMES.has(raw.toUpperCase())) return "Japan";
-  // Matches the short form already used as the FREIGHT_USD map's key (see
-  // src/lib/landedCost.ts) and everywhere else in the UI.
-  if (raw.toUpperCase() === "UNITED KINGDOM") return "UK";
-  if (raw.toUpperCase() === "UNITED ARAB EMIRATES") return "UAE";
-  if (raw.toUpperCase() === "UNITED STATES" || raw.toUpperCase() === "UNITED STATES OF AMERICA") return "USA";
-  return titleCase(raw);
-}
+// KRA (KS 1515:2000) caps used-vehicle imports at 8 years old from year of
+// manufacture — a rolling window, not a fixed year, so this is computed off
+// the current date rather than hardcoded. Was pinned to 2019, which quietly
+// went stale and started excluding 2018-built vehicles that are actually
+// still importable.
+export const IMPORT_ELIGIBLE_FROM_YEAR = new Date().getFullYear() - 8;
 
 /** Strips non-digit characters (commas, "km", "cc", "$", etc.) and parses an int. */
 export function parseNumber(raw: string | null | undefined): number {

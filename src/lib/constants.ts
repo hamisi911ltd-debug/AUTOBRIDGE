@@ -55,7 +55,7 @@ export const BUDGET_TILES = [
 ];
 
 export const HOW_IT_WORKS = [
-  { title: "Search & estimate", text: "Filter by budget, body type or lifestyle and see the full landed cost, not just the sticker price." },
+  { title: "Search & estimate", text: "Filter by budget, body type or lifestyle and see the full landed cost — not just the sticker price." },
   { title: "Reserve", text: "Lock in your vehicle with a reservation. We confirm availability with the exporter within 24 hours." },
   { title: "We purchase & ship", text: "We handle payment to the exporter, export inspection and ocean freight to Mombasa." },
   { title: "Clear at Mombasa", text: "Our clearing agents handle KRA duty, port charges and NTSA paperwork on your behalf." },
@@ -65,11 +65,11 @@ export const HOW_IT_WORKS = [
 export const FAQS = [
   {
     q: `Why do you only list cars from ${IMPORT_ELIGIBLE_FROM_YEAR} onward?`,
-    a: `KRA caps used-vehicle imports at 8 years old from year of manufacture (KS 1515:2000), so ${IMPORT_ELIGIBLE_FROM_YEAR} is the oldest model year still importable this year. The threshold moves forward each year, and every listing here stays inside it so you never waste time on a car you legally can't bring in.`,
+    a: `KRA caps used-vehicle imports at 8 years old from year of manufacture (KS 1515:2000), so ${IMPORT_ELIGIBLE_FROM_YEAR} is the oldest model year still importable this year — the threshold moves forward each year, and every listing here stays inside it so you never waste time on a car you legally can't bring in.`,
   },
-  { q: "Does the price shown include KRA duty, excise and VAT?", a: "No, the price shown is the vehicle price plus freight and insurance to Mombasa. KRA duty, excise and VAT depend on its CRSP valuation and your car's age, which we don't estimate on the site. Tick \"Include a full quote with duty, excise & VAT\" on the enquiry form and our team will send you the exact figure." },
+  { q: "Does the price shown include KRA duty, excise and VAT?", a: "No — the price shown is the vehicle price plus freight and insurance to Mombasa. KRA duty, excise and VAT depend on its CRSP valuation and your car's age, which we don't estimate on the site. Tick \"Include a full quote with duty, excise & VAT\" on the enquiry form and our team will send you the exact figure." },
   { q: "How long does the import process take?", a: "Most shipments from Japan take six to eight weeks door to Mombasa, plus roughly one to two weeks for clearing and registration. UAE shipments typically run a little shorter." },
-  { q: "Is the vehicle price shown the final price?", a: "The price on every listing is our all-in vehicle price, already covering sourcing, vetting and exporter coordination, plus freight and insurance to Mombasa. It does not include KRA duty, excise, VAT or registration, request a full quote on the enquiry form for those." },
+  { q: "Is the vehicle price shown the final price?", a: "The price on every listing is Ferbil Autos' all-in vehicle price, already covering sourcing, vetting and exporter coordination, plus freight and insurance to Mombasa. It does not include KRA duty, excise, VAT or registration — request a full quote on the enquiry form for those." },
 ];
 
 export type Filters = {

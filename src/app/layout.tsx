@@ -15,13 +15,13 @@ const inter = Inter({
 });
 
 const SITE_URL = "https://autobridge-kenya-web.glotech.workers.dev";
-const SITE_NAME = "Vehicle Import Marketplace";
+const SITE_NAME = "Ferbil Autos";
 const SITE_DESCRIPTION =
-  "Browse real, import-eligible vehicles from Japan and the UAE with total price (vehicle plus freight & insurance) shown upfront on every listing. Kenya's vehicle import marketplace.";
+  "Browse real, import-eligible vehicles from Japan and the UAE with total price (vehicle plus freight & insurance) shown upfront on every listing. Ferbil Autos is Kenya's vehicle import marketplace.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: SITE_NAME, template: `%s | ${SITE_NAME}` },
+  title: { default: `${SITE_NAME} — Kenya's Vehicle Import Marketplace`, template: `%s — ${SITE_NAME}` },
   description: SITE_DESCRIPTION,
   keywords: [
     "import cars Kenya",
@@ -38,14 +38,16 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: SITE_NAME,
+    title: `${SITE_NAME} — Kenya's Vehicle Import Marketplace`,
     description: SITE_DESCRIPTION,
     locale: "en_KE",
+    images: [{ url: "/logo.png", width: 68, height: 42, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary",
-    title: SITE_NAME,
+    title: `${SITE_NAME} — Kenya's Vehicle Import Marketplace`,
     description: SITE_DESCRIPTION,
+    images: ["/logo.png"],
   },
 };
 

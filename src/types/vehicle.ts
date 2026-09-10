@@ -44,19 +44,4 @@ export type PublicVehicle = {
   lifestyle: string[];
   eligible: boolean;
   ineligibleReason: string | null;
-  // Extended spec sheet — populated for BE FORWARD listings scraped after
-  // this field set was added; older rows and other sources leave these null.
-  refNo: string | null;
-  chassisNo: string | null;
-  modelCode: string | null;
-  engineCode: string | null;
-  steering: string | null;
-  location: string | null;
-  versionClass: string | null;
-  doors: number | null;
-  dimensions: string | null;
-  weightKg: number | null;
-  registrationYearMonth: string | null;
-  manufactureYearMonth: string | null;
-  features: string[];
 };

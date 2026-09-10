@@ -5,9 +5,9 @@ import { COLORS } from "@/lib/constants";
 import { getScrapeManifest, runScrapeUnitNow, revalidateAfterScrape } from "@/app/admin/actions";
 import type { ScrapeSite } from "@/lib/scrapers/runScrape";
 
-type Totals = { totalFound: number; created: number; updated: number; skipped: number; errors: number; bySite: Record<ScrapeSite, number> };
+type Totals = { totalFound: number; created: number; updated: number; errors: number; bySite: Record<ScrapeSite, number> };
 
-const EMPTY_TOTALS: Totals = { totalFound: 0, created: 0, updated: 0, skipped: 0, errors: 0, bySite: { beforward: 0, sbtjapan: 0, dubicars: 0 } };
+const EMPTY_TOTALS: Totals = { totalFound: 0, created: 0, updated: 0, errors: 0, bySite: { beforward: 0, sbtjapan: 0, dubicars: 0 } };
 
 export function RunScrapeButton() {
   const [running, setRunning] = useState(false);
@@ -38,7 +38,6 @@ export function RunScrapeButton() {
           totals.totalFound += unit.found;
           totals.created += unit.created;
           totals.updated += unit.updated;
-          totals.skipped += unit.skipped;
           totals.errors += unit.errors;
           totals.bySite[site] += unit.found;
           done++;
@@ -72,7 +71,6 @@ export function RunScrapeButton() {
         <p className="text-xs mt-2" style={{ color: COLORS.slate }}>
           Found {result.totalFound} listings ({result.bySite.beforward} BE FORWARD, {result.bySite.sbtjapan} SBT
           Japan, {result.bySite.dubicars} Dubicars): {result.created} new, {result.updated} updated
-          {result.skipped > 0 ? `, ${result.skipped} skipped (poor/no photo)` : ""}
           {result.errors > 0 ? `, ${result.errors} errors` : ""}.
         </p>
       )}

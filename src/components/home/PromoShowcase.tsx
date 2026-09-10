@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { COLORS, FONT_DISPLAY, POPULAR_MAKES } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
-import { computeFreightUsd } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 
 const SLIDE_MS = 3500;
@@ -205,13 +204,8 @@ export function PromoShowcase({
                   </span>
                 </p>
                 <div className="flex items-center justify-between mt-2">
-                  <span>
-                    <span className="text-xl font-bold block" style={{ color: COLORS.goldLight, fontFamily: FONT_DISPLAY }}>
-                      {formatUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd)}
-                    </span>
-                    <span className="text-[10px]" style={{ color: "#C6CEDD" }}>
-                      Incl. freight &amp; insurance
-                    </span>
+                  <span className="text-xl font-bold" style={{ color: COLORS.goldLight, fontFamily: FONT_DISPLAY }}>
+                    {formatUsd(v.sellingPriceUsd)}
                   </span>
                   <span
                     className="text-xs font-semibold px-3 py-1.5 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"

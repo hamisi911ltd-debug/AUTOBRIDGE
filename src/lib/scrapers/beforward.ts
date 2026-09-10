@@ -1,9 +1,8 @@
 import { parse, type HTMLElement } from "node-html-parser";
 import type { ScrapedVehicle } from "@/lib/scrapers/types";
 import { withRetry } from "@/lib/scrapers/http";
-import { fetchBeforwardDetail } from "@/lib/scrapers/coverImage";
+import { fetchCoverImage } from "@/lib/scrapers/coverImage";
 import {
-  deriveBeforwardSourceCountry,
   guessBodyType,
   IMPORT_ELIGIBLE_FROM_YEAR,
   normalizeDrive,
@@ -98,14 +97,10 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
     const yearMatch = nameText.match(/\b(19|20)\d{2}\b/);
     const year = yearMatch ? parseInt(yearMatch[0], 10) : 0;
     const afterYear = yearMatch ? nameText.slice(nameText.indexOf(yearMatch[0]) + 4).trim() : nameText;
-    // afterYear is roughly "TOYOTA REGIUSACE VAN LONG SUPER GL" — the make
-    // (already known from the search facet) is repeated first, then model/trim.
-    // Sliced by word COUNT, not a fixed 1, since "Land Rover" is two words —
-    // slicing exactly 1 left "ROVER" as the first remaining word for every
-    // single Land Rover listing, which splitModelTrim then took as the whole
-    // model, collapsing Range Rover/Discovery/Defender/etc. all down to "Rover".
+    // afterYear is roughly "TOYOTA REGIUSACE VAN LONG SUPER GL" — first word is
+    // the make (already known from the search facet), rest splits model/trim.
     const words = afterYear.split(" ").filter(Boolean);
-    const rest = words.slice(make.split(" ").length);
+    const rest = words.slice(1); // drop the repeated make token
     const { model, trim } = splitModelTrim(rest);
 
     const mileageKm = Math.round(parseNumber(row.querySelector(".basic-spec-col.mileage .val")?.text ?? ""));
@@ -181,30 +176,12 @@ export async function scrapeBeforwardUnit(makeIndex: number, page: number): Prom
   }
 }
 
-/**
- * Mutates v in place: upgrades imageUrl/imageWidthPx if a better detail-page
- * photo is found, fills in the extended spec sheet, derives the real source
- * country from the spec sheet's Location field (defaulting to "Japan" only
- * matters for the ~90%+ of stock that's actually there — see
- * deriveBeforwardSourceCountry), and — when the page publishes one — swaps
- * in BE FORWARD's own Mombasa RORO total price in place of the bare FOB
- * price, flagging freightIncluded so landedCost.ts doesn't add shipping on
- * top of a figure that already has it baked in (same convention already
- * used for SBT Japan's own "Total Price"). One detail-page fetch covers all
- * of this.
- */
+/** Mutates v.imageUrl/v.imageWidthPx in place if a better detail-page photo is found; leaves the listing thumbnail untouched otherwise. */
 async function upgradeCoverImage(v: ScrapedVehicle): Promise<void> {
-  const detail = await fetchBeforwardDetail("beforward", v.sourceUrl);
-  if (!detail || detail === "rate-limited") return;
-  if (detail.image) {
-    v.imageUrl = detail.image.url;
-    v.imageWidthPx = detail.image.widthPx;
-  }
-  Object.assign(v, detail.specs);
-  v.sourceCountry = deriveBeforwardSourceCountry(detail.specs.location);
-  if (detail.mombasaTotalUsd) {
-    v.sourcePriceUsd = detail.mombasaTotalUsd;
-    v.freightIncluded = true;
+  const better = await fetchCoverImage("beforward", v.sourceUrl);
+  if (better && better !== "rate-limited") {
+    v.imageUrl = better.url;
+    v.imageWidthPx = better.widthPx;
   }
 }
 

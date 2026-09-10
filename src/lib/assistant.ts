@@ -164,12 +164,12 @@ export function matchVehicles(
   if (GREETING_RE.test(trimmed)) {
     return {
       reply:
-        "Hi! Tell me your budget, a make/model you're after, or what you need the car for (family, business, off-road), e.g. \"diesel Toyota Prado, 2018 or newer, around KSh 3M\".",
+        "Hi! Tell me your budget, a make/model you're after, or what you need the car for (family, business, off-road) — e.g. \"diesel Toyota Prado, 2018 or newer, around KSh 3M\".",
       vehicleIds: [],
     };
   }
   if (THANKS_RE.test(trimmed)) {
-    return { reply: "Anytime, ask if you want more options or a different budget/model.", vehicleIds: [] };
+    return { reply: "Anytime — ask if you want more options or a different budget/model.", vehicleIds: [] };
   }
 
   const budget = parseBudgetKes(text);
@@ -227,8 +227,8 @@ export function matchVehicles(
 
   if (matches.length === 0) {
     const reply = wantedModelName
-      ? `We don't currently have a ${wantedModelName} in stock that matches. Try a different budget, or ask about a similar model.`
-      : "I couldn't find a close match for that. Try widening your budget or telling me what you'll mainly use the car for (family, business, off-road, ride-hailing).";
+      ? `We don't currently have a ${wantedModelName} in stock that matches — try a different budget, or ask about a similar model.`
+      : "I couldn't find a close match for that — try widening your budget or telling me what you'll mainly use the car for (family, business, off-road, ride-hailing).";
     return { reply, vehicleIds: [] };
   }
 
@@ -243,7 +243,7 @@ export function matchVehicles(
   const context = parts.length > 0 ? ` for ${parts.join(", ")}` : "";
   const names = matches.map((v) => `${v.year} ${v.make} ${v.model}`).join(", ");
   const stockNote = noExactStock ? " (no exact stock right now, so here's the closest we have) " : " ";
-  const reply = `Based on${context}, here's what fits best:${stockNote}${names}. Landed costs are shown below, tap one to see the full breakdown.`;
+  const reply = `Based on${context}, here's what fits best:${stockNote}${names}. Landed costs are shown below — tap one to see the full breakdown.`;
 
   return { reply, vehicleIds: matches.map((v) => v.id) };
 }

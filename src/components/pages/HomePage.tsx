@@ -42,7 +42,13 @@ export function HomePage({
       <OffersSlider vehicles={vehicles} goDetail={goDetail} />
       <CatalogueSection vehicles={vehicles} landedMap={landedMap} filters={filters} favorites={favorites} goDetail={goDetail} />
       <BestSellersByCategory vehicles={vehicles} goDetail={goDetail} />
-      <VehicleGridSection title="Featured this week" vehicles={featured} goDetail={goDetail} onViewAll={() => goSearch({})} />
+      <VehicleGridSection
+        title="Featured this week"
+        subtitle="Hand-picked listings with strong value after duty and shipping."
+        vehicles={featured}
+        goDetail={goDetail}
+        onViewAll={() => goSearch({})}
+      />
       <CustomerReviews reviews={reviews} />
       <SmallAdvertsSlider />
     </div>

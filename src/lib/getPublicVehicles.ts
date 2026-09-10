@@ -1,7 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { computeSellingPriceUsd } from "@/lib/pricing/engine";
-import { computeInsuranceUsd } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
+
+/**
+ * Insurance estimate computed from the REAL source price — must run here,
+ * server-side, while sourcePriceUsd is still in scope. Only the resulting
+ * number (not sourcePriceUsd itself) makes it into the returned
+ * PublicVehicle.
+ */
+function computeInsuranceUsd(sourcePriceUsd: number): number {
+  return Math.round(sourcePriceUsd * 0.01);
+}
 
 /**
  * Fetches vehicles (optionally capped via `opts.limit`, newest first) and
@@ -20,59 +29,45 @@ import type { PublicVehicle } from "@/types/vehicle";
  * unbounded for Search and Ferbot, which genuinely need the whole catalogue,
  * fetched lazily only once those are actually used.
  *
- * Every vehicle shows only its own real photo, or none at all — an earlier
- * version borrowed a same-model unit's sharper photo as a labeled "stand-in"
- * for photo-less/blurry listings, but that read as misleading (a shopper
- * deciding on a specific car shouldn't be shown a different unit's photo).
- * A vehicle with no usable photo of its own falls back to VehicleImage's
- * branded placeholder instead. Genuinely low-quality photos (under 500px)
- * are pruned from the catalogue directly rather than patched over here.
+ * A real check of the live catalogue found 62% of eligible vehicles have no
+ * photo of their own — VehicleImage's icon fallback keeps those from
+ * rendering broken, but at that volume it reads as a catalogue full of
+ * blank cards. 80% of those photo-less vehicles share a make+model with
+ * some other in-stock unit that DOES have a real photo, so those borrow
+ * that unit's photo as a stand-in (`isRepresentativePhoto: true`) — the UI
+ * must label this clearly, since it isn't a photo of this exact car.
+ *
+ * The same stand-in also covers a narrower case: a vehicle whose own photo
+ * is real but stuck under 500px (the original BE FORWARD listing sold or
+ * was delisted before the nightly re-fetch could grab a sharper one, so
+ * there's nothing left to upgrade from) — rather than leave it visibly
+ * blurry forever, it borrows a sharp same-model photo the same way a
+ * no-photo vehicle does.
  */
-// Only the columns the code below actually reads — sourceSite, externalId,
-// sourceUrl, lastScrapedAt, updatedAt were being pulled and transferred out
-// of D1 on every request for no reason, adding real D1 read + serialization
-// cost that multiplies badly under concurrent traffic.
-const VEHICLE_SELECT = {
-  id: true,
-  make: true,
-  model: true,
-  trim: true,
-  year: true,
-  mileageKm: true,
-  fuel: true,
-  transmission: true,
-  engineCc: true,
-  bodyType: true,
-  drive: true,
-  seats: true,
-  color: true,
-  sourceCountry: true,
-  sourcePriceUsd: true,
-  freightIncluded: true,
-  imageUrl: true,
-  imageUrls: true,
-  imageWidthPx: true,
-  condition: true,
-  badge: true,
-  lifestyle: true,
-  eligible: true,
-  ineligibleReason: true,
-  refNo: true,
-  chassisNo: true,
-  modelCode: true,
-  engineCode: true,
-  steering: true,
-  location: true,
-  versionClass: true,
-  doors: true,
-  dimensions: true,
-  weightKg: true,
-  registrationYearMonth: true,
-  manufactureYearMonth: true,
-  features: true,
-} as const;
+type VehicleRow = Awaited<ReturnType<typeof prisma.vehicle.findMany>>[number];
 
-type VehicleRow = Awaited<ReturnType<typeof prisma.vehicle.findMany<{ select: typeof VEHICLE_SELECT }>>>[number];
+const MIN_SHARP_WIDTH_PX = 500;
+
+function makeModelKey(make: string, model: string): string {
+  return `${make.toLowerCase()}|${model.toLowerCase()}`;
+}
+
+/** Best (widest) real photo set per make+model, drawn from every eligible vehicle that has one — used to stand in for units with no (or only a blurry) photo of their own. */
+function buildRepresentativePhotos(vehicles: VehicleRow[]): Map<string, { imageUrl: string; imageUrls: string[]; widthPx: number }> {
+  const best = new Map<string, VehicleRow>();
+  for (const v of vehicles) {
+    if (!v.imageUrl) continue;
+    const key = makeModelKey(v.make, v.model);
+    const current = best.get(key);
+    if (!current || (v.imageWidthPx ?? 0) > (current.imageWidthPx ?? 0)) best.set(key, v);
+  }
+  const result = new Map<string, { imageUrl: string; imageUrls: string[]; widthPx: number }>();
+  for (const [key, v] of best) {
+    const imageUrls = v.imageUrls ? (JSON.parse(v.imageUrls) as string[]) : v.imageUrl ? [v.imageUrl] : [];
+    result.set(key, { imageUrl: v.imageUrl as string, imageUrls, widthPx: v.imageWidthPx ?? 0 });
+  }
+  return result;
+}
 
 /**
  * Dealers commonly stock several physically-identical units of the same new
@@ -110,65 +105,37 @@ function groupIdenticalUnits(vehicles: VehicleRow[]): VehicleRow[] {
   });
 }
 
-/**
- * A plain "newest N overall" fetch, bounded by `opts.limit`, badly starves
- * whichever makes weren't scraped most recently — confirmed live: a growth
- * crawl that happened to finish on Jaguar and Hyundai last left the
- * homepage's bounded pool almost entirely those two makes, since every one
- * of their rows was newer than everything else. `opts.diverse` fetches per
- * make instead (one small indexed query each, `[make, model]` already has
- * an index) and interleaves the results, so the bounded pool always spans
- * every make in the catalogue regardless of scrape order.
- */
-async function fetchDiverseVehicles(limit: number): Promise<VehicleRow[]> {
-  const makeRows = await prisma.vehicle.findMany({ where: { eligible: true }, distinct: ["make"], select: { make: true } });
-  const makes = makeRows.map((m) => m.make);
-  if (makes.length === 0) return [];
-
-  const perMake = Math.max(1, Math.ceil(limit / makes.length));
-  const groups = await Promise.all(
-    makes.map((make) =>
-      prisma.vehicle.findMany({
-        where: { eligible: true, make },
-        orderBy: { createdAt: "desc" },
-        select: VEHICLE_SELECT,
-        take: perMake,
-      })
-    )
-  );
-
-  // Round-robin across makes (one pick per make per round) rather than
-  // concatenating each make's block wholesale, so the pool is evenly mixed
-  // even before groupIdenticalUnits/diverseByMake ever see it.
-  const out: VehicleRow[] = [];
-  for (let i = 0; i < perMake; i++) {
-    for (const group of groups) {
-      if (i < group.length) out.push(group[i]);
-    }
-  }
-  return out.slice(0, limit);
-}
-
-export async function getPublicVehicles(opts?: { limit?: number; diverse?: boolean }): Promise<PublicVehicle[]> {
+export async function getPublicVehicles(opts?: { limit?: number }): Promise<PublicVehicle[]> {
   const [rawVehicles, rules] = await Promise.all([
-    opts?.diverse && opts.limit
-      ? fetchDiverseVehicles(opts.limit)
-      : prisma.vehicle.findMany({
-          where: { eligible: true },
-          orderBy: { createdAt: "desc" },
-          select: VEHICLE_SELECT,
-          ...(opts?.limit ? { take: opts.limit } : {}),
-        }),
+    prisma.vehicle.findMany({
+      where: { eligible: true },
+      orderBy: { createdAt: "desc" },
+      ...(opts?.limit ? { take: opts.limit } : {}),
+    }),
     prisma.pricingRule.findMany({ where: { active: true } }),
   ]);
 
+  const representativePhotos = buildRepresentativePhotos(rawVehicles);
   const vehicles = groupIdenticalUnits(rawVehicles);
 
   return vehicles.map((v) => {
     const { sellingPriceUsd } = computeSellingPriceUsd(v, rules);
     const insuranceUsd = computeInsuranceUsd(v.sourcePriceUsd);
-    const imageUrl = v.imageUrl;
+    let imageUrl = v.imageUrl;
     let imageUrls = v.imageUrls ? (JSON.parse(v.imageUrls) as string[]) : [];
+    let isRepresentativePhoto = false;
+
+    const needsStandIn = !imageUrl || (v.imageWidthPx ?? 0) < MIN_SHARP_WIDTH_PX;
+    if (needsStandIn) {
+      const standIn = representativePhotos.get(makeModelKey(v.make, v.model));
+      // Only swap in the stand-in if it's actually sharper than what this
+      // vehicle already has — no point trading one blurry photo for another.
+      if (standIn && standIn.widthPx >= MIN_SHARP_WIDTH_PX && standIn.widthPx > (v.imageWidthPx ?? 0)) {
+        imageUrl = standIn.imageUrl;
+        imageUrls = standIn.imageUrls;
+        isRepresentativePhoto = true;
+      }
+    }
 
     if (imageUrl && !imageUrls.includes(imageUrl)) imageUrls = [imageUrl, ...imageUrls];
 
@@ -195,25 +162,12 @@ export async function getPublicVehicles(opts?: { limit?: number; diverse?: boole
       // A real multi-photo gallery is the strongest signal that this is a
       // genuine large photo, not a capped listing thumbnail.
       hqImage: imageUrls.length > 1,
-      isRepresentativePhoto: false,
+      isRepresentativePhoto,
       condition: v.condition,
       badge: v.badge,
       lifestyle: JSON.parse(v.lifestyle) as string[],
       eligible: v.eligible,
       ineligibleReason: v.ineligibleReason,
-      refNo: v.refNo,
-      chassisNo: v.chassisNo,
-      modelCode: v.modelCode,
-      engineCode: v.engineCode,
-      steering: v.steering,
-      location: v.location,
-      versionClass: v.versionClass,
-      doors: v.doors,
-      dimensions: v.dimensions,
-      weightKg: v.weightKg,
-      registrationYearMonth: v.registrationYearMonth,
-      manufactureYearMonth: v.manufactureYearMonth,
-      features: v.features ? (JSON.parse(v.features) as string[]) : [],
     };
   });
 }

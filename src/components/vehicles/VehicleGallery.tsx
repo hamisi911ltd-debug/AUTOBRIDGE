@@ -1,12 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
+import { Car, ChevronLeft, ChevronRight } from "lucide-react";
 import { COLORS } from "@/lib/constants";
 import { getVisibleImageIndices } from "@/lib/carousel";
-import { thumbnailUrl } from "@/lib/thumbnail";
-
-const BRAND_GRADIENT = "linear-gradient(135deg, #3B1F63 0%, #D6336C 55%, #F2762E 100%)";
 
 /**
  * Detail-page photo slideshow: a big main slide, arrow + dot navigation, a
@@ -55,15 +52,20 @@ export function VehicleGallery({
     return (
       <div
         className="aspect-[4/3] max-h-[420px] rounded-2xl flex flex-col items-center justify-center gap-3 relative mb-6 overflow-hidden"
-        style={{ background: BRAND_GRADIENT }}
+        style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}
       >
-        <ImageOff size={40} color="rgba(255,255,255,0.85)" />
+        <div
+          className="rounded-full flex items-center justify-center"
+          style={{ width: 176, height: 176, background: "rgba(255,255,255,0.06)" }}
+        >
+          <Car size={96} color={COLORS.goldLight} strokeWidth={1.2} />
+        </div>
         <div className="text-center">
-          <p className="text-sm font-semibold" style={{ color: "#fff" }}>
+          <p className="text-sm font-semibold" style={{ color: COLORS.goldLight }}>
             Photo unavailable
           </p>
-          <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.75)" }}>
-            A photo isn&apos;t linked to this exact unit, every other detail below is real.
+          <p className="text-xs mt-0.5" style={{ color: "rgba(220,227,236,0.75)" }}>
+            A photo isn&apos;t linked to this exact unit — every other detail below is real.
           </p>
         </div>
         {overlay}
@@ -90,7 +92,7 @@ export function VehicleGallery({
           <img
             key={`${images[i]}-${i}`}
             src={images[i]}
-            alt={`${alt}, photo ${i + 1} of ${images.length}`}
+            alt={`${alt} — photo ${i + 1} of ${images.length}`}
             loading={i === index ? "eager" : "lazy"}
             fetchPriority={i === index ? "high" : "auto"}
             decoding="async"
@@ -163,19 +165,7 @@ export function VehicleGallery({
               }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- external R2 CDN */}
-              <img
-                src={thumbnailUrl(src)}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-                loading="lazy"
-                onError={(e) => {
-                  // Not every source photo actually has a downsized variant
-                  // on disk — fall back to the original full-size URL rather
-                  // than show a broken thumbnail.
-                  const img = e.currentTarget;
-                  if (img.src !== src) img.src = src;
-                }}
-              />
+              <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
             </button>
           ))}
         </div>

@@ -6,12 +6,7 @@ export const revalidate = 0;
 
 function checkAuth(req: Request): boolean {
   const secret = req.headers.get("x-cron-secret");
-  if (!secret) return false;
-  // Two valid secrets on purpose: CRON_SECRET belongs to the nightly
-  // cron-worker's own schedule, SCRAPE_TRIGGER_SECRET is a separate one for
-  // ad-hoc/manual scrape runs — so a one-off trigger never needs rotating
-  // (and thereby breaking) the nightly automation's credential.
-  return (!!process.env.CRON_SECRET && secret === process.env.CRON_SECRET) || (!!process.env.SCRAPE_TRIGGER_SECRET && secret === process.env.SCRAPE_TRIGGER_SECRET);
+  return !!process.env.CRON_SECRET && secret === process.env.CRON_SECRET;
 }
 
 /**
@@ -42,10 +37,6 @@ export async function POST(req: Request) {
   const site = searchParams.get("site");
   const makeIndex = parseInt(searchParams.get("makeIndex") ?? "", 10);
   const page = parseInt(searchParams.get("page") ?? "1", 10);
-  // Refreshes price/country/spec accuracy on vehicles already in the
-  // catalogue without letting it grow — a newly-discovered listing is
-  // skipped rather than created.
-  const refreshOnly = searchParams.get("refreshOnly") === "true";
 
   if (site !== "beforward" && site !== "sbtjapan" && site !== "dubicars") {
     return NextResponse.json({ error: "invalid or missing 'site' (expected beforward|sbtjapan|dubicars)" }, { status: 400 });
@@ -54,6 +45,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid or missing 'makeIndex'" }, { status: 400 });
   }
 
-  const summary = await runScrapeUnit(site as ScrapeSite, makeIndex, page, refreshOnly);
+  const summary = await runScrapeUnit(site as ScrapeSite, makeIndex, page);
   return NextResponse.json(summary);
 }

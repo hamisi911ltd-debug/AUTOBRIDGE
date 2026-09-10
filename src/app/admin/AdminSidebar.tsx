@@ -29,8 +29,10 @@ export function AdminSidebar({ email, signOutAction }: { email?: string | null; 
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-60 shrink-0 h-screen sticky top-0 bg-white border-r" style={{ borderColor: COLORS.line }}>
         <Link href="/" className="flex items-center gap-2 h-16 px-5 shrink-0 border-b" style={{ borderColor: COLORS.line }}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- small static logo asset */}
+          <img src="/logo.png" alt="" className="w-7 h-7 rounded-lg object-contain" />
           <span className="text-base font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-            Admin
+            Ferbil<span style={{ color: COLORS.burgundy }}>Autos</span>
           </span>
         </Link>
         <div className="flex-1 overflow-y-auto px-3 py-4">
@@ -71,7 +73,11 @@ export function AdminSidebar({ email, signOutAction }: { email?: string | null; 
         <div className="rounded-2xl shadow-md overflow-hidden" style={{ padding: "2px", background: HEADER_GRADIENT }}>
           <div className="h-11 rounded-[14px] bg-white/95 backdrop-blur flex items-center justify-between px-3.5">
             <Link href="/" className="flex items-center gap-1.5 text-sm font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-              <span>Admin</span>
+              {/* eslint-disable-next-line @next/next/no-img-element -- small static logo asset */}
+              <img src="/logo.png" alt="" className="w-7 h-7 rounded-lg object-contain" />
+              <span>
+                Ferbil<span style={{ color: COLORS.burgundy }}>Autos</span>
+              </span>
             </Link>
             <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: COLORS.slate }}>
               Admin

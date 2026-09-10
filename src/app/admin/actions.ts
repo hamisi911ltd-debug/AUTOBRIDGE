@@ -6,7 +6,6 @@ import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { runScrapeUnit, SCRAPE_MAKE_COUNTS, type ScrapeSite, type UnitScrapeSummary } from "@/lib/scrapers/runScrape";
-import { migrateImageBatch, type ImageMigrationResult } from "@/lib/imageMigration";
 import type { MarkupType, Role, ScopeType } from "@/generated/prisma/enums";
 
 async function requireAdmin() {
@@ -164,18 +163,6 @@ export async function revalidateAfterScrape() {
   revalidatePath("/admin");
   revalidatePath("/admin/vehicles");
   revalidatePath("/");
-}
-
-/**
- * One small batch of the image migration (see src/lib/imageMigration.ts) —
- * copies a few vehicles' photos from the source sites' CDNs into our own R2
- * bucket. The button that calls this loops, calling it repeatedly until
- * `done`, same reasoning as runScrapeUnitNow: keep each individual
- * invocation's work small and within Cloudflare's free-tier CPU budget.
- */
-export async function migrateImageBatchNow(): Promise<ImageMigrationResult> {
-  await requireAdmin();
-  return migrateImageBatch();
 }
 
 export async function toggleEnquiryHandled(formData: FormData) {

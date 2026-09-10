@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MessageCircle } from "lucide-react";
 import { COLORS } from "@/lib/constants";
-import { whatsAppLink } from "@/lib/whatsapp";
-import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
-const DEFAULT_MESSAGE = "Hi, I'd like help finding a car.";
+// Same number DetailPage's enquiry flow sends to — kept in sync manually
+// since there's no shared config module for it yet.
+const WHATSAPP_NUMBER = "254725745777";
+const DEFAULT_MESSAGE = "Hi, I'd like help finding a car on Ferbil Autos.";
 
 const GREET_AFTER_MS = 4000;
 const GREET_BUBBLE_MS = 7000;
@@ -32,7 +34,7 @@ export function WhatsAppButton() {
 
   function openWhatsApp() {
     setGreetBubble(false);
-    window.open(whatsAppLink(DEFAULT_MESSAGE), "_blank", "noopener,noreferrer");
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(DEFAULT_MESSAGE)}`, "_blank", "noopener,noreferrer");
   }
 
   return (
@@ -44,7 +46,7 @@ export function WhatsAppButton() {
           style={{ border: `1px solid ${COLORS.line}` }}
         >
           <span className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ background: "#25D366" }}>
-            <WhatsAppIcon size={14} />
+            <MessageCircle size={13} color="#fff" />
           </span>
           <span className="text-xs font-medium whitespace-nowrap" style={{ color: COLORS.navy }}>
             Chat with an agent 👋
@@ -57,7 +59,7 @@ export function WhatsAppButton() {
         className="fixed bottom-24 md:bottom-6 right-6 z-50 w-11 h-11 rounded-full shadow-xl flex items-center justify-center"
         style={{ background: "#25D366" }}
       >
-        <WhatsAppIcon size={24} />
+        <MessageCircle size={20} color="#fff" />
       </button>
     </>
   );

@@ -3,7 +3,6 @@ import { Car, Tag, MessageSquare, PlusCircle, Users } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { RunScrapeButton } from "@/app/admin/RunScrapeButton";
-import { MigrateImagesButton } from "@/app/admin/MigrateImagesButton";
 import { BarChart } from "@/components/admin/charts/BarChart";
 import { DonutChart } from "@/components/admin/charts/DonutChart";
 import { formatUsd } from "@/lib/format";
@@ -129,10 +128,7 @@ export default async function AdminDashboardPage() {
             Last scrape: {lastScraped?.lastScrapedAt ? `${lastScraped.lastScrapedAt.toLocaleDateString()}, ${lastScraped.lastScrapedAt.toLocaleTimeString()}` : "never"}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          <RunScrapeButton />
-          <MigrateImagesButton />
-        </div>
+        <RunScrapeButton />
       </div>
 
       <DashboardAnimations />

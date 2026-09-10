@@ -52,33 +52,9 @@ model Vehicle {
   imageUrl         String?
   imageUrls        String? // JSON-encoded string[] — up to 5 gallery photos; imageUrls[0] is always the same as imageUrl when present
   imageWidthPx     Int? // actual verified pixel width of imageUrl — lets the public site filter out lingering low-res thumbnails without re-deriving quality from process history
-  // True once this vehicle's photos have been copied from the source
-  // site's own CDN into our VEHICLE_IMAGES R2 bucket and imageUrl/imageUrls
-  // rewritten to point at /api/vehicle-image/... instead — see
-  // src/lib/imageMigration.ts. Lets the batch migration skip already-done
-  // rows on every run without re-checking URL contents.
-  imageMigrated    Boolean   @default(false)
   condition        String
   badge            String?
   lifestyle        String // JSON-encoded string[] (SQLite has no native array type)
-  // Extended spec sheet pulled from the source site's own detail page
-  // (table.specification / p.vehicle-option-list on BE FORWARD) — same
-  // fetch the cover-photo upgrade already does, no extra request. All
-  // optional: hand-entered vehicles and pre-existing scraped rows never had
-  // this, and SBT/Dubicars listings don't carry the same fields.
-  refNo                  String?
-  chassisNo              String?
-  modelCode              String?
-  engineCode             String?
-  steering               String?
-  location               String?
-  versionClass           String?
-  doors                  Int?
-  dimensions             String?
-  weightKg               Int?
-  registrationYearMonth  String?
-  manufactureYearMonth   String?
-  features               String? // JSON-encoded string[] — options/equipment list (A/C, Airbag, Navigation, etc.)
   eligible         Boolean   @default(true)
   ineligibleReason String?
   // Scraped-listing tracking — null for hand-entered admin vehicles.
@@ -96,13 +72,6 @@ model Vehicle {
   @@index([make, model])
   @@index([sourceCountry])
   @@index([bodyType])
-  // Supports getPublicVehicles' WHERE eligible / ORDER BY createdAt — without
-  // this, that query full-scanned and sorted the entire table before LIMIT
-  // ever applied, so its cost scaled with total catalogue size regardless of
-  // how small the LIMIT was (root cause of repeated CPU-limit outages as the
-  // catalogue grew). Applied directly via wrangler d1 execute on 2026-08-29;
-  // this entry keeps schema.prisma in sync with that change.
-  @@index([eligible, createdAt])
 }
 
 enum ScopeType {
@@ -148,10 +117,6 @@ model Enquiry {
   email     String?
   message   String?
   handled   Boolean  @default(false)
-  // True for a "Request to book" submitted from the Compare page (a
-  // stronger buying signal than a plain question-asking enquiry) — same
-  // underlying record/admin flow, just flagged so it can be told apart.
-  isBooking Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@index([vehicleId])

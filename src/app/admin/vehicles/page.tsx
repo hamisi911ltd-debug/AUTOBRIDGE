@@ -17,23 +17,12 @@ export default async function AdminVehiclesPage({
 
   const where: Prisma.VehicleWhereInput = {};
   if (q) {
-    // "Toyota Noah" as one query used to fail even when the vehicle exists —
-    // make and model are separate columns, so no single field ever contained
-    // the whole two-word string. Splitting into words and requiring each one
-    // to match SOMEWHERE (any field, independently) fixes that, and also
-    // extends the search to ref/chassis/model code so those work too.
-    const words = q.trim().split(/\s+/).filter(Boolean);
-    where.AND = words.map((word) => ({
-      OR: [
-        { make: { contains: word } },
-        { model: { contains: word } },
-        { trim: { contains: word } },
-        { externalId: { contains: word } },
-        { refNo: { contains: word } },
-        { chassisNo: { contains: word } },
-        { modelCode: { contains: word } },
-      ],
-    }));
+    where.OR = [
+      { make: { contains: q } },
+      { model: { contains: q } },
+      { trim: { contains: q } },
+      { externalId: { contains: q } },
+    ];
   }
   if (source === "beforward" || source === "sbtjapan") {
     where.sourceSite = source;
@@ -82,7 +71,7 @@ export default async function AdminVehiclesPage({
           type="text"
           name="q"
           defaultValue={q}
-          placeholder="Search make, model, trim, ref/chassis no…"
+          placeholder="Search make, model, trim, ref no…"
           className="border rounded-lg px-3 py-2 text-sm flex-1 min-w-[220px]"
           style={{ borderColor: "#D8DCE3" }}
         />

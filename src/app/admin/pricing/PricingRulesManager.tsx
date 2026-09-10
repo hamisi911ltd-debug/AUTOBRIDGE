@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
-import { computeSellingPriceUsd, commissionBaseUsd, type Tier } from "@/lib/pricing/engine";
+import { computeSellingPriceUsd, type Tier } from "@/lib/pricing/engine";
 import { savePricingRule, deletePricingRule, toggleRuleActive } from "@/app/admin/actions";
 
 type ScopeType = "GLOBAL" | "COUNTRY" | "EXPORTER" | "BODY_TYPE" | "MAKE" | "MODEL" | "PRICE_BAND";
@@ -32,7 +32,6 @@ type PreviewVehicle = {
   bodyType: string;
   sourceCountry: string;
   sourcePriceUsd: number;
-  freightIncluded: boolean;
   year: number;
 };
 
@@ -458,10 +457,6 @@ export function PricingRulesManager({ initialRules, vehicles }: { initialRules: 
               <div className="flex justify-between">
                 <span style={{ color: COLORS.slate }}>Source price</span>
                 <span className="font-medium">{formatUsd(previewVehicle.sourcePriceUsd)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span style={{ color: COLORS.slate }}>Commission base (incl. freight &amp; insurance)</span>
-                <span className="font-medium">{formatUsd(commissionBaseUsd(previewVehicle))}</span>
               </div>
               <div className="flex justify-between">
                 <span style={{ color: COLORS.slate }}>Applied rule</span>
