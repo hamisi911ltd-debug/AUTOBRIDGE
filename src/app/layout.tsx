@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
+import { VersionWatcher } from "@/components/layout/VersionWatcher";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -69,7 +70,10 @@ export default function RootLayout({
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <VersionWatcher />
+        {children}
+      </body>
     </html>
   );
 }

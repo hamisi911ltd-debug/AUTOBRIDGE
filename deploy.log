@@ -1,0 +1,140 @@
+
+┌─────────────────────────────┐
+│ OpenNext — Cloudflare build │
+└─────────────────────────────┘
+
+WARN OpenNext is not fully compatible with Windows.
+WARN For optimal performance, it is recommended to use Windows Subsystem for Linux (WSL).
+WARN While OpenNext may function on Windows, it could encounter unpredictable failures during runtime.
+App directory: C:\Users\USER\Downloads\autobridge-kenya-web
+Next.js version : 16.2.12
+@opennextjs/cloudflare version: 1.20.2
+@opennextjs/aws version: 4.1.0
+workerd compatibility_date: 2026-08-09
+
+┌─────────────────────────────────┐
+│ OpenNext — Building Next.js app │
+└─────────────────────────────────┘
+
+
+> autobridge-kenya-web@0.1.0 build
+> prisma generate && next build
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+
+✔ Generated Prisma Client (7.9.1) to .\src\generated\prisma in 151ms
+
+▲ Next.js 16.2.12 (Turbopack)
+- Environments: .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+✓ Compiled successfully in 14.9s
+  Running TypeScript ...
+  Finished TypeScript in 9.2s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/13) ...
+  Generating static pages using 7 workers (3/13) 
+  Generating static pages using 7 workers (6/13) 
+  Generating static pages using 7 workers (9/13) 
+✓ Generating static pages using 7 workers (13/13) in 1195ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /admin
+├ ƒ /admin/enquiries
+├ ƒ /admin/pricing
+├ ƒ /admin/reviews
+├ ƒ /admin/users
+├ ƒ /admin/users/[id]/edit
+├ ƒ /admin/users/new
+├ ƒ /admin/vehicles
+├ ƒ /admin/vehicles/[id]/edit
+├ ƒ /admin/vehicles/new
+├ ƒ /api/assistant
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/cron/migrate-images
+├ ƒ /api/cron/scrape-vehicles
+├ ƒ /api/enquiries
+├ ƒ /api/vehicle-image/[...key]
+├ ƒ /api/vehicles/full
+├ ○ /login
+├ ○ /privacy
+├ ○ /robots.txt
+└ ○ /sitemap.xml
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+
+┌──────────────────────────────┐
+│ OpenNext — Generating bundle │
+└──────────────────────────────┘
+
+Bundling middleware function...
+Bundling static assets...
+Bundling cache assets...
+Building server function: default...
+Applying code patches: 7.546s
+# copyPackageTemplateFiles
+[35m⚙️ Bundling the OpenNext server...
+[0m
+[35mWorker saved in `.open-next\worker.js` 🚀
+[0m
+OpenNext build complete.
+
+┌──────────────────────────────┐
+│ OpenNext — Cloudflare deploy │
+└──────────────────────────────┘
+
+WARN OpenNext is not fully compatible with Windows.
+WARN For optimal performance, it is recommended to use Windows Subsystem for Linux (WSL).
+WARN While OpenNext may function on Windows, it could encounter unpredictable failures during runtime.
+
+Populating remote R2 incremental cache...
+(node:22328) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[0G 16%|███████                                      | 1/6 [00:00:<00:00:, 0.00it/s][0G 33%|███████████████                              | 2/6 [00:00:<00:00:, 250.00it/s][0G 50%|██████████████████████                       | 3/6 [00:00:<00:00:, 333.33it/s][0G 66%|██████████████████████████████               | 4/6 [00:00:<00:00:, 400.00it/s][0G 83%|█████████████████████████████████████        | 5/6 [00:00:<00:00:, 500.00it/s][0G100%|█████████████████████████████████████████████| 6/6 [00:00:<00:00:, 545.45it/s]
+Successfully populated cache with 6 entries
+Tag cache does not need populating
+
+ ⛅️ wrangler 4.120.0 (update available 4.130.0)
+───────────────────────────────────────────────
+🌀 Building list of assets...
+✨ Read 51 files from the assets directory C:\Users\USER\Downloads\autobridge-kenya-web\.open-next\assets
+🌀 Starting asset upload...
+🌀 Found 6 new or modified static assets to upload. Proceeding with upload...
++ /BUILD_ID
++ /_next/static/chunks/31nyls_sfvhnu.js
++ /_next/static/chunks/2tlkxs10ehz-8.js
++ /_next/static/chunks/3rinboc_hxy1n.css
++ /_next/static/chunks/35frfa4ceqs1t.js
++ /_next/static/chunks/3gqrzqztcc-pa.js
+Uploaded 2 of 6 assets
+Uploaded 4 of 6 assets
+Uploaded 6 of 6 assets
+✨ Success! Uploaded 6 files (40 already uploaded) (1.94 sec)
+
+Total Upload: 11345.56 KiB / gzip: 2891.73 KiB
+Worker Startup Time: 35 ms
+Your Worker has access to the following bindings:
+Binding                                                        Resource         
+env.DB (autobridge-kenya-db)                                   D1 Database      
+env.NEXT_INC_CACHE_R2_BUCKET (autobridge-kenya-web-cache)      R2 Bucket        
+env.VEHICLE_IMAGES (autobridge-kenya-images)                   R2 Bucket        
+env.WORKER_SELF_REFERENCE (autobridge-kenya-web)               Worker           
+env.IMAGES                                                     Images           
+env.ASSETS                                                     Assets           
+
+Uploaded autobridge-kenya-web (22.13 sec)
+Deployed autobridge-kenya-web triggers (5.01 sec)
+  https://autobridge-kenya-web.glotech.workers.dev
+Current Version ID: cc6237cb-8d80-4b8b-a0fd-8ebd79be5e81
+EXIT=0
