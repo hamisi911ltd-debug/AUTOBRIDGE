@@ -121,7 +121,12 @@ function groupIdenticalUnits(vehicles: VehicleRow[]): VehicleRow[] {
  * every make in the catalogue regardless of scrape order.
  */
 async function fetchDiverseVehicles(limit: number): Promise<VehicleRow[]> {
-  const makeRows = await prisma.vehicle.findMany({ where: { eligible: true }, distinct: ["make"], select: { make: true } });
+  // Raw DISTINCT so SQLite answers it from the [make, model] index (~one
+  // read per make) instead of Prisma's `distinct`, which pulls every
+  // eligible row into memory first — that was ~4.6k rows read on every
+  // homepage load and the main reason D1's daily read quota kept getting
+  // exhausted.
+  const makeRows = await prisma.$queryRaw<{ make: string }[]>`SELECT DISTINCT make FROM Vehicle WHERE eligible = 1 ORDER BY make`;
   const makes = makeRows.map((m) => m.make);
   if (makes.length === 0) return [];
 
