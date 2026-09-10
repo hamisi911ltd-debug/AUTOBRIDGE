@@ -102,40 +102,30 @@ export function InvoicePage({
   const insurance = landed ? landed.insurance : vehicle.insuranceUsd;
   const cifTotal = vehiclePrice + freight + insurance;
 
+  // Only the fields that matter on an import invoice — identity, powertrain,
+  // condition. Seats/doors/dimensions/version/location are dropped.
   const specRows: [string, string][] = (
     [
       ["Chassis no.", vehicle.chassisNo],
-      ["Engine code / no.", vehicle.engineCode],
+      ["Engine no.", vehicle.engineCode],
       ["Model code", vehicle.modelCode],
-      ["Year of manufacture", vehicle.manufactureYearMonth || String(vehicle.year)],
-      ["First registration", vehicle.registrationYearMonth],
+      ["Year", vehicle.manufactureYearMonth || String(vehicle.year)],
       ["Mileage", `${vehicle.mileageKm.toLocaleString()} km`],
-      ["Engine capacity", vehicle.engineCc ? `${vehicle.engineCc.toLocaleString()} cc` : ""],
+      ["Engine", vehicle.engineCc ? `${vehicle.engineCc.toLocaleString()} cc` : ""],
       ["Fuel", vehicle.fuel],
       ["Transmission", vehicle.transmission],
       ["Drive", vehicle.drive],
       ["Steering", vehicle.steering],
-      ["Seats", vehicle.seats ? String(vehicle.seats) : ""],
-      ["Doors", vehicle.doors ? String(vehicle.doors) : ""],
       ["Colour", vehicle.color],
-      ["Body type", vehicle.bodyType],
-      ["Dimensions", vehicle.dimensions],
-      ["Country of origin", vehicle.sourceCountry],
-      ["Destination", "Mombasa, Kenya"],
+      ["Body", vehicle.bodyType],
     ] as [string, string | null | undefined][]
   ).filter(([, v]) => v !== null && v !== undefined && v !== "") as [string, string][];
 
-  const lineItems: { desc: string; sub?: string; amount: number }[] = [
-    {
-      desc: `Motor vehicle — ${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""}`,
-      sub: `Ref ${ref} · ${vehicle.condition}`,
-      amount: vehiclePrice,
-    },
+  const lineItems: { desc: string; amount: number }[] = [
+    { desc: `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""} — vehicle`, amount: vehiclePrice },
   ];
-  if (freight > 0) {
-    lineItems.push({ desc: "Ocean freight", sub: `${vehicle.sourceCountry} to Mombasa (RORO/container)`, amount: freight });
-  }
-  lineItems.push({ desc: "Marine insurance", sub: "All-risk cover in transit", amount: insurance });
+  if (freight > 0) lineItems.push({ desc: `Ocean freight — ${vehicle.sourceCountry} to Mombasa`, amount: freight });
+  lineItems.push({ desc: "Marine insurance", amount: insurance });
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -178,13 +168,15 @@ export function InvoicePage({
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
+    <div className="max-w-2xl mx-auto px-3 sm:px-6 py-5 sm:py-8">
       <style>{`
         @media print {
           body * { visibility: hidden; }
           #invoice-document, #invoice-document * { visibility: visible; }
-          #invoice-document { position: absolute; left: 0; top: 0; width: 100%; }
+          #invoice-document { position: absolute; left: 0; top: 0; width: 100%; border: 0 !important; border-radius: 0 !important; }
           .invoice-no-print { display: none !important; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page { size: A4; margin: 12mm; }
         }
       `}</style>
 
@@ -201,27 +193,25 @@ export function InvoicePage({
         </button>
       </div>
 
-      <div id="invoice-document" className="bg-white rounded-2xl border overflow-hidden text-[13px] sm:text-base" style={{ borderColor: COLORS.line }}>
-        <div className="h-1.5 sm:h-2" style={{ background: BRAND_GRADIENT }} />
+      <div id="invoice-document" className="bg-white rounded-xl border overflow-hidden text-[12px]" style={{ borderColor: MAROON }}>
+        <div className="h-1.5" style={{ background: BRAND_GRADIENT }} />
 
-        {/* Header — solid maroon INVOICE block on the left, company lockup on the right. */}
+        {/* Header — solid maroon INVOICE block + company box on the right. */}
         <div className="flex items-stretch">
-          <div className="flex flex-col justify-center px-5 sm:px-9 py-6 sm:py-9 w-[42%]" style={{ background: MAROON }}>
-            <span className="text-2xl sm:text-4xl font-extrabold text-white tracking-wide leading-none" style={{ fontFamily: FONT_DISPLAY }}>
+          <div className="flex flex-col justify-center px-5 sm:px-7 py-5 w-[38%]" style={{ background: MAROON }}>
+            <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide leading-none" style={{ fontFamily: FONT_DISPLAY }}>
               INVOICE
             </span>
-            <span className="text-[9px] sm:text-[11px] text-white/80 mt-1.5 uppercase tracking-wider">Proforma</span>
+            <span className="text-[9px] text-white/80 mt-1 uppercase tracking-wider">Proforma · USD</span>
           </div>
-          <div className="flex-1 flex items-center gap-3 px-4 sm:px-7 py-4" style={{ background: COLORS.card }}>
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg shrink-0" style={{ background: BRAND_GRADIENT }} />
-            <div className="leading-tight">
-              <div className="text-xs sm:text-lg font-extrabold" style={{ fontFamily: FONT_DISPLAY, color: MAROON }}>
+          <div className="flex-1 flex items-center gap-2.5 px-3 sm:px-5 py-3" style={{ background: COLORS.card }}>
+            <div className="w-8 h-8 rounded-md shrink-0" style={{ background: BRAND_GRADIENT }} />
+            <div className="leading-snug">
+              <div className="text-[13px] sm:text-[15px] font-extrabold" style={{ fontFamily: FONT_DISPLAY, color: MAROON }}>
                 {COMPANY.name}
               </div>
-              <div className="text-[8px] sm:text-[11px] mt-0.5" style={{ color: COLORS.slate }}>
-                {COMPANY.poBox}
-                <br />
-                {COMPANY.addressLines.join(" · ")}
+              <div className="text-[9px] sm:text-[10px] mt-0.5" style={{ color: COLORS.slate }}>
+                {COMPANY.poBox} · {COMPANY.addressLines.join(", ")}
                 <br />
                 {COMPANY.phone} · {COMPANY.email} · {COMPANY.web}
               </div>
@@ -229,144 +219,79 @@ export function InvoicePage({
           </div>
         </div>
 
-        <div className="p-4 sm:p-8">
-          {/* Bill-to + invoice meta. */}
-          <div className="grid sm:grid-cols-3 border-2 rounded-lg overflow-hidden mb-3 sm:mb-4" style={{ borderColor: MAROON }}>
-            <div className="p-2.5 sm:p-3.5 border-b sm:border-b-0 sm:border-r-2" style={{ borderColor: MAROON }}>
-              <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: MAROON }}>
-                Bill to
-              </div>
-              <div className="text-xs sm:text-sm font-semibold" style={{ color: COLORS.navy }}>
-                {/* Filled from the request form once submitted; blank on a fresh print. */}
+        <div className="p-3.5 sm:p-5 space-y-3">
+          {/* Bill-to + invoice meta — two matching boxes. */}
+          <div className="grid grid-cols-2 gap-3">
+            <Box title="Bill to">
+              <div className="font-semibold" style={{ color: COLORS.navy }}>
                 &mdash;
               </div>
-            </div>
-            <div className="p-2.5 sm:p-3.5 border-b sm:border-b-0 sm:border-r-2" style={{ borderColor: MAROON }}>
-              <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: MAROON }}>
-                Invoice no.
+              <div className="text-[10px] mt-0.5" style={{ color: COLORS.slate }}>
+                Buyer name added on request
               </div>
-              <div className="text-xs sm:text-sm font-semibold" style={{ color: COLORS.navy }}>
-                {invoiceNo}
-              </div>
-            </div>
-            <div className="p-2.5 sm:p-3.5">
-              <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wide mb-1" style={{ color: MAROON }}>
-                Invoice date
-              </div>
-              <div className="text-xs sm:text-sm font-semibold" style={{ color: COLORS.navy }}>
-                {today.toLocaleDateString("en-GB")}
-              </div>
-              <div className="text-[9px] sm:text-[10px] mt-0.5" style={{ color: COLORS.slate }}>
-                Due on receipt
-              </div>
-            </div>
+            </Box>
+            <Box title="Invoice">
+              <Row k="No." v={invoiceNo} />
+              <Row k="Date" v={today.toLocaleDateString("en-GB")} />
+              <Row k="Currency" v="USD" />
+              <Row k="Terms" v="Due on receipt" />
+            </Box>
           </div>
 
-          {/* Vehicle details — replaces a freight invoice's consignee/BL/vessel block. */}
-          <div className="text-[10px] sm:text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: MAROON }}>
-            Vehicle
-          </div>
-          <div className="text-sm sm:text-base font-semibold mb-2" style={{ color: COLORS.navy }}>
-            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 border rounded-lg overflow-hidden mb-4 sm:mb-5" style={{ borderColor: COLORS.line }}>
-            {specRows.map(([label, value], i) => (
-              <div
-                key={label}
-                className="p-2 sm:p-2.5 border-b"
-                style={{
-                  borderColor: COLORS.line,
-                  borderRight: (i % 2 === 0 ? "1px solid " : "") + COLORS.line,
-                  background: i % 2 === 0 ? COLORS.card : "#fff",
-                }}
-              >
-                <div className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wide" style={{ color: COLORS.slate }}>
-                  {label}
-                </div>
-                <div className="text-[11px] sm:text-sm font-medium" style={{ color: COLORS.ink }}>
-                  {value}
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* Vehicle box. */}
+          <Box title="Vehicle">
+            <div className="text-[13px] font-bold mb-2" style={{ color: COLORS.navy }}>
+              {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
+              {specRows.map(([label, value]) => (
+                <Row key={label} k={label} v={value} />
+              ))}
+            </div>
+          </Box>
 
-          {/* Line items — maroon header, like the Ferbil invoice. */}
-          <div className="rounded-lg overflow-hidden border mb-3 sm:mb-4" style={{ borderColor: COLORS.line }}>
-            <table className="w-full text-[10px] sm:text-sm">
-              <thead>
-                <tr style={{ background: MAROON }}>
-                  <th className="text-left font-semibold text-white py-1.5 sm:py-2.5 px-2.5 sm:px-4">Description</th>
-                  <th className="text-center font-semibold text-white py-1.5 sm:py-2.5 px-2 sm:px-4">Qty</th>
-                  <th className="hidden sm:table-cell text-right font-semibold text-white py-1.5 sm:py-2.5 px-2.5 sm:px-4">Unit price</th>
-                  <th className="text-right font-semibold text-white py-1.5 sm:py-2.5 px-2.5 sm:px-4">Total</th>
-                </tr>
-              </thead>
+          {/* Charges box — line-item table inside. */}
+          <Box title="Charges (USD)" pad={false}>
+            <table className="w-full text-[11px]">
               <tbody>
-                {lineItems.map((li, idx) => (
-                  <tr key={li.desc} className="border-t" style={{ borderColor: COLORS.line, background: idx % 2 === 0 ? "#fff" : COLORS.card }}>
-                    <td className="py-2 sm:py-3 px-2.5 sm:px-4" style={{ color: COLORS.ink }}>
-                      <div className="font-medium">{li.desc}</div>
-                      {li.sub && (
-                        <div className="text-[9px] sm:text-[11px] mt-0.5" style={{ color: COLORS.slate }}>
-                          {li.sub}
-                        </div>
-                      )}
+                {lineItems.map((li) => (
+                  <tr key={li.desc} className="border-b" style={{ borderColor: COLORS.line }}>
+                    <td className="py-1.5 px-3" style={{ color: COLORS.ink }}>
+                      {li.desc}
                     </td>
-                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-center" style={{ color: COLORS.ink }}>
-                      1
-                    </td>
-                    <td className="hidden sm:table-cell py-2 sm:py-3 px-2.5 sm:px-4 text-right font-medium whitespace-nowrap" style={{ color: COLORS.ink }}>
-                      {usd(li.amount)}
-                    </td>
-                    <td className="py-2 sm:py-3 px-2.5 sm:px-4 text-right font-medium whitespace-nowrap" style={{ color: COLORS.ink }}>
+                    <td className="py-1.5 px-3 text-right font-medium whitespace-nowrap" style={{ color: COLORS.ink }}>
                       {usd(li.amount)}
                     </td>
                   </tr>
                 ))}
                 <tr style={{ background: MAROON }}>
-                  <td colSpan={2} className="sm:hidden py-2 sm:py-3 px-2.5 sm:px-4 font-bold text-white text-xs sm:text-base">
-                    Total (CIF, USD)
-                  </td>
-                  <td colSpan={3} className="hidden sm:table-cell py-2 sm:py-3 px-2.5 sm:px-4 font-bold text-white text-xs sm:text-base">
-                    Total — CIF Mombasa (USD)
-                  </td>
-                  <td className="py-2 sm:py-3 px-2.5 sm:px-4 text-right font-bold text-white text-xs sm:text-base whitespace-nowrap">
-                    {usd(cifTotal)}
-                  </td>
+                  <td className="py-2 px-3 font-bold text-white">Total — CIF Mombasa</td>
+                  <td className="py-2 px-3 text-right font-bold text-white whitespace-nowrap">{usd(cifTotal)}</td>
                 </tr>
               </tbody>
             </table>
-          </div>
+          </Box>
 
-          {/* Bank details — the NCBA USD account, as on the Ferbil invoice. */}
-          <div className="rounded-lg border mb-4 sm:mb-5" style={{ borderColor: COLORS.line }}>
-            <div className="px-3 sm:px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wide text-white" style={{ background: MAROON }}>
-              Payment — bank account details
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3">
-              {BANK_DETAILS.map((b, i) => (
-                <div key={b.label} className="p-2 sm:p-2.5 border-t" style={{ borderColor: COLORS.line, background: i % 2 === 0 ? COLORS.card : "#fff" }}>
-                  <div className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wide" style={{ color: COLORS.slate }}>
-                    {b.label}
-                  </div>
-                  <div className="text-[11px] sm:text-sm font-semibold" style={{ color: COLORS.ink }}>
-                    {b.value}
-                  </div>
-                </div>
+          {/* Bank box. */}
+          <Box title="Payment — NCBA USD account">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
+              {BANK_DETAILS.map((b) => (
+                <Row key={b.label} k={b.label} v={b.value} />
               ))}
             </div>
-          </div>
+          </Box>
 
-          <div
-            className="rounded-xl p-2.5 sm:p-3.5 mb-4 sm:mb-6 text-[10px] sm:text-xs leading-relaxed border-l-4"
-            style={{ background: COLORS.card, color: COLORS.ink, borderColor: MAROON }}
-          >
-            <strong style={{ color: MAROON }}>Proforma invoice — CIF Mombasa.</strong> Covers the vehicle, ocean freight and
-            marine insurance to Mombasa, in USD. KRA import duty, excise, VAT, IDF, RDL and registration are{" "}
-            <strong>not included</strong> — KRA assesses these at clearance from its CRSP valuation for this exact unit, and a
-            separate final invoice with the confirmed tax lines is issued once that figure is known.
-          </div>
+          <p className="text-[9px] leading-relaxed" style={{ color: COLORS.slate }}>
+            Proforma — CIF Mombasa, all amounts in USD. KRA import duty, excise, VAT, IDF, RDL and registration are not
+            included; these are assessed by KRA at clearance and billed on a separate final invoice. Not a demand for
+            payment — settle only against a final invoice confirmed by {COMPANY.name}.
+          </p>
+        </div>
 
+        <div className="h-5" style={{ background: MAROON }} />
+      </div>
+
+      <div className="invoice-no-print mt-4">
           {sent ? (
             <div className="invoice-no-print flex items-center gap-2 text-xs sm:text-sm font-medium py-2" style={{ color: MAROON }}>
               <CheckCircle2 size={17} /> Request sent. We&apos;ll follow up
@@ -405,22 +330,38 @@ export function InvoicePage({
             </form>
           )}
 
-          <p className="text-[9px] sm:text-[11px] mt-5 sm:mt-6 pt-3 sm:pt-4 border-t" style={{ borderColor: COLORS.line, color: COLORS.slate }}>
-            All amounts in USD. Prices are indicative and subject to exporter availability at time of purchase. This proforma
-            is not a demand for payment; settle only against a final invoice confirmed by {COMPANY.name}.
-          </p>
-        </div>
-
-        <div className="h-6 sm:h-8" style={{ background: MAROON }} />
+        <button
+          onClick={() => goDetail(vehicle.id)}
+          className="block text-xs sm:text-sm font-medium mt-4"
+          style={{ color: COLORS.burgundy }}
+        >
+          View full listing &rarr;
+        </button>
       </div>
+    </div>
+  );
+}
 
-      <button
-        onClick={() => goDetail(vehicle.id)}
-        className="invoice-no-print text-xs sm:text-sm font-medium mt-4"
-        style={{ color: COLORS.burgundy }}
-      >
-        View full listing &rarr;
-      </button>
+function Box({ title, children, pad = true }: { title: string; children: React.ReactNode; pad?: boolean }) {
+  return (
+    <section className="rounded-lg border overflow-hidden" style={{ borderColor: MAROON }}>
+      <div className="px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-white" style={{ background: MAROON }}>
+        {title}
+      </div>
+      <div className={pad ? "p-3" : ""}>{children}</div>
+    </section>
+  );
+}
+
+function Row({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="leading-tight">
+      <span className="text-[8px] font-bold uppercase tracking-wide block" style={{ color: COLORS.slate }}>
+        {k}
+      </span>
+      <span className="text-[11px] font-semibold" style={{ color: COLORS.ink }}>
+        {v}
+      </span>
     </div>
   );
 }
