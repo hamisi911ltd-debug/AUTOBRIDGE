@@ -17,6 +17,7 @@ export const revalidate = 0;
 const BRAND_ORANGE = "#F2762E";
 const BRAND_MAGENTA = "#D6336C";
 const BRAND_VIOLET = "#3B1F63";
+const BRAND_TEAL = "#0E7C86";
 
 function StatCard({ label, value, sub, delay = 0 }: { label: string; value: string | number; sub?: string; delay?: number }) {
   return (
@@ -59,6 +60,7 @@ export default async function AdminDashboardPage() {
     manualVehicles,
     beforwardCount,
     sbtCount,
+    autocomCount,
     lastScraped,
     byMakeRaw,
     eligibleRows,
@@ -68,6 +70,7 @@ export default async function AdminDashboardPage() {
     prisma.vehicle.count({ where: { sourceSite: null } }),
     prisma.vehicle.count({ where: { sourceSite: "beforward" } }),
     prisma.vehicle.count({ where: { sourceSite: "sbtjapan" } }),
+    prisma.vehicle.count({ where: { sourceSite: "autocom" } }),
     prisma.vehicle.findFirst({ where: { lastScrapedAt: { not: null } }, orderBy: { lastScrapedAt: "desc" }, select: { lastScrapedAt: true } }),
     prisma.vehicle.groupBy({ by: ["make"], _count: { _all: true }, orderBy: { _count: { make: "desc" } }, take: 8 }),
     // Minimal columns only, no full-row fetch, no per-vehicle pricing
@@ -86,6 +89,7 @@ export default async function AdminDashboardPage() {
   const bySourceSite = [
     { label: "BE FORWARD", value: beforwardCount, color: BRAND_ORANGE },
     { label: "SBT Japan", value: sbtCount, color: BRAND_MAGENTA },
+    { label: "AUTOCOM", value: autocomCount, color: BRAND_TEAL },
     { label: "Hand-entered", value: manualVehicles, color: BRAND_VIOLET },
   ].filter((s) => s.value > 0);
 
@@ -137,11 +141,12 @@ export default async function AdminDashboardPage() {
 
       <DashboardAnimations />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-2 sm:mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 mb-2 sm:mb-4">
         <StatCard label="Total scraped" value={totalVehicles.toLocaleString()} sub={`${eligibleVehicles.toLocaleString()} within import age`} delay={0} />
         <StatCard label="Publicly visible" value={publicVisibleCount.toLocaleString()} sub="live on the site now" delay={0.04} />
         <StatCard label="From BE FORWARD" value={beforwardCount.toLocaleString()} delay={0.08} />
         <StatCard label="From SBT Japan" value={sbtCount.toLocaleString()} delay={0.12} />
+        <StatCard label="From AUTOCOM" value={autocomCount.toLocaleString()} delay={0.16} />
       </div>
 
       <div className="hidden md:grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3 mb-3 sm:mb-6">

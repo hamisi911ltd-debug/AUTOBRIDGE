@@ -35,7 +35,7 @@ export default async function AdminVehiclesPage({
       ],
     }));
   }
-  if (source === "beforward" || source === "sbtjapan") {
+  if (source === "beforward" || source === "sbtjapan" || source === "autocom") {
     where.sourceSite = source;
   } else if (source === "manual") {
     where.sourceSite = null;
@@ -90,6 +90,7 @@ export default async function AdminVehiclesPage({
           <option value="">All sources</option>
           <option value="beforward">BE FORWARD</option>
           <option value="sbtjapan">SBT Japan</option>
+          <option value="autocom">AUTOCOM</option>
           <option value="manual">Hand-entered</option>
         </select>
         <select name="eligible" defaultValue={eligible || ""} className="border rounded-lg px-3 py-2 text-sm" style={{ borderColor: "#D8DCE3" }}>

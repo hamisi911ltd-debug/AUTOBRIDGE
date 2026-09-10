@@ -9,6 +9,7 @@ export function formatUsd(n: number): string {
 const SOURCE_SITE_LABELS: Record<string, string> = {
   beforward: "BE FORWARD",
   sbtjapan: "SBT Japan",
+  autocom: "AUTOCOM",
 };
 
 export function sourceSiteLabel(sourceSite: string | null): string {
