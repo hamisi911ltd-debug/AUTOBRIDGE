@@ -14,7 +14,7 @@ const STEPS = [
   {
     icon: Search,
     label: "1. Choose your car",
-    text: "Filter by budget, body type or lifestyle and see the full landed cost — not just the sticker price.",
+    text: "Filter by budget, body type or lifestyle and see the full landed cost, not just the sticker price.",
     image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/2011_Toyota_Land_Cruiser_%28UZJ200R%29_Sahara_wagon_%282011-11-18%29_01.jpg/960px-2011_Toyota_Land_Cruiser_%28UZJ200R%29_Sahara_wagon_%282011-11-18%29_01.jpg",
   },
   {
@@ -53,7 +53,7 @@ export function SmallAdvertsSlider() {
   const Icon = step.icon;
 
   return (
-    <section className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10">
+    <section id="how-it-works" className="max-w-[1400px] mx-auto px-4 sm:px-6 py-6 sm:py-10 scroll-mt-20">
       <style>{`
         @keyframes captionIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
@@ -63,9 +63,6 @@ export function SmallAdvertsSlider() {
         <h2 className="text-2xl sm:text-3xl font-extrabold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
           From selection to your driveway
         </h2>
-        <p className="text-sm mt-2 max-w-xl mx-auto" style={{ color: COLORS.slate }}>
-          The same four-stage process behind every listing on this site.
-        </p>
       </div>
 
       <div

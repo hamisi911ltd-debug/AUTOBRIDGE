@@ -2,6 +2,49 @@ import type { Filters } from "@/lib/constants";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 
+/** Classic edit-distance — small strings only (car-name tokens), so the O(n*m) DP table is cheap. */
+function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = new Array(n + 1);
+  for (let j = 0; j <= n; j++) dp[j] = j;
+  for (let i = 1; i <= m; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const tmp = dp[j];
+      dp[j] = a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]);
+      prev = tmp;
+    }
+  }
+  return dp[n];
+}
+
+/**
+ * One search word against one haystack word — a substring match either way
+ * (so "corol" finds "corolla" and "rx" finds "rx-8") OR a small edit
+ * distance (so a typo like "corola" still finds "corolla"). The allowed
+ * distance scales with word length so short words ("rx", "gt") don't
+ * fuzzy-match everything nearby.
+ *
+ * Both words need to be at least 3 characters before the substring/distance
+ * checks kick in — without that floor, a one- or two-letter trim code like
+ * "S" or "GX" (extremely common — most trims are short) is technically a
+ * "substring" of nearly any longer search word purely by coincidence (every
+ * letter in "harrier" is itself a 1-char substring), which was flooding
+ * unrelated makes into a plain model search. Below that floor, only an
+ * exact match counts.
+ */
+function fuzzyWordMatches(hayWord: string, needleWord: string): boolean {
+  if (hayWord.length < 3 || needleWord.length < 3) return hayWord === needleWord;
+  if (hayWord.includes(needleWord) || needleWord.includes(hayWord)) return true;
+  const maxDist = needleWord.length <= 6 ? 1 : 2;
+  return levenshtein(hayWord, needleWord) <= maxDist;
+}
+
 /**
  * In-memory filter/sort over an already-fetched vehicle list. Isolated here
  * so a real search index (Meilisearch etc.) can replace the implementation
@@ -32,8 +75,27 @@ export function matchesFilters(
     // never blocks an otherwise-correct match, on top of the case-insensitivity.
     const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, " ");
     const k = normalize(f.keyword);
-    const hay = normalize(`${v.make} ${v.model} ${v.trim}`);
-    if (!hay.includes(k)) return false;
+    // Make/model/trim first (most searches), then the identifiers a buyer
+    // might paste straight from a listing or an inspection sheet — ref
+    // number, chassis number, model code (e.g. a Mercedes "C200").
+    const hay = normalize(
+      [v.make, v.model, v.trim, v.refNo, v.chassisNo, v.modelCode].filter((s): s is string => !!s).join(" ")
+    );
+    // Exact substring is the fast, common path (handles correctly-spelled
+    // multi-word searches like "toyota hilux" in one shot). Squashing
+    // spaces out of both sides next catches a query like "c 200" against a
+    // trim/model-code that's stored as one word ("C200") — the space is
+    // real to the typer but doesn't exist in the source data. Only after
+    // both of those fail does it drop to per-word fuzzy matching —
+    // order-independent and typo-tolerant — so "corola" or "hilux toyota"
+    // still finds a result instead of coming back empty.
+    const squash = (s: string) => s.replace(/[\s-]+/g, "");
+    if (!hay.includes(k) && !squash(hay).includes(squash(k))) {
+      const keywordWords = k.split(" ").filter(Boolean);
+      const hayWords = hay.split(" ").filter(Boolean);
+      const allWordsMatch = keywordWords.every((kw) => hayWords.some((hw) => fuzzyWordMatches(hw, kw)));
+      if (!allWordsMatch) return false;
+    }
   }
   return true;
 }

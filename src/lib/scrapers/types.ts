@@ -27,4 +27,21 @@ export type ScrapedVehicle = {
   // unreliable) listing-page thumbnail — that case still needs measuring.
   imageWidthPx?: number;
   sourceUrl: string;
+  // Extended spec sheet from the source detail page (BE FORWARD's
+  // table.specification / p.vehicle-option-list) — all optional since only
+  // beforward.ts currently populates them, and only when the detail-page
+  // fetch succeeds.
+  refNo?: string;
+  chassisNo?: string;
+  modelCode?: string;
+  engineCode?: string;
+  steering?: string;
+  location?: string;
+  versionClass?: string;
+  doors?: number;
+  dimensions?: string;
+  weightKg?: number;
+  registrationYearMonth?: string;
+  manufactureYearMonth?: string;
+  features?: string[];
 };

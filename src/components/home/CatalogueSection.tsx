@@ -8,9 +8,8 @@ import type { PublicVehicle } from "@/types/vehicle";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
 import { Pagination } from "@/components/vehicles/Pagination";
 
-// LCM of 3 and 4 — the grid runs 3-across on mobile/tablet and 4-across on
-// desktop, so a full page has to divide evenly into both to avoid a
-// dangling gap in the last row.
+// Divisible by 2 (mobile) and 4 (lg:, desktop) so a full page never leaves a
+// dangling gap in the last row at either width.
 const PAGE_SIZE = 24;
 
 /**
@@ -65,14 +64,14 @@ export function CatalogueSection({
         <div className="bg-white rounded-2xl border p-12 text-center" style={{ borderColor: COLORS.line }}>
           <p className="font-medium mb-1">No vehicles match yet</p>
           <p className="text-sm" style={{ color: COLORS.slate }}>
-            Check back soon — new stock arrives regularly.
+            Check back soon, new stock arrives regularly.
           </p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-5">
-            {paged.map((v) => (
-              <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-5">
+            {paged.map((v, i) => (
+              <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} priority={page === 1 && i === 0} />
             ))}
           </div>
           <Pagination page={page} pageCount={pageCount} onPageChange={goToPage} />

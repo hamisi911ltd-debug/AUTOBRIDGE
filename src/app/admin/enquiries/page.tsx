@@ -11,19 +11,21 @@ export default async function AdminEnquiriesPage({
 }) {
   const { filter } = await searchParams;
 
+  const where = filter === "unhandled" ? { handled: false } : filter === "booking" ? { isBooking: true } : undefined;
   const enquiries = await prisma.enquiry.findMany({
-    where: filter === "unhandled" ? { handled: false } : undefined,
+    where,
     orderBy: { createdAt: "desc" },
-    include: { vehicle: true },
+    take: 200,
+    include: { vehicle: { select: { year: true, make: true, model: true, trim: true } } },
   });
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <h1 className="text-2xl font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
           Enquiries <span className="text-base font-normal" style={{ color: COLORS.slate }}>({enquiries.length})</span>
         </h1>
-        <div className="flex gap-2 text-sm font-medium">
+        <div className="flex gap-2 text-sm font-medium flex-wrap">
           <Link
             href="/admin/enquiries"
             className="px-3 py-1.5 rounded-full"
@@ -38,6 +40,13 @@ export default async function AdminEnquiriesPage({
           >
             Unhandled
           </Link>
+          <Link
+            href="/admin/enquiries?filter=booking"
+            className="px-3 py-1.5 rounded-full"
+            style={{ background: filter === "booking" ? COLORS.navy : "#F1F1EC", color: filter === "booking" ? "white" : COLORS.ink }}
+          >
+            Booking requests
+          </Link>
         </div>
       </div>
 
@@ -49,6 +58,11 @@ export default async function AdminEnquiriesPage({
                 <span className="font-semibold" style={{ color: COLORS.navy }}>
                   {e.name}
                 </span>
+                {e.isBooking && (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: COLORS.burgundy, color: "#fff" }}>
+                    Booking request
+                  </span>
+                )}
                 {!e.handled && (
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "#FEF3C7", color: "#92400E" }}>
                     New

@@ -6,7 +6,7 @@ import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import type { PublicVehicle } from "@/types/vehicle";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
 
-const CARDS_PER_VIEW = 24; // LCM of 3/4/6 — the grid runs 3-across on mobile, 4-across from sm:, 6-across from lg:, so a page always fills evenly at every size
+const CARDS_PER_VIEW = 24; // divisible by 2 (mobile), 4 (sm:) and 6 (lg:) so a page always fills evenly at every size
 const SLIDE_MS = 4200;
 
 /** Auto-advancing, as many cards per page as the viewport allows — same sliding-page pattern as the homepage's "Current offers" rail. */
@@ -87,14 +87,16 @@ export function VehicleGridSection({
         onTouchStart={() => (pausedRef.current = true)}
         onTouchEnd={() => (pausedRef.current = false)}
       >
-        <div className="flex transition-transform duration-500" style={{ transform: `translateX(-${page * 100}%)` }}>
-          {Array.from({ length: pageCount }, (_, pageIdx) => (
-            <div key={pageIdx} className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-5 shrink-0 w-full">
-              {vehicles.slice(pageIdx * CARDS_PER_VIEW, pageIdx * CARDS_PER_VIEW + CARDS_PER_VIEW).map((v) => (
-                <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
-              ))}
-            </div>
-          ))}
+        <div className="flex items-start transition-transform duration-500" style={{ transform: `translateX(-${page * 100}%)` }}>
+          {Array.from({ length: pageCount }, (_, pageIdx) => {
+            return (
+              <div key={pageIdx} className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-5 shrink-0 w-full">
+                {vehicles.slice(pageIdx * CARDS_PER_VIEW, pageIdx * CARDS_PER_VIEW + CARDS_PER_VIEW).map((v) => (
+                  <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

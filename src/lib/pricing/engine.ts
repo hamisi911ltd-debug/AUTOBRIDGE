@@ -1,4 +1,5 @@
 import type { PricingRule } from "@/generated/prisma/client";
+import { computeFreightUsd, computeInsuranceUsd } from "@/lib/landedCost";
 
 export type VehicleForPricing = {
   make: string;
@@ -6,7 +7,24 @@ export type VehicleForPricing = {
   bodyType: string;
   sourceCountry: string;
   sourcePriceUsd: number;
+  // Needed to work out the commission base below — see commissionBaseUsd.
+  freightIncluded: boolean;
 };
+
+/**
+ * The amount commission is actually calculated against: source price plus
+ * freight and insurance to Mombasa, not the bare vehicle price alone. Buyers
+ * requested this explicitly — a markup meant to reflect margin on the whole
+ * landed deal should scale with the deal's real size (a car with expensive
+ * shipping is a bigger transaction), not just the FOB price. This is also
+ * what PRICE_BAND scope and TIERED markup bands are matched against, so a
+ * near-threshold vehicle's shipping cost can tip it into the next band.
+ */
+export function commissionBaseUsd(vehicle: VehicleForPricing): number {
+  const freight = computeFreightUsd(vehicle.sourceCountry, vehicle.freightIncluded);
+  const insurance = computeInsuranceUsd(vehicle.sourcePriceUsd);
+  return vehicle.sourcePriceUsd + freight + insurance;
+}
 
 export type Tier = { min: number; max: number | null; percent: number };
 
@@ -38,11 +56,10 @@ function ruleMatches(rule: PricingRule, vehicle: VehicleForPricing): boolean {
       return rule.scopeValue === vehicle.sourceCountry;
     case "EXPORTER":
       return false; // no exporter field on Vehicle yet
-    case "PRICE_BAND":
-      return (
-        (rule.priceMinUsd ?? 0) <= vehicle.sourcePriceUsd &&
-        (rule.priceMaxUsd ?? Infinity) > vehicle.sourcePriceUsd
-      );
+    case "PRICE_BAND": {
+      const base = commissionBaseUsd(vehicle);
+      return (rule.priceMinUsd ?? 0) <= base && (rule.priceMaxUsd ?? Infinity) > base;
+    }
     case "GLOBAL":
       return true;
     default:
@@ -57,20 +74,20 @@ function clampMargin(rule: PricingRule, margin: number): number {
   return m;
 }
 
-function marginForRule(rule: PricingRule, sourcePriceUsd: number): number {
+function marginForRule(rule: PricingRule, commissionBase: number): number {
   if (rule.markupType === "FIXED") {
     return clampMargin(rule, rule.value ?? 0);
   }
   if (rule.markupType === "PERCENT") {
-    return clampMargin(rule, sourcePriceUsd * (rule.value ?? 0));
+    return clampMargin(rule, commissionBase * (rule.value ?? 0));
   }
   // TIERED
   const tiers: Tier[] = rule.tiers ? JSON.parse(rule.tiers) : [];
   const band = tiers.find(
-    (t) => sourcePriceUsd >= t.min && (t.max == null || sourcePriceUsd < t.max)
+    (t) => commissionBase >= t.min && (t.max == null || commissionBase < t.max)
   );
   if (!band) return 0;
-  return clampMargin(rule, sourcePriceUsd * band.percent);
+  return clampMargin(rule, commissionBase * band.percent);
 }
 
 /**
@@ -98,7 +115,7 @@ export function computeSellingPriceUsd(
   });
 
   const rule = candidates[0];
-  const margin = Math.round(marginForRule(rule, vehicle.sourcePriceUsd));
+  const margin = Math.round(marginForRule(rule, commissionBaseUsd(vehicle)));
 
   return {
     sellingPriceUsd: Math.round(vehicle.sourcePriceUsd) + margin,

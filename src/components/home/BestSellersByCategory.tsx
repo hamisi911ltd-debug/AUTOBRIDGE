@@ -141,15 +141,14 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
       </div>
 
       {/* Horizontal slide, always — a fixed calc() basis on mobile shows
-         exactly 3 tiles at once (rather than the 2ish that fell out of the
-         old fixed 160px width), the rest still reachable by swiping; sm:+
+         exactly 2 tiles at once, the rest still reachable by swiping; sm:+
          reverts to the original fixed width since there's more room. */}
       <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0" style={{ scrollbarWidth: "thin" }}>
         {tiles.map((t, i) => (
           <button
             key={t.key}
             onClick={() => goDetail(t.vehicle.id)}
-            className="group text-left rounded-2xl border overflow-hidden bg-white flex-none basis-[calc((100%-1.5rem)/3)] sm:flex-1 sm:basis-44 sm:min-w-[160px]"
+            className="group text-left rounded-2xl border overflow-hidden bg-white flex-none basis-[calc((100%-0.75rem)/2)] sm:flex-1 sm:basis-44 sm:min-w-[160px]"
             style={{ borderColor: COLORS.line }}
           >
             <div className="relative aspect-[4/3]" style={{ background: COLORS.card }}>
@@ -166,6 +165,11 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
               >
                 {i + 1}
               </span>
+              <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] bg-white/95 flex items-center justify-center gap-1">
+                <span className="text-[8px] sm:text-[9px] font-bold" style={{ color: "#F2762E" }}>
+                  {t.vehicle.year} &middot; {t.vehicle.sourceCountry}
+                </span>
+              </div>
             </div>
             <div className="p-2 sm:p-3">
               <div className="text-xs sm:text-sm font-semibold truncate" style={{ color: COLORS.navy }}>
