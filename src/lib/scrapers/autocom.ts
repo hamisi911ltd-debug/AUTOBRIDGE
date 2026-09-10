@@ -106,6 +106,11 @@ function toVehicle(c: AutocomCar): ScrapedVehicle | null {
   const fuelRaw = c.isTagHybrid ? "hybrid" : c.fuel || "petrol";
   const modelText = `${c.carName} ${c.grade ?? ""}`;
 
+  // The search feed's `imageCar` is a 160px list thumbnail. The real gallery
+  // photos live alongside it as `<refno>-01.jpg` .. `-06.jpg` (a consistent
+  // 640x480 on AUTOCOM's asset CDN) — swap to `-01` for the cover.
+  const imageUrl = c.imageCar ? c.imageCar.replace(/\.jpe?g(\?.*)?$/i, "-01.jpg") : null;
+
   return {
     sourceSite: "autocom",
     externalId: `autocom:${c.refno}`,
@@ -124,7 +129,8 @@ function toVehicle(c: AutocomCar): ScrapedVehicle | null {
     color: c.carColor ? titleCase(c.carColor) : "White",
     sourceCountry: "Japan",
     sourcePriceUsd: price,
-    imageUrl: c.imageCar || null,
+    imageUrl,
+    imageWidthPx: imageUrl ? 640 : undefined, // AUTOCOM's `-01.jpg` is a consistent 640x480
     chassisNo: c.chassis || undefined,
     modelCode: c.model || undefined,
     registrationYearMonth: ym(c.ryear, c.rmonth),

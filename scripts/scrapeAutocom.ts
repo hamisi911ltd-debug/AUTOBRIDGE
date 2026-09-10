@@ -67,14 +67,15 @@ async function main() {
     console.log(`  page ${page}: ${listed.length} eligible (of ${AUTOCOM_PAGE_SIZE})`);
 
     for (const v of listed) {
-      const width = await measureImageWidthPx(v.imageUrl);
+      // autocom.ts already knows the `-01.jpg` cover is 640px wide, so only
+      // reach for a network measure when it didn't set one.
+      const width = v.imageWidthPx ?? (await measureImageWidthPx(v.imageUrl));
       // null = measurement failed (keep it, unknown); a real number below the
       // bar = genuinely too small to look sharp on a card, so drop it.
-      if (width !== null && width < MIN_SHARP_WIDTH_PX) {
-        await sleep(REQUEST_DELAY_MS);
+      if (width !== null && width !== undefined && width < MIN_SHARP_WIDTH_PX) {
         continue;
       }
-      pending.push({ ...v, imageWidthPx: width });
+      pending.push({ ...v, imageWidthPx: width ?? null });
       if (pending.length >= FLUSH_EVERY) await flush("batch full");
       if (addedThisRun + pending.length >= WANT_NEW) break;
       await sleep(REQUEST_DELAY_MS);
