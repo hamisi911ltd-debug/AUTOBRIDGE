@@ -30,7 +30,9 @@ export function AutoBridgeApp({
   reviews: PublicReview[];
 }) {
   const [page, setPage] = useState<Page>("home");
-  const [fx, setFx] = useState(129);
+  // Kept only to derive landed.freight / landed.insurance (both USD, so the
+  // rate is irrelevant); the site shows USD, no KES conversion anymore.
+  const fx = 1;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
   const [quoteVehicleId, setQuoteVehicleId] = useState<string | null>(null);
@@ -200,8 +202,6 @@ export function AutoBridgeApp({
           <DetailPage
             vehicle={selectedVehicle}
             landed={landedMap[selectedVehicle.id]}
-            fx={fx}
-            setFx={setFx}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
             vehicles={vehicles}

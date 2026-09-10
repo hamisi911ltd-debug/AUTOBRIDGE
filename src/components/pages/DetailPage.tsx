@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Camera, Check, Heart, MapPin, X } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
-import { formatKes } from "@/lib/format";
+import { formatUsd } from "@/lib/format";
 import { whatsAppLink, vehicleDetailBlock } from "@/lib/whatsapp";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
@@ -116,8 +116,6 @@ function SpecTable({ vehicle }: { vehicle: PublicVehicle }) {
 export function DetailPage({
   vehicle,
   landed,
-  fx,
-  setFx,
   favorites,
   toggleFavorite,
   vehicles,
@@ -127,8 +125,6 @@ export function DetailPage({
 }: {
   vehicle: PublicVehicle;
   landed: LandedCost;
-  fx: number;
-  setFx: (fx: number) => void;
   favorites: Set<string>;
   toggleFavorite: (id: string) => void;
   vehicles: PublicVehicle[];
@@ -140,6 +136,11 @@ export function DetailPage({
   const [sending, setSending] = useState(false);
   const desktopMessageRef = useRef<HTMLTextAreaElement | null>(null);
   const mobileMessageRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // CIF Mombasa in USD — vehicle + freight + insurance (landed.freight and
+  // landed.insurance are already USD; landed.total is the KES conversion,
+  // which the site no longer shows).
+  const cifUsd = vehicle.sellingPriceUsd + landed.freight + landed.insurance;
 
   /**
    * The fastest path to "I want more photos/details" — rather than a
@@ -272,10 +273,10 @@ export function DetailPage({
         {/* Name, then price, right below it — not tucked inside a side card. */}
         <div className="flex items-baseline gap-2 mt-1">
           <span className="text-2xl font-bold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.burgundy }}>
-            {formatKes(landed.total)}
+            {formatUsd(cifUsd)}
           </span>
           <span className="text-[11px]" style={{ color: COLORS.slate }}>
-            total price, incl. freight &amp; insurance
+            total price (USD), incl. freight &amp; insurance
           </span>
         </div>
 
@@ -310,18 +311,7 @@ export function DetailPage({
         </div>
 
         <div className="mt-4">
-          <div className="mb-2 flex items-center gap-1 text-[10px] flex-wrap">
-            <span style={{ color: COLORS.slate }}>Exchange rate</span>
-            <input
-              type="number"
-              value={fx}
-              onChange={(e) => setFx(Number(e.target.value) || fx)}
-              className="border rounded-lg px-1.5 py-1 w-16 text-[10px]"
-              style={{ borderColor: "#D8DCE3" }}
-            />
-            <span style={{ color: COLORS.slate }}>KSh/USD</span>
-          </div>
-          <CostLadder landed={landed} fx={fx} />
+          <CostLadder totalUsd={cifUsd} />
         </div>
 
         <button
@@ -511,18 +501,7 @@ export function DetailPage({
 
         <div className="lg:h-full min-w-0">
           <div className="lg:sticky lg:h-full lg:flex lg:flex-col min-w-0" style={{ top: "1.5rem" }}>
-            <div className="mb-4 flex items-center gap-2 text-xs">
-              <span style={{ color: COLORS.slate }}>Exchange rate</span>
-              <input
-                type="number"
-                value={fx}
-                onChange={(e) => setFx(Number(e.target.value) || fx)}
-                className="border rounded-lg px-2 py-1 w-20"
-                style={{ borderColor: "#D8DCE3" }}
-              />
-              <span style={{ color: COLORS.slate }}>KSh / USD</span>
-            </div>
-            <CostLadder landed={landed} fx={fx} />
+            <CostLadder totalUsd={cifUsd} />
 
             <div className="mt-4">
               <SpecTable vehicle={vehicle} />

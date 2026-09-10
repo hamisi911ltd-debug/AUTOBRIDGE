@@ -1,11 +1,10 @@
 "use client";
 
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
-import { formatKes } from "@/lib/format";
-import type { LandedCost } from "@/lib/landedCost";
+import { formatUsd } from "@/lib/format";
 
-/** One number, not a line-item breakdown — the total is what a buyer actually needs to decide; freight and insurance are called out as already folded in rather than itemized separately. */
-export function CostLadder({ landed, fx }: { landed: LandedCost; fx: number }) {
+/** One number, not a line-item breakdown — the CIF total in USD is what a buyer needs to decide; freight and insurance are already folded in. */
+export function CostLadder({ totalUsd }: { totalUsd: number }) {
   return (
     <div className="bg-white rounded-2xl border overflow-hidden shadow-sm" style={{ borderColor: COLORS.line }}>
       <div className="px-3.5 lg:px-6 py-2.5 lg:py-4 flex items-center justify-between gap-1" style={{ background: COLORS.navy }}>
@@ -19,15 +18,15 @@ export function CostLadder({ landed, fx }: { landed: LandedCost; fx: number }) {
 
       <div className="p-3.5 lg:p-6">
         <div className="text-2xl lg:text-4xl font-bold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.burgundy }}>
-          {formatKes(landed.total)}
+          {formatUsd(totalUsd)}
         </div>
         <p className="text-[11px] lg:text-sm mt-1" style={{ color: COLORS.slate }}>
           Includes freight &amp; insurance to Mombasa
         </p>
 
         <p className="hidden lg:block text-[11px] mt-4 leading-relaxed" style={{ color: COLORS.slate }}>
-          Estimate only, at KSh {fx}/USD. Excludes KRA import duty, excise, VAT and registration, confirm those with a
-          licensed clearing agent before you commit.
+          CIF estimate in USD. Excludes KRA import duty, excise, VAT and registration — confirm those with a licensed
+          clearing agent before you commit.
         </p>
       </div>
     </div>
