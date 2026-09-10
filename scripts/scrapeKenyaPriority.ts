@@ -22,10 +22,14 @@ import { flushToD1, countVehicles, sleep, type PendingRow } from "./lib/d1Upsert
 
 const TARGET_COUNT = process.argv[2] ? parseInt(process.argv[2], 10) : 6800;
 const START_MAKE_INDEX = process.argv[3] ? parseInt(process.argv[3], 10) : 0;
+// Minutes to wait before the first request — lets a resumed run sit out
+// BE FORWARD's rolling throttle window instead of burning its cooldown
+// budget the moment it starts.
+const INITIAL_WAIT_MIN = process.argv[4] ? parseInt(process.argv[4], 10) : 0;
 
-const REQUEST_DELAY_MS = 1200;
-const COOLDOWN_ON_429_MS = 45_000;
-const MAX_429_COOLDOWNS = 4;
+const REQUEST_DELAY_MS = 2500; // gentler steady-state — 1.2s tripped BE FORWARD's limiter on a resumed run
+const COOLDOWN_ON_429_MS = 120_000;
+const MAX_429_COOLDOWNS = 10; // ~20 min of cooldown budget before giving up
 const FLUSH_EVERY = 30;
 const MAX_PAGES_PER_MODEL = 12; // 30 listings/page
 
@@ -188,6 +192,12 @@ async function main() {
   if (startCount >= TARGET_COUNT) {
     console.log("Already at or above target — nothing to do.");
     return;
+  }
+
+  if (INITIAL_WAIT_MIN > 0) {
+    console.log(`Waiting ${INITIAL_WAIT_MIN} min for BE FORWARD's throttle window to clear before the first request...`);
+    await sleep(INITIAL_WAIT_MIN * 60_000);
+    console.log("Initial wait done — starting.");
   }
 
   let pending: PendingRow[] = [];
