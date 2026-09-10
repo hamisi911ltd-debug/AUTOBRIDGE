@@ -6,7 +6,7 @@ export const revalidate = 0;
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { vehicleId, name, phone, email, message } = body ?? {};
+  const { vehicleId, name, phone, email, message, isBooking } = body ?? {};
 
   if (typeof vehicleId !== "string" || typeof name !== "string" || typeof phone !== "string") {
     return NextResponse.json({ error: "vehicleId, name and phone are required" }, { status: 400 });
@@ -19,6 +19,7 @@ export async function POST(req: Request) {
       phone,
       email: typeof email === "string" ? email : null,
       message: typeof message === "string" ? message : null,
+      isBooking: isBooking === true,
     },
   });
 

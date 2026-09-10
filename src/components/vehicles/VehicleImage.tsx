@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Car } from "lucide-react";
+import { ImageOff } from "lucide-react";
 import { COLORS } from "@/lib/constants";
+import { thumbnailUrl } from "@/lib/thumbnail";
+
+const BRAND_GRADIENT = "linear-gradient(135deg, #3B1F63 0%, #D6336C 55%, #F2762E 100%)";
 
 /**
  * Drop-in replacement for a plain vehicle `<img>`. Uses object-cover so the
@@ -10,15 +13,18 @@ import { COLORS } from "@/lib/constants";
  * sizes its box at aspect-[4/3], matching typical car-listing photos
  * closely enough that this crops only a sliver off the edges rather than
  * cutting off the car (the old bug came from a taller/square box forcing a
- * much harsher crop, not from object-cover itself). Falls back to a car
- * icon when there's no photo, or when the recorded photo URL has gone dead
- * since it was scraped (source-site listings do get delisted, taking their
- * photo with them — an `onError` catch is the only way to detect that at
- * render time, since we don't re-check every stored URL is still live on
- * every page load).
+ * much harsher crop, not from object-cover itself).
+ *
+ * `fallbackSrcs` (this vehicle's OTHER real photos, if any) are tried in
+ * order on load failure before giving up — a single dead/expired photo URL
+ * (source-site listings do get delisted, taking their photo with them) no
+ * longer blanks the whole card out when a second genuine photo of the same
+ * car exists. Only once every src is exhausted does the branded placeholder
+ * show.
  */
 export function VehicleImage({
   src,
+  fallbackSrcs = [],
   alt,
   iconSize = 40,
   imgClassName = "",
@@ -26,6 +32,8 @@ export function VehicleImage({
   priority = false,
 }: {
   src: string | null;
+  /** This vehicle's other real photos — tried in order if `src` fails to load. */
+  fallbackSrcs?: string[];
   alt: string;
   iconSize?: number;
   imgClassName?: string;
@@ -39,13 +47,38 @@ export function VehicleImage({
    * else stays lazy by default. */
   priority?: boolean;
 }) {
-  const [failed, setFailed] = useState(false);
+  // For each real photo, try its downsized thumbnail variant first, but
+  // fall back to the original full-size URL if that specific variant 404s —
+  // not every source photo actually has a "medium" size on disk (confirmed:
+  // some BE FORWARD listings only ever had a "large" file uploaded), so a
+  // blind rewrite with no fallback was turning some genuinely-live photos
+  // into permanent "Photo unavailable" cards.
+  const candidates = [src, ...fallbackSrcs]
+    .filter((s): s is string => !!s)
+    .flatMap((url) => {
+      const thumb = thumbnailUrl(url);
+      return thumb !== url ? [thumb, url] : [url];
+    });
+  const [attempt, setAttempt] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [visible, setVisible] = useState(priority);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const currentSrc = candidates[attempt] ?? null;
+  const exhausted = attempt >= candidates.length;
 
   useEffect(() => {
-    if (!src || priority) {
+    // A priority image is already in the server-rendered HTML, so the
+    // browser can start (and finish) loading it before React hydrates and
+    // attaches onLoad — the native `load` event fires and is missed, and
+    // `loaded` would stay false forever, leaving a fully-downloaded photo
+    // stuck at opacity-0. `.complete` is a DOM property, not an event, so
+    // it's still accurate after the fact — this catches that race.
+    if (imgRef.current?.complete) setLoaded(true);
+  }, [currentSrc]);
+
+  useEffect(() => {
+    if (!currentSrc || priority) {
       setVisible(true);
       return;
     }
@@ -65,17 +98,15 @@ export function VehicleImage({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [priority, src]);
+  }, [priority, currentSrc]);
 
-  if (!src || failed) {
+  if (!currentSrc || exhausted) {
     return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-        <div
-          className="rounded-full flex items-center justify-center"
-          style={{ width: iconSize * 1.7, height: iconSize * 1.7, background: "rgba(255,255,255,0.06)" }}
-        >
-          <Car size={iconSize} color={COLORS.goldLight} strokeWidth={1.2} />
-        </div>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5" style={{ background: BRAND_GRADIENT }}>
+        <ImageOff size={iconSize} color="rgba(255,255,255,0.85)" />
+        <span className="text-[9px] font-semibold tracking-wide" style={{ color: "rgba(255,255,255,0.75)" }}>
+          Photo unavailable
+        </span>
       </div>
     );
   }
@@ -87,13 +118,18 @@ export function VehicleImage({
         {visible && (
           /* eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts */
           <img
-            src={src}
+            key={currentSrc}
+            ref={imgRef}
+            src={currentSrc}
             alt={alt}
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
             decoding="async"
             onLoad={() => setLoaded(true)}
-            onError={() => setFailed(true)}
+            onError={() => {
+              setLoaded(false);
+              setAttempt((a) => a + 1);
+            }}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"} ${imgClassName}`}
           />
         )}

@@ -6,27 +6,34 @@ import { computeLandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import type { PublicReview } from "@/types/review";
 import { Header } from "@/components/layout/Header";
+import { PromoBanner } from "@/components/home/PromoBanner";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
+import { ConsentGate } from "@/components/layout/ConsentGate";
 import { HomePage } from "@/components/pages/HomePage";
 import { SearchPage } from "@/components/pages/SearchPage";
 import { DetailPage } from "@/components/pages/DetailPage";
-import { ComparePage } from "@/components/pages/ComparePage";
+import { QuotePage } from "@/components/pages/QuotePage";
 
-export type Page = "home" | "search" | "detail" | "compare";
+export type Page = "home" | "search" | "detail" | "quote";
 
 // Bumped to v2 to start every visitor fresh (a one-off reset, requested
 // directly) — old data under the v1 keys is simply never read again.
 const FAVORITES_KEY = "ferbil:favorites:v2";
-const COMPARE_KEY = "ferbil:compare:v2";
 
-export function AutoBridgeApp({ initialVehicles, reviews }: { initialVehicles: PublicVehicle[]; reviews: PublicReview[] }) {
+export function AutoBridgeApp({
+  initialVehicles,
+  reviews,
+}: {
+  initialVehicles: PublicVehicle[];
+  reviews: PublicReview[];
+}) {
   const [page, setPage] = useState<Page>("home");
   const [fx, setFx] = useState(129);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
-  const [compareList, setCompareList] = useState<string[]>([]);
+  const [quoteVehicleId, setQuoteVehicleId] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
   // The home page only gets a recent-first slice of the catalogue (see
@@ -64,10 +71,8 @@ export function AutoBridgeApp({ initialVehicles, reviews }: { initialVehicles: P
       const savedFavorites = localStorage.getItem(FAVORITES_KEY);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (savedFavorites) setFavorites(new Set(JSON.parse(savedFavorites)));
-      const savedCompare = localStorage.getItem(COMPARE_KEY);
-      if (savedCompare) setCompareList(JSON.parse(savedCompare));
     } catch {
-      // localStorage unavailable — favorites/compare just stay session-only
+      // localStorage unavailable — favorites just stay session-only
     }
   }, []);
 
@@ -76,12 +81,13 @@ export function AutoBridgeApp({ initialVehicles, reviews }: { initialVehicles: P
   }, [favorites]);
 
   useEffect(() => {
-    localStorage.setItem(COMPARE_KEY, JSON.stringify(compareList));
-  }, [compareList]);
-
-  useEffect(() => {
+    // Also keyed on selectedId — clicking a "similar vehicles" card at the
+    // bottom of a detail page calls goDetail() without changing `page`
+    // (it's already "detail"), so scrolling only on `page` changing left
+    // the browser sitting wherever the click happened instead of jumping
+    // to the newly-selected car's own photo/details at the top.
     window.scrollTo({ top: 0 });
-  }, [page]);
+  }, [page, selectedId]);
 
   const landedMap = useMemo(() => {
     const m: Record<string, ReturnType<typeof computeLandedCost>> = {};
@@ -99,9 +105,6 @@ export function AutoBridgeApp({ initialVehicles, reviews }: { initialVehicles: P
       return next;
     });
   }
-  function toggleCompare(id: string) {
-    setCompareList((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : prev.length >= 4 ? prev : [...prev, id]));
-  }
   function goDetail(id: string) {
     setSelectedId(id);
     setPage("detail");
@@ -110,21 +113,67 @@ export function AutoBridgeApp({ initialVehicles, reviews }: { initialVehicles: P
     setFilters((f) => ({ ...f, ...patch }));
     setPage("search");
   }
+  function goQuote(id?: string) {
+    setQuoteVehicleId(id ?? null);
+    setPage("quote");
+  }
 
   const selectedVehicle = vehicles.find((v) => v.id === selectedId) || null;
 
   return (
-    <div style={{ fontFamily: FONT_BODY, background: COLORS.paper, minHeight: "100vh", color: COLORS.ink }} className="w-full pb-16 md:pb-0 pt-[3.25rem] sm:pt-[4.5rem]">
-      <Header
-        setPage={setPage}
-        favoritesCount={favorites.size}
-        compareCount={compareList.length}
-        onGoSearch={() => goSearch({})}
-        onGoFavorites={() => goSearch({ favoritesOnly: true })}
-        onGoCompare={() => setPage("compare")}
-      />
+    <div style={{ fontFamily: FONT_BODY, background: COLORS.paper, minHeight: "100vh", color: COLORS.ink }} className="w-full pb-16 md:pb-0">
+      <ConsentGate />
+
+      {/* Only the header itself stays pinned while the page scrolls — the
+         promo banner (home page only) scrolls away with the rest of the
+         content instead. Page content below the header needs exactly its
+         real rendered height reserved above it, but that varies slightly by
+         viewport — rather than measuring it in JS (which leaves a gap
+         between SSR's first paint and the post-hydration correction, during
+         which the fixed header covers the top of the page), an identical,
+         invisible copy is rendered in normal document flow right below it.
+         The browser's own layout engine gives that copy the exact same
+         height as the fixed one for free, on the very first paint, with no
+         JS and no guessing. */}
+      <div className="fixed top-0 inset-x-0 z-30">
+        <Header
+          setPage={setPage}
+          favoritesCount={favorites.size}
+          onGoSearch={() => goSearch({})}
+          onGoFavorites={() => goSearch({ favoritesOnly: true })}
+          onGoQuote={() => goQuote()}
+        />
+        {/* Mobile only: the banner stays pinned with the header instead of
+           scrolling away — sm:hidden below moves it into normal flow (and
+           lets it scroll) on desktop instead. */}
+        {page === "home" && (
+          <div className="sm:hidden">
+            <PromoBanner onGoSearch={() => goSearch({})} />
+          </div>
+        )}
+      </div>
+      <div aria-hidden className="invisible">
+        <Header
+          setPage={setPage}
+          favoritesCount={favorites.size}
+          onGoSearch={() => {}}
+          onGoFavorites={() => {}}
+          onGoQuote={() => {}}
+        />
+        {page === "home" && (
+          <div className="sm:hidden">
+            <PromoBanner onGoSearch={() => {}} />
+          </div>
+        )}
+      </div>
 
       <main>
+        {/* Desktop only (mobile's copy is pinned above, inside the fixed bar). */}
+        {page === "home" && (
+          <div className="hidden sm:block">
+            <PromoBanner onGoSearch={() => goSearch({})} />
+          </div>
+        )}
         {page === "home" && (
           <HomePage
             vehicles={vehicles}
@@ -155,35 +204,20 @@ export function AutoBridgeApp({ initialVehicles, reviews }: { initialVehicles: P
             setFx={setFx}
             favorites={favorites}
             toggleFavorite={toggleFavorite}
-            compareList={compareList}
-            toggleCompare={toggleCompare}
             vehicles={vehicles}
             goDetail={goDetail}
             setPage={setPage}
+            goQuote={() => goQuote(selectedVehicle.id)}
           />
         )}
-        {page === "compare" && (
-          <ComparePage
-            vehicles={vehicles.filter((v) => compareList.includes(v.id))}
-            landedMap={landedMap}
-            toggleCompare={toggleCompare}
-            onClearAll={() => setCompareList([])}
-            setPage={setPage}
-          />
+        {page === "quote" && (
+          <QuotePage vehicles={vehicles} landedMap={landedMap} preselectedId={quoteVehicleId} goDetail={goDetail} />
         )}
       </main>
 
       <Footer />
       <WhatsAppButton />
-      <BottomNav
-        page={page}
-        setPage={setPage}
-        favoritesCount={favorites.size}
-        compareCount={compareList.length}
-        onGoSearch={() => goSearch({})}
-        onGoFavorites={() => goSearch({ favoritesOnly: true })}
-        onGoCompare={() => setPage("compare")}
-      />
+      <BottomNav page={page} setPage={setPage} onGoSearch={() => goSearch({})} onGoQuote={() => goQuote()} />
     </div>
   );
 }

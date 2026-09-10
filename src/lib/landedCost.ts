@@ -6,6 +6,16 @@ export const FREIGHT_USD: Record<string, number> = {
   "South Korea": 950,
 };
 
+/** Insurance estimate, a flat percentage of the real source price. */
+export function computeInsuranceUsd(sourcePriceUsd: number): number {
+  return Math.round(sourcePriceUsd * 0.01);
+}
+
+/** Freight in USD for a vehicle — 0 when the source price already has it baked in (see freightIncluded below). */
+export function computeFreightUsd(sourceCountry: string, freightIncluded: boolean): number {
+  return freightIncluded ? 0 : FREIGHT_USD[sourceCountry] || 1000;
+}
+
 export type LandedCostInput = {
   sourceCountry: string;
   // Retail price the customer pays AutoBridge for the car itself (source
@@ -50,7 +60,7 @@ export type LandedCost = {
  * inside the price.
  */
 export function computeLandedCost(v: LandedCostInput, fx: number): LandedCost {
-  const freight = v.freightIncluded ? 0 : FREIGHT_USD[v.sourceCountry] || 1000;
+  const freight = computeFreightUsd(v.sourceCountry, v.freightIncluded);
   const insurance = v.insuranceUsd;
   const total = v.sellingPriceUsd * fx + freight * fx + insurance * fx;
   return { freight, insurance, total };

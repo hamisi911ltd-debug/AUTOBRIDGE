@@ -8,7 +8,7 @@ export default async function AdminPricingPage() {
     // table — that was fetched (and rendered as a 27,000-option <select>)
     // on every single visit to this page, the main reason it was slow.
     prisma.vehicle.findMany({
-      select: { id: true, make: true, model: true, bodyType: true, sourceCountry: true, sourcePriceUsd: true, year: true },
+      select: { id: true, make: true, model: true, bodyType: true, sourceCountry: true, sourcePriceUsd: true, freightIncluded: true, year: true },
       orderBy: { createdAt: "desc" },
       take: 300,
     }),

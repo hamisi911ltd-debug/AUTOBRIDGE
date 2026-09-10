@@ -4,11 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Tag } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
+import { computeFreightUsd } from "@/lib/landedCost";
 import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { PublicVehicle } from "@/types/vehicle";
 
 const SLIDE_MS = 4000;
-const CARDS_PER_VIEW = 12; // LCM of 3 and 4 — the grid runs 3-across on mobile, 4-across from sm: up, so a page always fills both evenly
+const CARDS_PER_VIEW = 12; // divisible by both 2 (mobile) and 4 (sm:+) so a page always fills evenly at either width
 const MAX_OFFERS = 60;
 
 /**
@@ -117,39 +118,45 @@ export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]
           onTouchEnd={() => (pausedRef.current = false)}
         >
           <div
-            className="flex transition-transform duration-500"
+            className="flex items-start transition-transform duration-500"
             style={{ transform: `translateX(-${page * 100}%)` }}
           >
-            {Array.from({ length: pageCount }, (_, pageIdx) => (
-              <div key={pageIdx} className="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-4 shrink-0 w-full">
-                {offers.slice(pageIdx * CARDS_PER_VIEW, pageIdx * CARDS_PER_VIEW + CARDS_PER_VIEW).map((v) => (
-                  <button
-                    key={v.id}
-                    onClick={() => goDetail(v.id)}
-                    className="bg-white rounded-xl overflow-hidden text-left group border"
-                    style={{ borderColor: COLORS.line }}
-                  >
-                    <div className="relative aspect-[4/3] overflow-hidden" style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}>
-                      <VehicleImage
-                        src={v.imageUrl}
-                        alt={`${v.year} ${v.make} ${v.model}`}
-                        iconSize={28}
-                        imgClassName="transition-transform duration-300 group-hover:scale-105"
-                        banner={{ year: v.year, country: v.sourceCountry }}
-                      />
-                    </div>
-                    <div className="p-2.5">
-                      <div className="text-xs font-semibold truncate" style={{ color: COLORS.navy }}>
-                        {v.year} {v.make} {v.model}
+            {Array.from({ length: pageCount }, (_, pageIdx) => {
+              return (
+                <div key={pageIdx} className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 shrink-0 w-full">
+                  {offers.slice(pageIdx * CARDS_PER_VIEW, pageIdx * CARDS_PER_VIEW + CARDS_PER_VIEW).map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => goDetail(v.id)}
+                      className="bg-white rounded-xl overflow-hidden text-left group border"
+                      style={{ borderColor: COLORS.line }}
+                    >
+                      <div className="relative aspect-[4/3] overflow-hidden" style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}>
+                        <VehicleImage
+                          src={v.imageUrl}
+                          fallbackSrcs={v.imageUrls.filter((u) => u !== v.imageUrl)}
+                          alt={`${v.year} ${v.make} ${v.model}`}
+                          iconSize={28}
+                          imgClassName="transition-transform duration-300 group-hover:scale-105"
+                          banner={{ year: v.year, country: v.sourceCountry }}
+                        />
                       </div>
-                      <div className="text-sm font-bold mt-0.5" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
-                        {formatUsd(v.sellingPriceUsd)}
+                      <div className="p-2.5">
+                        <div className="text-xs font-semibold truncate" style={{ color: COLORS.navy }}>
+                          {v.make} {v.model} {v.trim}
+                        </div>
+                        <div className="text-sm font-bold mt-0.5" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
+                          {formatUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd)}
+                        </div>
+                        <div className="text-[9px] leading-tight" style={{ color: COLORS.slate }}>
+                          Incl. freight &amp; insurance
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            ))}
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

@@ -47,10 +47,8 @@ function LoginForm() {
         className="w-full max-w-sm bg-white rounded-2xl border border-[#E9E1EF] p-8 shadow-sm"
       >
         <div className="flex items-center gap-2 mb-1">
-          {/* eslint-disable-next-line @next/next/no-img-element -- small static logo asset */}
-          <img src="/logo.png" alt="" className="w-8 h-8 rounded-lg object-contain" />
           <h1 className="text-2xl font-bold" style={{ fontFamily: "'Fraunces', Georgia, serif", color: "#3B1F63" }}>
-            Ferbil Autos Admin
+            Admin
           </h1>
         </div>
         <p className="text-sm text-[#6B5B7E] mb-6">Sign in to manage vehicles and pricing.</p>
@@ -64,7 +62,7 @@ function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full mb-4 rounded-xl border border-[#E9E1EF] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F2762E]"
-          placeholder="admin@ferbilautos.co.ke"
+          placeholder="admin@example.com"
         />
 
         <label className="block text-xs font-semibold uppercase tracking-wide text-[#6B5B7E] mb-1">
