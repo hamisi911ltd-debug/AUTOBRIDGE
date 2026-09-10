@@ -1,4 +1,4 @@
-import { execFile } from "node:child_process";
+import { execFile, exec } from "node:child_process";
 import { promisify } from "node:util";
 import { writeFile, unlink, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -8,6 +8,7 @@ import { computeEligibility, deriveLifestyle } from "@/lib/scrapers/normalize";
 import type { ScrapedVehicle } from "@/lib/scrapers/types";
 
 const execFileAsync = promisify(execFile);
+const execAsync = promisify(exec);
 const DATABASE = "autobridge-kenya-db";
 
 export type PendingRow = Omit<ScrapedVehicle, "imageWidthPx"> & { imageWidthPx: number | null };
@@ -85,4 +86,27 @@ export async function flushToD1(pending: PendingRow[]): Promise<void> {
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Live row count of the Vehicle table on the remote D1, via the same
+ * `wrangler d1 execute` path flushToD1 uses. Lets a count-targeted scrape
+ * (see scrapeKenyaPriority.ts) stop as soon as the catalogue reaches its
+ * goal instead of grinding through a fixed page budget.
+ */
+export async function countVehicles(): Promise<number> {
+  // Run as one shell string (not execFile args): under shell:true a
+  // multi-word `--command` value gets split into "unknown arguments", and
+  // the `--file=` path returns run stats instead of the row on --remote.
+  const { stdout } = await execAsync(
+    `npx wrangler d1 execute ${DATABASE} --remote --json --command "SELECT COUNT(*) AS c FROM Vehicle"`,
+    { timeout: 120_000, maxBuffer: 1024 * 1024 * 20 },
+  );
+  // wrangler may print progress lines before the JSON array: [{ results: [{ c: 1234 }], ... }]
+  const start = stdout.indexOf("[");
+  const parsed = JSON.parse(start >= 0 ? stdout.slice(start) : stdout);
+  const rows = parsed?.[0]?.results;
+  const c = Array.isArray(rows) ? rows[0]?.c : undefined;
+  if (typeof c !== "number") throw new Error(`countVehicles: unexpected wrangler output: ${stdout.slice(0, 400)}`);
+  return c;
 }
