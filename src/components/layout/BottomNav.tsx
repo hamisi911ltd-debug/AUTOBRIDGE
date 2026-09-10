@@ -28,7 +28,7 @@ export function BottomNav({
   const items: { key: string; label: string; icon: typeof Home; onClick: () => void; active: boolean }[] = [
     { key: "home", label: "Home", icon: Home, onClick: () => setPage("home"), active: page === "home" },
     { key: "search", label: "Search", icon: Search, onClick: onGoSearch, active: page === "search" },
-    { key: "quote", label: "Quotation", icon: FileText, onClick: onGoQuote, active: page === "quote" },
+    { key: "quote", label: "Invoice", icon: FileText, onClick: onGoQuote, active: page === "quote" },
   ];
 
   return (

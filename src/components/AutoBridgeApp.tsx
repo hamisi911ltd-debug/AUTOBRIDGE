@@ -14,7 +14,7 @@ import { ConsentGate } from "@/components/layout/ConsentGate";
 import { HomePage } from "@/components/pages/HomePage";
 import { SearchPage } from "@/components/pages/SearchPage";
 import { DetailPage } from "@/components/pages/DetailPage";
-import { QuotePage } from "@/components/pages/QuotePage";
+import { InvoicePage } from "@/components/pages/InvoicePage";
 
 export type Page = "home" | "search" | "detail" | "quote";
 
@@ -211,7 +211,7 @@ export function AutoBridgeApp({
           />
         )}
         {page === "quote" && (
-          <QuotePage vehicles={vehicles} landedMap={landedMap} preselectedId={quoteVehicleId} goDetail={goDetail} />
+          <InvoicePage vehicles={vehicles} landedMap={landedMap} preselectedId={quoteVehicleId} goDetail={goDetail} />
         )}
       </main>
 

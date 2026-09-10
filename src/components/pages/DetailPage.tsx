@@ -176,7 +176,7 @@ export function DetailPage({
       const wantsFullQuote = data.get("fullQuote") === "on";
       const rawMessage = (data.get("message") as string) || "";
       const message = wantsFullQuote
-        ? `[Requesting a full quote incl. duty, excise & VAT]${rawMessage ? "\n" + rawMessage : ""}`
+        ? `[Also wants the final invoice incl. KRA duty, excise & VAT]${rawMessage ? "\n" + rawMessage : ""}`
         : rawMessage || null;
       await fetch("/api/enquiries", {
         method: "POST",
@@ -369,13 +369,13 @@ export function DetailPage({
               ></textarea>
               <label className="flex items-start gap-2 text-xs font-medium p-2.5 rounded-xl cursor-pointer" style={{ color: COLORS.navy, background: COLORS.card }}>
                 <input type="checkbox" name="fullQuote" defaultChecked className="w-4 h-4 mt-0.5 shrink-0" />
-                Include a full quote with duty, excise &amp; VAT
+                Also send the final invoice with KRA duty, excise &amp; VAT
               </label>
               <button type="submit" disabled={sending} className="py-2.5 rounded-full text-sm font-semibold text-white disabled:opacity-60" style={{ background: COLORS.burgundy }}>
                 {sending ? "Sending…" : "Send enquiry"}
               </button>
               <button type="button" onClick={goQuote} className="text-xs font-semibold text-center" style={{ color: COLORS.burgundy }}>
-                Or get a printable official quote &rarr;
+                Or get a printable invoice &rarr;
               </button>
             </form>
           )}
@@ -495,13 +495,13 @@ export function DetailPage({
                 ></textarea>
                 <label className="flex items-start gap-2 text-xs sm:col-span-2 font-medium p-2.5 rounded-xl cursor-pointer" style={{ color: COLORS.navy, background: COLORS.card }}>
                   <input type="checkbox" name="fullQuote" defaultChecked className="w-4 h-4 mt-0.5 shrink-0" />
-                  Include a full quote with duty, excise &amp; VAT
+                  Also send the final invoice with KRA duty, excise &amp; VAT
                 </label>
                 <button type="submit" disabled={sending} className="sm:col-span-2 py-2.5 rounded-full text-sm font-semibold text-white disabled:opacity-60" style={{ background: COLORS.burgundy }}>
                   {sending ? "Sending…" : "Send enquiry"}
                 </button>
                 <button type="button" onClick={goQuote} className="sm:col-span-2 text-xs font-semibold text-center" style={{ color: COLORS.burgundy }}>
-                  Or get a printable official quote &rarr;
+                  Or get a printable invoice &rarr;
                 </button>
               </form>
             )}

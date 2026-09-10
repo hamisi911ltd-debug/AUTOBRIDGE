@@ -65,7 +65,7 @@ export function Header({
               Search
             </button>
             <button onClick={onGoQuote} style={{ color: COLORS.ink }}>
-              Get a quote
+              Get an invoice
             </button>
             <button onClick={() => scrollToId("how-it-works")} style={{ color: COLORS.ink }}>
               How it works
