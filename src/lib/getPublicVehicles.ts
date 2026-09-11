@@ -9,10 +9,13 @@ import type { PublicVehicle } from "@/types/vehicle";
  * server-side, and strips sourcePriceUsd before returning — no
  * customer-facing code path ever sees the source cost.
  *
- * Every eligible vehicle is a candidate — regardless of photo presence or
- * resolution (the user explicitly asked for maximum visible inventory over
- * a photo-quality gate). `eligible` stays as the one real filter here since
- * it's a legal constraint (KRA's 8-year import-age cap), not a cosmetic one.
+ * Every eligible vehicle with a live photo is a candidate — photo
+ * *resolution* still isn't gated on (a smaller photo beats none), but a
+ * vehicle with no reachable photo at all is excluded from browsing, since a
+ * customer picking a specific car shouldn't be shown a branded placeholder
+ * in its place. `scripts/verifyImageReachability.ts` is what actually
+ * clears `imageUrl` to null for vehicles whose source photo has gone dead
+ * (the listing itself got delisted) — this query just respects that.
  *
  * Unbounded, this runs to 27,000+ rows — too large to embed in every page's
  * initial payload. The homepage calls this with a `limit` (freshest-first,
@@ -134,7 +137,7 @@ async function fetchDiverseVehicles(limit: number): Promise<VehicleRow[]> {
   const groups = await Promise.all(
     makes.map((make) =>
       prisma.vehicle.findMany({
-        where: { eligible: true, make },
+        where: { eligible: true, make, imageUrl: { not: null } },
         orderBy: { createdAt: "desc" },
         select: VEHICLE_SELECT,
         take: perMake,
@@ -159,7 +162,7 @@ export async function getPublicVehicles(opts?: { limit?: number; diverse?: boole
     opts?.diverse && opts.limit
       ? fetchDiverseVehicles(opts.limit)
       : prisma.vehicle.findMany({
-          where: { eligible: true },
+          where: { eligible: true, imageUrl: { not: null } },
           orderBy: { createdAt: "desc" },
           select: VEHICLE_SELECT,
           ...(opts?.limit ? { take: opts.limit } : {}),

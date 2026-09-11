@@ -37,7 +37,41 @@ export function Footer({
 
   return (
     <footer className="text-white pb-16 md:pb-0" style={{ background: COLORS.gold }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-7 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
+      {/* Mobile: one compact block — logo, a single row of links, phone &
+         email — instead of the full 3-section desktop layout stacked tall. */}
+      <div className="sm:hidden max-w-7xl mx-auto px-4 py-3.5">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-7 h-7 rounded-md shrink-0" style={{ background: GRADIENT }} />
+          <span className="text-xs font-bold" style={{ fontFamily: FONT_DISPLAY }}>
+            {COMPANY.name}
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] mb-1.5">
+          <button onClick={() => setPage?.("home")} style={{ color: MUTED }}>
+            Home
+          </button>
+          <button onClick={() => onGoSearch?.()} style={{ color: MUTED }}>
+            Search cars
+          </button>
+          <button onClick={() => onGoQuote?.()} style={{ color: MUTED }}>
+            Get an invoice
+          </button>
+          <Link href="/privacy" style={{ color: MUTED }}>
+            Privacy Policy
+          </Link>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]" style={{ color: MUTED }}>
+          <span className="flex items-center gap-1">
+            <Phone size={11} className="shrink-0" /> {COMPANY.phone}
+          </span>
+          <span className="flex items-center gap-1">
+            <Mail size={11} className="shrink-0" /> {COMPANY.email}
+          </span>
+        </div>
+      </div>
+
+      {/* Desktop / tablet: full 3-column layout. */}
+      <div className="hidden sm:grid max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-7 grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
         {/* Brand */}
         <div>
           <div className="flex items-center gap-2.5 mb-2">
@@ -112,7 +146,7 @@ export function Footer({
 
       <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.25)" }}>
         <div
-          className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-1 text-[11px] text-center sm:text-left"
+          className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5 sm:py-2.5 flex flex-col sm:flex-row items-center justify-between gap-0.5 sm:gap-1 text-[11px] text-center sm:text-left"
           style={{ color: FAINT }}
         >
           <span>
