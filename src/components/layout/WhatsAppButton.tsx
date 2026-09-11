@@ -12,7 +12,7 @@ const GREET_BUBBLE_MS = 7000;
 const GREET_KEY = "ferbil_whatsapp_greeted";
 
 /**
- * Floating "talk to a live agent" button — replaces the old in-page AI chat
+ * Floating "talk to a live agent" button - replaces the old in-page AI chat
  * widget, which turned out unreliable in practice. A WhatsApp deep link
  * can't really "not work" the way a custom chat UI can, and it reaches an
  * actual person.

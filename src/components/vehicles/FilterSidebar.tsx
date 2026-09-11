@@ -7,7 +7,7 @@ import { MAKE_LOGO, COUNTRY_ISO } from "@/lib/vehicleBranding";
 import { CheckboxGroup } from "@/components/vehicles/CheckboxGroup";
 import { IconCheckList } from "@/components/vehicles/IconCheckList";
 
-// Quick-jump landed-cost bands (KSh) — a denser, one-tap alternative to
+// Quick-jump landed-cost bands (KSh) - a denser, one-tap alternative to
 // typing exact min/max figures, spanning the range this catalog actually
 // spans after duty, VAT and shipping.
 export const PRICE_BANDS: { label: string; min: number; max: number }[] = [
@@ -21,7 +21,7 @@ export const PRICE_BANDS: { label: string; min: number; max: number }[] = [
 type ToggleKey = "makes" | "models" | "bodyTypes" | "fuels" | "transmissions" | "drives" | "sourceCountries";
 
 /**
- * Make and model as one nested tree instead of two separate flat lists —
+ * Make and model as one nested tree instead of two separate flat lists -
  * checking a make still filters by make on its own, but expanding it (the
  * chevron, separate from the checkbox so the two actions don't collide)
  * reveals just that make's own models to check individually, so finding
@@ -145,8 +145,8 @@ export function FilterSidebar({
       const removing = arr.includes(val);
       const next = removing ? arr.filter((x) => x !== val) : [...arr, val];
       // Unchecking a make used to leave that make's own model selections
-      // active — invisibly, since the model checkboxes are hidden once
-      // their make is collapsed — which then filtered results down to just
+      // active - invisibly, since the model checkboxes are hidden once
+      // their make is collapsed - which then filtered results down to just
       // those stale models (or excluded a newly-checked make entirely) with
       // nothing on screen explaining why. Clearing them here keeps "make"
       // and "model" in sync with what's actually still checked.

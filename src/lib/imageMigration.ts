@@ -1,7 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { prisma } from "@/lib/prisma";
 
-// Small on purpose — Cloudflare Workers' free-tier CPU budget is 10ms per
+// Small on purpose - Cloudflare Workers' free-tier CPU budget is 10ms per
 // request (same constraint documented on the scraper), so the looping
 // across the whole catalogue happens in the caller (an admin button click
 // per batch, same pattern as "Run scrape now"), not in one giant request
@@ -22,7 +22,7 @@ export type ImageMigrationResult = {
 
 /**
  * Copies one small batch of vehicles' photos out of the source sites' own
- * CDNs (image-cdn.beforward.jp, img.sbtjapan.com, dubicars.com — third-party
+ * CDNs (image-cdn.beforward.jp, img.sbtjapan.com, dubicars.com - third-party
  * services with no speed or uptime guarantee) into our own VEHICLE_IMAGES R2
  * bucket, then rewrites imageUrl/imageUrls to point at
  * /api/vehicle-image/... so the public site serves photos from Cloudflare's
@@ -33,7 +33,7 @@ export async function migrateImageBatch(): Promise<ImageMigrationResult> {
   const bucket = env.VEHICLE_IMAGES;
   if (!bucket) throw new Error("VEHICLE_IMAGES R2 binding not available");
 
-  // Newest-first — this had no ordering before, so it was working through
+  // Newest-first - this had no ordering before, so it was working through
   // the catalogue in arbitrary DB order while the homepage/search only ever
   // show the newest slice. That made the migration's real progress mostly
   // invisible: it could be well underway while every vehicle an actual
@@ -85,7 +85,7 @@ export async function migrateImageBatch(): Promise<ImageMigrationResult> {
       if (newUrls.length > 0) migrated++;
     } catch {
       errors++;
-      // Still mark migrated — a permanently-dead source URL would otherwise
+      // Still mark migrated - a permanently-dead source URL would otherwise
       // block this vehicle from ever leaving the batch, stalling the whole run.
       await prisma.vehicle.update({ where: { id: v.id }, data: { imageMigrated: true } }).catch(() => {});
     }

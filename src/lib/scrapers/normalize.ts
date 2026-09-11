@@ -1,5 +1,5 @@
 // KRA (KS 1515:2000) caps used-vehicle imports at under 8 years old from
-// year of manufacture — a rolling window, not a fixed year, so this is
+// year of manufacture - a rolling window, not a fixed year, so this is
 // computed off the current date rather than hardcoded. "Under 8 years"
 // excludes a car turning exactly 8 this year, so -7 (not -8) is the correct
 // floor; explicitly requested to exclude 2018 stock going forward.
@@ -9,11 +9,11 @@ export const IMPORT_ELIGIBLE_FROM_YEAR = new Date().getFullYear() - 7;
 // prefecture/region name for the vast majority of stock (it's physically in
 // Japan) but occasionally a real country name instead, for units held at an
 // overseas satellite yard (confirmed live: a UK-based Isuzu Forward truck)
-// — that vehicle's landed cost is completely different (a different port,
+// - that vehicle's landed cost is completely different (a different port,
 // different freight economics) from a Japan-origin unit, so getting this
 // wrong isn't cosmetic. Rather than enumerate every possible overseas
 // country BE FORWARD might use, this enumerates the finite, known set of
-// Japanese place names instead — anything else in that field is treated as
+// Japanese place names instead - anything else in that field is treated as
 // the vehicle's real country.
 const JAPAN_PLACE_NAMES = new Set(
   [
@@ -87,7 +87,7 @@ export function titleCase(raw: string): string {
 }
 
 // Known multi-word model names, longest first so "Land Cruiser Prado" is
-// tried before "Land Cruiser" — otherwise a naive first-word split turns
+// tried before "Land Cruiser" - otherwise a naive first-word split turns
 // "LAND CRUISER PRADO TX-L" into model "Land", trim "Cruiser Prado Tx-L".
 const MULTI_WORD_MODELS = ["LAND CRUISER PRADO", "LAND CRUISER", "GRAND VITARA", "WAGON R"].sort(
   (a, b) => b.length - a.length
@@ -116,7 +116,7 @@ export function splitModelTrim(words: string[]): { model: string; trim: string }
 }
 
 /**
- * Neither exporter's listing page exposes a clean body-type field — infer it
+ * Neither exporter's listing page exposes a clean body-type field - infer it
  * from the model/trim text. Approximate on purpose; good enough for search
  * filtering, not a substitute for a real spec feed.
  */

@@ -22,7 +22,7 @@ body {
   color: var(--foreground);
 }
 
-/* Vehicle-photo loading shimmer (VehicleImage, VehicleGallery) — reads as
+/* Vehicle-photo loading shimmer (VehicleImage, VehicleGallery) - reads as
    active progress instead of a flat, seemingly-stuck placeholder while a
    hotlinked source-site image (some are still slow, unmigrated externals)
    loads in. */

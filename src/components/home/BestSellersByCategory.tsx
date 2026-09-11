@@ -18,7 +18,7 @@ type ModelTile = {
 
 /**
  * "What actually sells" by body-type category, ranked by how many units of
- * each make+model are currently in stock — a real signal from our own
+ * each make+model are currently in stock - a real signal from our own
  * inventory, not a guess. Every distinct body type actually present in the
  * catalogue gets its own tab (sorted by total units so the biggest
  * categories lead), rather than a fixed curated list that could miss
@@ -45,7 +45,7 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
       const ranked: ModelTile[] = [...byModel.entries()]
         .map(([key, units]) => {
           // A unit with its own real photo always outranks one only showing
-          // a same-model stand-in — this tile presents one specific car.
+          // a same-model stand-in - this tile presents one specific car.
           const best = [...units].sort(
             (a, b) =>
               Number(!a.isRepresentativePhoto) - Number(!b.isRepresentativePhoto) ||
@@ -58,7 +58,7 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
         .sort((a, b) => b.count - a.count);
 
       // Popular-brand models first, then fill any remaining slots from the
-      // rest — a category never falls short of a full row just because the
+      // rest - a category never falls short of a full row just because the
       // priority brands don't happen to sell that body type in bulk.
       const popular = ranked.filter((t) => POPULAR_MAKES.includes(t.make));
       const rest = ranked.filter((t) => !POPULAR_MAKES.includes(t.make));
@@ -140,7 +140,7 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
         ))}
       </div>
 
-      {/* Horizontal slide, always — a fixed calc() basis on mobile shows
+      {/* Horizontal slide, always - a fixed calc() basis on mobile shows
          exactly 2 tiles at once, the rest still reachable by swiping; sm:+
          reverts to the original fixed width since there's more room. */}
       <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0" style={{ scrollbarWidth: "thin" }}>
@@ -153,7 +153,7 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
           >
             <div className="relative aspect-[4/3] overflow-hidden" style={{ background: COLORS.card }}>
               {/* The photo and the strip covering its watermark are one zoom
-                 unit — both scale together on hover, so the zoomed photo
+                 unit - both scale together on hover, so the zoomed photo
                  never grows out from under a strip that stayed put and
                  re-exposes the watermark it's there to hide. */}
               <div className="absolute inset-0 transition-transform duration-300 group-hover:scale-105">
@@ -165,7 +165,7 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
                   </span>
                 </div>
               </div>
-              {/* Rank number — hidden on mobile, tiles are too narrow there for it to read as anything but clutter */}
+              {/* Rank number - hidden on mobile, tiles are too narrow there for it to read as anything but clutter */}
               <span
                 className="hidden sm:flex absolute top-2 left-2 w-6 h-6 rounded-full items-center justify-center text-xs font-bold text-white"
                 style={{ background: COLORS.gold }}

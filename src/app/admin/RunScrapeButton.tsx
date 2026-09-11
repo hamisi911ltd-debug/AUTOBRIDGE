@@ -29,7 +29,7 @@ export function RunScrapeButton() {
       const totals: Totals = { ...EMPTY_TOTALS, bySite: { beforward: 0, sbtjapan: 0, dubicars: 0 } };
       let done = 0;
 
-      // One call per (site, make) — each call is its own request, keeping
+      // One call per (site, make) - each call is its own request, keeping
       // every individual invocation's parsing work small. Sequential, not
       // parallel, to stay a light, respectful visitor to the source sites.
       for (const site of sites) {

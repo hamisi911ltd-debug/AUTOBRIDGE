@@ -4,7 +4,7 @@ import type { PublicReview } from "@/types/review";
 
 /**
  * Real customer feedback only, entered by an admin from an actual
- * conversation (see /admin/reviews) — never generated. Renders nothing
+ * conversation (see /admin/reviews) - never generated. Renders nothing
  * until at least one review is published, rather than showing an empty
  * "reviews" section or, worse, inventing placeholder testimonials.
  */

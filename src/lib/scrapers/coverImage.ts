@@ -4,7 +4,7 @@ export const USER_AGENT = "Mozilla/5.0 (compatible; AutoBridgeKenyaBot/1.0; nigh
 
 // The spec table's cell text strips HTML tags but source markup also
 // carries named/numeric entities (dimensions rows use "&times;"/"&nbsp;",
-// e.g. "4.74&times;1.85&times;1.66&nbsp;m") — decoded here so the stored
+// e.g. "4.74&times;1.85&times;1.66&nbsp;m") - decoded here so the stored
 // value is real text ("4.74×1.85×1.66 m"), not raw entity source.
 const HTML_ENTITIES: Record<string, string> = {
   "&times;": "×",
@@ -26,7 +26,7 @@ function decodeHtmlEntities(text: string): string {
 
 /**
  * The listing-page thumbnail is unreliable: BE FORWARD's ?w= resize param
- * is honored on some listings and silently ignored on others — some now
+ * is honored on some listings and silently ignored on others - some now
  * serve a genuine 200x150 thumbnail no matter what width is requested.
  * The real photo always lives on the detail page's gallery, so this is the
  * one place worth spending an extra couple of subrequests per vehicle: one
@@ -46,11 +46,11 @@ export async function fetchCoverImage(
 
 /**
  * Fetches a detail page once and pulls out both the cover photo and (for
- * beforward) the extended spec sheet — image extraction and spec extraction
+ * beforward) the extended spec sheet - image extraction and spec extraction
  * fail independently, so a vehicle whose photo can't be found/measured
  * still keeps whatever specs the page had, and vice versa. `site` still
  * gates whether spec parsing runs at all, since only BE FORWARD's detail
- * pages have been inspected for this — SBT Japan's page structure is
+ * pages have been inspected for this - SBT Japan's page structure is
  * unverified and specs are left empty there.
  */
 export async function fetchBeforwardDetail(
@@ -62,7 +62,7 @@ export async function fetchBeforwardDetail(
       headers: {
         "User-Agent": USER_AGENT,
         // BE FORWARD picks which country's port list (and which one it
-        // treats as "the" total-price default) off this cookie — with no
+        // treats as "the" total-price default) off this cookie - with no
         // cookie at all it fell back to a US port list for Cloudflare
         // Workers' outbound requests specifically (confirmed live: Baltimore/
         // Newark/Jacksonville/etc, never Mombasa), even though the exact
@@ -101,13 +101,13 @@ export async function fetchBeforwardDetail(
 
 /**
  * BE FORWARD's own detail page already computes a real Cost & Freight total
- * to Mombasa via RORO (confirmed live, embedded as a plain hidden input —
- * not display-formatted text) — the exact same route Kenya-bound buyers
+ * to Mombasa via RORO (confirmed live, embedded as a plain hidden input -
+ * not display-formatted text) - the exact same route Kenya-bound buyers
  * actually use. Reading this straight from the page beats guessing freight
  * off a flat per-country table, especially for anything bulkier than a
  * sedan (a heavy truck's real freight can be many times a car's). Picks
  * specifically the plain "pick up at port, no customs clearing bundled in"
- * RORO option — matches what landedCost.ts adds Kenya's own duty/clearing
+ * RORO option - matches what landedCost.ts adds Kenya's own duty/clearing
  * on top of, so nothing gets double-counted against a variant that already
  * includes clearing.
  */
@@ -137,7 +137,7 @@ function extractMombasaTotalUsd(html: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-/** Ranged fetch + JPEG SOF-marker parse — the real dimensions are always within the first few KB. */
+/** Ranged fetch + JPEG SOF-marker parse - the real dimensions are always within the first few KB. */
 export async function measureImageWidthPx(imageUrl: string | null): Promise<number | null> {
   if (!imageUrl) return null;
   try {
@@ -189,15 +189,15 @@ const SPEC_FIELD_MAP: Record<string, keyof BeforwardSpecs> = {
 
 /**
  * BE FORWARD's detail page carries a much richer spec sheet than the
- * stocklist row does — table.specification (label/value cells, two pairs
+ * stocklist row does - table.specification (label/value cells, two pairs
  * per row) plus a features list. Parsed from the SAME detail-page HTML
  * fetchCoverImage already fetches for the photo upgrade, not a separate
  * request.
  *
  * The features list has two different real formats seen live: most
  * listings use <ul><li class="attached_on|attached_off">Name</li></ul>
- * (only "attached_on" items are actually equipped), but some — a Toyota
- * HiAce van, at least — instead use a single <p class="vehicle-option-list">
+ * (only "attached_on" items are actually equipped), but some - a Toyota
+ * HiAce van, at least - instead use a single <p class="vehicle-option-list">
  * with a slash-separated string. Tried in that order; whichever matches first
  * wins, since a page only ever seems to carry one of the two.
  */

@@ -6,12 +6,12 @@ import { flushToD1, sleep, type PendingRow } from "./lib/d1Upsert";
 const PAGE_DELAY_MS = 800;
 const IMAGE_MEASURE_DELAY_MS = 250;
 const FLUSH_EVERY = 30;
-const MAX_PAGES_PER_MAKE = 40; // dug much deeper per make — SBT's own thumbnails are already good quality, so depth here is cheap volume
+const MAX_PAGES_PER_MAKE = 40; // dug much deeper per make - SBT's own thumbnails are already good quality, so depth here is cheap volume
 const COOLDOWN_ON_429_MS = 45_000;
 const MAX_429_COOLDOWNS = 4;
 
 /**
- * Runs alongside scrapeToyotaModels.ts (BE FORWARD), not instead of it — a
+ * Runs alongside scrapeToyotaModels.ts (BE FORWARD), not instead of it - a
  * different domain means a separate rate-limit bucket, so the two make
  * genuinely parallel progress rather than competing for the same budget.
  * SBT's listing photo is already a real ?imwidth=1200 URL (no detail-page
@@ -38,19 +38,19 @@ async function main() {
       if (listed === "rate-limited") {
         cooldowns++;
         if (cooldowns > MAX_429_COOLDOWNS) {
-          console.log(`Hit the rate limit ${cooldowns} times — stopping this run. Re-run later to continue from ${make}.`);
+          console.log(`Hit the rate limit ${cooldowns} times - stopping this run. Re-run later to continue from ${make}.`);
           await flushToD1(pending);
           totalUpserted += pending.length;
           console.log(`\nDone (rate-limit stop). ${totalUpserted} vehicles upserted, ${totalFound} total found.`);
           return;
         }
-        console.log(`  page ${page}: rate limited — cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
+        console.log(`  page ${page}: rate limited - cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
         await sleep(COOLDOWN_ON_429_MS);
         continue; // retry this same page
       }
 
       if (listed.length === 0) {
-        console.log(`  page ${page}: no listings — done with ${make}`);
+        console.log(`  page ${page}: no listings - done with ${make}`);
         break;
       }
       console.log(`  page ${page}: ${listed.length} eligible listings`);

@@ -43,18 +43,18 @@ model Vehicle {
   color            String
   sourceCountry    String
   sourcePriceUsd   Float
-  // True when sourcePriceUsd is SBT Japan's own "Total Price" (their C&F —
-  // Cost & Freight — figure to Mombasa) rather than the bare vehicle/FOB
-  // price — landedCost.ts must not add freight again on top for these, or
+  // True when sourcePriceUsd is SBT Japan's own "Total Price" (their C&F -
+  // Cost & Freight - figure to Mombasa) rather than the bare vehicle/FOB
+  // price - landedCost.ts must not add freight again on top for these, or
   // it double-counts shipping already baked into the price shown. BE
   // FORWARD has no equivalent field on its site; always false there.
   freightIncluded  Boolean   @default(false)
   imageUrl         String?
-  imageUrls        String? // JSON-encoded string[] — up to 5 gallery photos; imageUrls[0] is always the same as imageUrl when present
-  imageWidthPx     Int? // actual verified pixel width of imageUrl — lets the public site filter out lingering low-res thumbnails without re-deriving quality from process history
+  imageUrls        String? // JSON-encoded string[] - up to 5 gallery photos; imageUrls[0] is always the same as imageUrl when present
+  imageWidthPx     Int? // actual verified pixel width of imageUrl - lets the public site filter out lingering low-res thumbnails without re-deriving quality from process history
   // True once this vehicle's photos have been copied from the source
   // site's own CDN into our VEHICLE_IMAGES R2 bucket and imageUrl/imageUrls
-  // rewritten to point at /api/vehicle-image/... instead — see
+  // rewritten to point at /api/vehicle-image/... instead - see
   // src/lib/imageMigration.ts. Lets the batch migration skip already-done
   // rows on every run without re-checking URL contents.
   imageMigrated    Boolean   @default(false)
@@ -62,7 +62,7 @@ model Vehicle {
   badge            String?
   lifestyle        String // JSON-encoded string[] (SQLite has no native array type)
   // Extended spec sheet pulled from the source site's own detail page
-  // (table.specification / p.vehicle-option-list on BE FORWARD) — same
+  // (table.specification / p.vehicle-option-list on BE FORWARD) - same
   // fetch the cover-photo upgrade already does, no extra request. All
   // optional: hand-entered vehicles and pre-existing scraped rows never had
   // this, and SBT/Dubicars listings don't carry the same fields.
@@ -78,10 +78,10 @@ model Vehicle {
   weightKg               Int?
   registrationYearMonth  String?
   manufactureYearMonth   String?
-  features               String? // JSON-encoded string[] — options/equipment list (A/C, Airbag, Navigation, etc.)
+  features               String? // JSON-encoded string[] - options/equipment list (A/C, Airbag, Navigation, etc.)
   eligible         Boolean   @default(true)
   ineligibleReason String?
-  // Scraped-listing tracking — null for hand-entered admin vehicles.
+  // Scraped-listing tracking - null for hand-entered admin vehicles.
   // sourceSite + externalId together let the nightly scraper upsert instead
   // of creating duplicates on every run.
   sourceSite       String?
@@ -96,7 +96,7 @@ model Vehicle {
   @@index([make, model])
   @@index([sourceCountry])
   @@index([bodyType])
-  // Supports getPublicVehicles' WHERE eligible / ORDER BY createdAt — without
+  // Supports getPublicVehicles' WHERE eligible / ORDER BY createdAt - without
   // this, that query full-scanned and sorted the entire table before LIMIT
   // ever applied, so its cost scaled with total catalogue size regardless of
   // how small the LIMIT was (root cause of repeated CPU-limit outages as the
@@ -125,10 +125,10 @@ model PricingRule {
   id            String     @id @default(cuid())
   name          String
   scopeType     ScopeType
-  scopeValue    String? // e.g. "Japan", "Toyota" — null for GLOBAL/PRICE_BAND
+  scopeValue    String? // e.g. "Japan", "Toyota" - null for GLOBAL/PRICE_BAND
   markupType    MarkupType
   value         Float? // used by PERCENT (as fraction, e.g. 0.08) and FIXED (USD amount)
-  tiers         String? // JSON-encoded [{min, max, percent}] — used by TIERED
+  tiers         String? // JSON-encoded [{min, max, percent}] - used by TIERED
   priceMinUsd   Float? // used by PRICE_BAND scope
   priceMaxUsd   Float? // used by PRICE_BAND scope
   minProfitUsd  Float?
@@ -149,7 +149,7 @@ model Enquiry {
   message   String?
   handled   Boolean  @default(false)
   // True for a "Request to book" submitted from the Compare page (a
-  // stronger buying signal than a plain question-asking enquiry) — same
+  // stronger buying signal than a plain question-asking enquiry) - same
   // underlying record/admin flow, just flagged so it can be told apart.
   isBooking Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -157,7 +157,7 @@ model Enquiry {
   @@index([vehicleId])
 }
 
-// Real customer feedback only — entered by an admin from an actual
+// Real customer feedback only - entered by an admin from an actual
 // conversation (WhatsApp, call, email), never generated. `published`
 // gates whether it's live on the homepage, so a review can be logged
 // internally before being made public.
@@ -166,7 +166,7 @@ model Review {
   customerName   String
   rating         Int // 1-5
   text           String
-  vehicleLabel   String? // free-text e.g. "Toyota Harrier" — no FK, the vehicle listing itself may be long gone by the time a review comes in
+  vehicleLabel   String? // free-text e.g. "Toyota Harrier" - no FK, the vehicle listing itself may be long gone by the time a review comes in
   published      Boolean  @default(true)
   createdAt      DateTime @default(now())
 }

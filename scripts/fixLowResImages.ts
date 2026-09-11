@@ -18,12 +18,12 @@ type Result = { id: string; url: string; widthPx: number };
 
 /**
  * Vehicles whose cover photo is still under the quality bar despite the
- * live scraper's detail-page fix (see coverImage.ts) — mostly rows that
+ * live scraper's detail-page fix (see coverImage.ts) - mostly rows that
  * scrolled off page 1 of the source site's listing before the fix was
  * deployed, so the normal per-page scrape never revisits them again.
  *
  * Runs strictly sequential with a fixed delay between requests (not
- * concurrent workers) — a first pass at concurrency 6, then even at 2, both
+ * concurrent workers) - a first pass at concurrency 6, then even at 2, both
  * tripped BE FORWARD's rate limiter. One request at a time, paced, is what
  * actually gets through without hammering the site.
  */
@@ -86,10 +86,10 @@ async function main() {
       rateLimited++;
       cooldowns++;
       if (cooldowns > MAX_429_COOLDOWNS) {
-        console.log(`Hit the rate limit ${cooldowns} times — stopping this run rather than pushing through. Re-run the script later to pick up where this left off.`);
+        console.log(`Hit the rate limit ${cooldowns} times - stopping this run rather than pushing through. Re-run the script later to pick up where this left off.`);
         break;
       }
-      console.log(`Rate limited at ${i}/${toProcess.length} — cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
+      console.log(`Rate limited at ${i}/${toProcess.length} - cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
       await sleep(COOLDOWN_ON_429_MS);
       i--; // retry this same row after cooling down
       continue;

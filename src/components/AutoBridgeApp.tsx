@@ -19,7 +19,7 @@ import { InvoicePage } from "@/components/pages/InvoicePage";
 export type Page = "home" | "search" | "detail" | "quote";
 
 // Bumped to v2 to start every visitor fresh (a one-off reset, requested
-// directly) — old data under the v1 keys is simply never read again.
+// directly) - old data under the v1 keys is simply never read again.
 const FAVORITES_KEY = "ferbil:favorites:v2";
 
 export function AutoBridgeApp({
@@ -41,7 +41,7 @@ export function AutoBridgeApp({
   // The home page only gets a recent-first slice of the catalogue (see
   // src/app/page.tsx) so the initial payload stays small. Search needs the
   // real, unbounded inventory to answer correctly, so this swaps in the
-  // full list — fetched once, lazily — the first time it's actually opened,
+  // full list - fetched once, lazily - the first time it's actually opened,
   // rather than paying that cost on every visit.
   const [vehicles, setVehicles] = useState<PublicVehicle[]>(initialVehicles);
   const [fullCatalogueLoaded, setFullCatalogueLoaded] = useState(false);
@@ -58,7 +58,7 @@ export function AutoBridgeApp({
         setFullCatalogueLoaded(true);
       })
       .catch(() => {
-        // Leave the bounded initial set in place — Search/Ferbot still work,
+        // Leave the bounded initial set in place - Search/Ferbot still work,
         // just over a smaller pool, rather than breaking outright.
       })
       .finally(() => setFullCatalogueLoading(false));
@@ -74,7 +74,7 @@ export function AutoBridgeApp({
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (savedFavorites) setFavorites(new Set(JSON.parse(savedFavorites)));
     } catch {
-      // localStorage unavailable — favorites just stay session-only
+      // localStorage unavailable - favorites just stay session-only
     }
   }, []);
 
@@ -83,7 +83,7 @@ export function AutoBridgeApp({
   }, [favorites]);
 
   useEffect(() => {
-    // Also keyed on selectedId — clicking a "similar vehicles" card at the
+    // Also keyed on selectedId - clicking a "similar vehicles" card at the
     // bottom of a detail page calls goDetail() without changing `page`
     // (it's already "detail"), so scrolling only on `page` changing left
     // the browser sitting wherever the click happened instead of jumping
@@ -129,11 +129,11 @@ export function AutoBridgeApp({
     >
       <ConsentGate />
 
-      {/* Only the header itself stays pinned while the page scrolls — the
+      {/* Only the header itself stays pinned while the page scrolls - the
          promo banner (home page only) scrolls away with the rest of the
          content instead. Page content below the header needs exactly its
          real rendered height reserved above it, but that varies slightly by
-         viewport — rather than measuring it in JS (which leaves a gap
+         viewport - rather than measuring it in JS (which leaves a gap
          between SSR's first paint and the post-hydration correction, during
          which the fixed header covers the top of the page), an identical,
          invisible copy is rendered in normal document flow right below it.
@@ -149,7 +149,7 @@ export function AutoBridgeApp({
           onGoQuote={() => goQuote()}
         />
         {/* Mobile only: the banner stays pinned with the header instead of
-           scrolling away — sm:hidden below moves it into normal flow (and
+           scrolling away - sm:hidden below moves it into normal flow (and
            lets it scroll) on desktop instead. */}
         {page === "home" && (
           <div className="sm:hidden">

@@ -15,11 +15,11 @@ import { MorePhotosPoster } from "@/components/vehicles/MorePhotosPoster";
 
 /**
  * A fixed checklist of common equipment most vehicles in this catalogue
- * carry — checked against whatever the scraper actually captured in
+ * carry - checked against whatever the scraper actually captured in
  * vehicle.features. Unlike the old free-form pill list (which just showed
  * whatever features happened to be present, and rendered nothing at all for
  * a vehicle with none captured), this always renders the same list with a
- * tick or a cross, so every vehicle gets this section — including ones the
+ * tick or a cross, so every vehicle gets this section - including ones the
  * scraper couldn't pull a features list for at all.
  */
 const STANDARD_FEATURES = [
@@ -41,13 +41,13 @@ function hasFeature(features: string[], standard: string): boolean {
 }
 
 /**
- * Full spec sheet as a real vertical table — one row per spec, label on the
+ * Full spec sheet as a real vertical table - one row per spec, label on the
  * left and value on the right, spreading downward rather than sideways.
  * Lives in the narrow price sidebar, where a row-per-line layout reads far
  * better than a wide table needing its own horizontal scroll. The numbered
  * spec rows only show fields the scraper actually captured (older/
  * hand-entered vehicles render fewer of them), and the standard-features
- * checklist below only renders when a features list actually exists —
+ * checklist below only renders when a features list actually exists -
  * with none captured, "unsure" is left blank rather than shown as a wall
  * of red crosses that would read as "confirmed missing."
  */
@@ -88,7 +88,7 @@ function SpecTable({ vehicle }: { vehicle: PublicVehicle }) {
         </table>
       )}
       {/* Only shown when the scraper actually captured a features list for
-         this vehicle — with none at all, every item would show a red cross,
+         this vehicle - with none at all, every item would show a red cross,
          which reads as "confirmed missing" when the truth is just "unknown."
          Leaving the whole section out is more honest than guessing. */}
       {vehicle.features.length > 0 && (
@@ -137,13 +137,13 @@ export function DetailPage({
   const desktopMessageRef = useRef<HTMLTextAreaElement | null>(null);
   const mobileMessageRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // CIF Mombasa in USD — vehicle + freight + insurance (landed.freight and
+  // CIF Mombasa in USD - vehicle + freight + insurance (landed.freight and
   // landed.insurance are already USD; landed.total is the KES conversion,
   // which the site no longer shows).
   const cifUsd = vehicle.sellingPriceUsd + landed.freight + landed.insurance;
 
   /**
-   * The fastest path to "I want more photos/details" — rather than a
+   * The fastest path to "I want more photos/details" - rather than a
    * separate WhatsApp/email channel, this jumps straight to the existing
    * enquiry form (already wired to notify the team) and pre-fills the
    * request so the visitor only has to add their name and phone.
@@ -155,13 +155,13 @@ export function DetailPage({
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     el.focus();
   }
-  // Same make+model first — "more of the same car" is what a shopper
-  // actually wants after clicking a specific listing — then fill any
+  // Same make+model first - "more of the same car" is what a shopper
+  // actually wants after clicking a specific listing - then fill any
   // remaining slots with the wider body-type/brand match as before.
   const others = vehicles.filter((v) => v.id !== vehicle.id && v.eligible);
   const sameModel = others.filter((v) => v.make === vehicle.make && v.model === vehicle.model);
   const wider = others.filter((v) => !(v.make === vehicle.make && v.model === vehicle.model) && (v.bodyType === vehicle.bodyType || v.make === vehicle.make));
-  const similar = [...sameModel, ...wider].slice(0, 6); // divisible by both 2 (mobile) and 3 (desktop) — no dangling gap in either grid
+  const similar = [...sameModel, ...wider].slice(0, 6); // divisible by both 2 (mobile) and 3 (desktop) - no dangling gap in either grid
 
   async function submitEnquiry(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -170,7 +170,7 @@ export function DetailPage({
     setSending(true);
     try {
       // The site no longer estimates KRA duty/excise/VAT itself (see
-      // CostLadder) — this checkbox is how a buyer asks a person for that
+      // CostLadder) - this checkbox is how a buyer asks a person for that
       // number instead. Folded into the message text rather than a new DB
       // column since Enquiry has no dedicated field for it and every
       // enquiry already funnels through the same free-text message.
@@ -192,7 +192,7 @@ export function DetailPage({
       });
       setReserved(true);
 
-      // Enquiry is saved either way (above) — this just also puts it in
+      // Enquiry is saved either way (above) - this just also puts it in
       // front of a person immediately on WhatsApp, with the full vehicle
       // picture and a link straight to it in admin rather than making them
       // go find it (the admin page's own "Original listing" link tracks it
@@ -233,7 +233,7 @@ export function DetailPage({
       </div>
 
       {/* ── Mobile/tablet (below lg): a shrunk version of the desktop's two-
-          column layout — gallery above, then compact info beside the price
+          column layout - gallery above, then compact info beside the price
           breakdown, rather than the price ladder stacking all the way to
           the bottom of the page. ── */}
       <div className="lg:hidden">
@@ -270,7 +270,7 @@ export function DetailPage({
           </div>
         </div>
 
-        {/* Name, then price, right below it — not tucked inside a side card. */}
+        {/* Name, then price, right below it - not tucked inside a side card. */}
         <div className="flex items-baseline gap-2 mt-1">
           <span className="text-2xl font-bold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.burgundy }}>
             {formatUsd(cifUsd)}
@@ -525,7 +525,7 @@ export function DetailPage({
       </div>
 
       {/* Similar vehicles: full width below the two-column area, not
-          squeezed into either column — its count varies per vehicle (0-6),
+          squeezed into either column - its count varies per vehicle (0-6),
           which made it an unreliable way to balance column heights when it
           lived inside one of them. */}
       {similar.length > 0 && (

@@ -26,9 +26,9 @@ type Result = { id: string; urls: string[] };
  * writes the resulting URLs back to imageUrl + imageUrls in small batches as
  * it goes (not just at the end) so a kill/crash partway through doesn't lose
  * already-uploaded work. Supersedes the earlier single-cover-image
- * backfill — this gets a better cover photo too, since it's just
+ * backfill - this gets a better cover photo too, since it's just
  * imageUrls[0]. The 5 photos for a given vehicle upload in parallel, not
- * sequentially — sequential was the bottleneck in the first version of this
+ * sequentially - sequential was the bottleneck in the first version of this
  * script (each wrangler r2 put spawns its own process, ~1-3s overhead each).
  */
 async function fetchVehicleRows(): Promise<Row[]> {
@@ -107,7 +107,7 @@ async function processOne(row: Row, tmpDir: string): Promise<Result | null> {
 
   // Some listings (mostly SBT) alias the same single real photo across
   // every numbered gallery slot when they don't actually have more than
-  // one photo — dedupe by content hash so the "gallery" doesn't just
+  // one photo - dedupe by content hash so the "gallery" doesn't just
   // slide between 5 copies of the same picture.
   const seenHashes = new Set<string>();
   const uniqueBuffers: Buffer[] = [];

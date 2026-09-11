@@ -15,11 +15,11 @@ type Result = { id: string; width: number };
 
 /**
  * Which vehicles actually have a sharp cover photo vs. a low-res thumbnail
- * has been ambiguous from process history alone — some were upgraded by an
- * earlier one-off script, some by the gallery fetch, some never touched —
+ * has been ambiguous from process history alone - some were upgraded by an
+ * earlier one-off script, some by the gallery fetch, some never touched -
  * and those groups aren't reliably distinguishable from the DB. This
  * settles it directly: fetch every vehicle's *own* R2-hosted image (fast,
- * no external rate limits — it's our own CDN) and parse its real pixel
+ * no external rate limits - it's our own CDN) and parse its real pixel
  * width from the JPEG SOF marker, then store that so getPublicVehicles can
  * filter on ground truth instead of a guess.
  */

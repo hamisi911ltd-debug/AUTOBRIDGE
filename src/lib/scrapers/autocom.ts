@@ -10,14 +10,14 @@ import {
 } from "@/lib/scrapers/normalize";
 
 /**
- * AUTOCOM JAPAN (autocj.co.jp) — the exporter's own stock site, not a
+ * AUTOCOM JAPAN (autocj.co.jp) - the exporter's own stock site, not a
  * reseller feed.
  *
  * It's a Next.js App Router app: requesting a page with the `RSC: 1` header
  * returns the React-Flight payload, which carries the used-car search
  * results as a plain JSON array under `"data":[ ... ]`. That's far cleaner
  * (and lighter) than parsing the hydrated HTML, and needs no per-make
- * iteration — the search is globally paginated (`?page=N`, 25 cars/page,
+ * iteration - the search is globally paginated (`?page=N`, 25 cars/page,
  * ~92k cars / ~3.7k pages as of this writing).
  */
 
@@ -27,7 +27,7 @@ const USER_AGENT =
 
 export const AUTOCOM_PAGE_SIZE = 25;
 
-/** Only the fields we actually map — the feed object has ~55 keys. */
+/** Only the fields we actually map - the feed object has ~55 keys. */
 type AutocomCar = {
   refno: string | null;
   isSold: boolean;
@@ -100,7 +100,7 @@ function toVehicle(c: AutocomCar): ScrapedVehicle | null {
   const year = c.ryear || c.pyear || 0;
   const price = typeof c.price === "number" ? Math.round(c.price) : 0;
   if (!c.refno || !c.makerName || !c.carName || !year || !price) return null;
-  if (c.currency !== 1) return null; // only the USD-priced listings — matches how the rest of the catalogue is stored
+  if (c.currency !== 1) return null; // only the USD-priced listings - matches how the rest of the catalogue is stored
   if (year < IMPORT_ELIGIBLE_FROM_YEAR) return null; // older than Kenya's 8-year import threshold
 
   const fuelRaw = c.isTagHybrid ? "hybrid" : c.fuel || "petrol";
@@ -108,7 +108,7 @@ function toVehicle(c: AutocomCar): ScrapedVehicle | null {
 
   // The search feed's `imageCar` is a 160px list thumbnail. The real gallery
   // photos live alongside it as `<refno>-01.jpg` .. `-06.jpg` (a consistent
-  // 640x480 on AUTOCOM's asset CDN) — swap to `-01` for the cover.
+  // 640x480 on AUTOCOM's asset CDN) - swap to `-01` for the cover.
   const imageUrl = c.imageCar ? c.imageCar.replace(/\.jpe?g(\?.*)?$/i, "-01.jpg") : null;
 
   return {
@@ -148,7 +148,7 @@ function pick(re: RegExp, text: string): string | undefined {
 }
 
 /**
- * Extra spec sheet from a single car's detail page — the search feed only
+ * Extra spec sheet from a single car's detail page - the search feed only
  * carries make/model/price/photo, but `/usedcar?stock=<ref>` (as RSC) adds
  * the full chassis & engine numbers when the car has them, plus doors,
  * seats, dimensions and the full model code. Anything the page leaves null
@@ -173,7 +173,7 @@ export async function scrapeAutocomDetail(refno: string): Promise<AutocomSpecs |
   }
 
   const specs: AutocomSpecs = {};
-  // Real chassis / engine numbers — a bare frame code ("NRE161") from the
+  // Real chassis / engine numbers - a bare frame code ("NRE161") from the
   // feed is not one, so require at least one digit and a length that reads
   // like a stamped number; skip the i18n label ("Chassis") and null.
   const chassis = pick(/"chassis":"([A-Z0-9][A-Z0-9-]{4,})"/, t);
@@ -195,7 +195,7 @@ export async function scrapeAutocomDetail(refno: string): Promise<AutocomSpecs |
   const h = pick(/"height":(\d{2,4})/, t);
   if (l && w && h) specs.dimensions = `${(+l / 100).toFixed(2)} x ${(+w / 100).toFixed(2)} x ${(+h / 100).toFixed(2)} m`;
 
-  // AUTOCOM's stock is JDM — right-hand drive unless a listing says otherwise.
+  // AUTOCOM's stock is JDM - right-hand drive unless a listing says otherwise.
   specs.steering = "Right";
 
   return specs;
@@ -203,7 +203,7 @@ export async function scrapeAutocomDetail(refno: string): Promise<AutocomSpecs |
 
 /**
  * One search-results page (25 cars). Returns "rate-limited" so callers can
- * cool down and retry — same contract as scrapeBeforwardModelPage /
+ * cool down and retry - same contract as scrapeBeforwardModelPage /
  * scrapeSbtJapanUnit.
  */
 export async function scrapeAutocomPage(page: number): Promise<ScrapedVehicle[] | "rate-limited"> {

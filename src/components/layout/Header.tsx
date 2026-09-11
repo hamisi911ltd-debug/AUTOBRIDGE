@@ -11,10 +11,10 @@ const SOURCE_COUNTRIES = ["Japan", "UAE"];
 
 /**
  * Desktop keeps the classic top bar (logo, nav links, icon counters, CTA).
- * Mobile navigation lives in BottomNav instead — this header shrinks down to
+ * Mobile navigation lives in BottomNav instead - this header shrinks down to
  * just the logo on small screens rather than duplicating Search/Favorites
  * in two places. Source-country flags sit at the far right at every
- * size — this is also where the old separate hero strip's "sourced from"
+ * size - this is also where the old separate hero strip's "sourced from"
  * message now lives, since the hero itself was removed. `fixed` (not
  * `sticky`) so it stays pinned regardless of any section's own scroll/
  * overflow behavior below it.
@@ -97,7 +97,7 @@ export function Header({
               )}
             </div>
 
-            {/* Source-country flags — every size, far right */}
+            {/* Source-country flags - every size, far right */}
             <div className="flex items-center gap-1 pl-1.5 sm:pl-2 border-l" style={{ borderColor: COLORS.line }} title="Sourced from Japan & UAE">
               {SOURCE_COUNTRIES.map((c) => (
                 // eslint-disable-next-line @next/next/no-img-element -- external flag CDN

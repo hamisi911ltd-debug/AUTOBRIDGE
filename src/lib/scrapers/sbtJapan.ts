@@ -38,7 +38,7 @@ export const SBT_MAKES: { id: number; make: string }[] = [
   { id: 33, make: "Land Rover" },
   { id: 32, make: "Jaguar" },
   { id: 65, make: "Hyundai" },
-  // Kia deliberately excluded — removed from inventory at the user's
+  // Kia deliberately excluded - removed from inventory at the user's
   // request (over-represented relative to Kenya's actual popular-import
   // mix); keeping it out of the make list stops future scrapes from
   // silently reintroducing it.
@@ -58,7 +58,7 @@ function parseSetCookie(setCookie: string): string {
 /**
  * sbtjapan.com issues a self-redirecting 302 on the first hit of a session
  * (it's setting a cookie). The cookie isn't tied to make/page, so one scrape
- * run establishes it once and reuses it for every subsequent request —
+ * run establishes it once and reuses it for every subsequent request -
  * halves the outbound request count versus re-doing the redirect dance per
  * page, which matters for platforms (Cloudflare Pages Functions on the free
  * tier) that cap subrequests per invocation.
@@ -75,7 +75,7 @@ async function establishSession(): Promise<string | null> {
 
 export class RateLimitedError extends Error {}
 
-// See the matching constant in beforward.ts — 429 alone missed real
+// See the matching constant in beforward.ts - 429 alone missed real
 // throttling incidents, where the edge returned other codes an ELB/WAF
 // hands back under load; retry all of them rather than treating "not
 // literally 429" as a genuine parse-failure/empty result.
@@ -111,8 +111,8 @@ async function fetchWithSession(url: string, cookie: string | null): Promise<str
 /**
  * SBT Japan's own photos (img.sbtjapan.com/img/carphoto/...) are clean and
  * scale to 1200px+ on request. A chunk of listings instead point at
- * img.sbtjapan.com/dealercarphoto/... — third-party dealer-network photos
- * that carry another used-car platform's watermark baked into the image —
+ * img.sbtjapan.com/dealercarphoto/... - third-party dealer-network photos
+ * that carry another used-car platform's watermark baked into the image -
  * or, occasionally, a relative /html/template/default/... path, which is
  * SBT's own broken-image placeholder graphic, not a photo at all. Both are
  * worse than no photo (falls back to the plain vehicle-icon placeholder in
@@ -159,10 +159,10 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
     const seats = seatsRaw && seatsRaw !== "-" ? parseInt(seatsRaw, 10) || 5 : 5;
 
     // SBT shows two prices per listing: "Vehicle Price" (the bare unit cost)
-    // and "Total Price" — their own C&F (Cost & Freight) figure to Mombasa,
+    // and "Total Price" - their own C&F (Cost & Freight) figure to Mombasa,
     // the default destination port on every listing this site has served us.
     // The Total Price is what a Kenyan buyer actually pays before duty, so
-    // it's used as sourcePriceUsd whenever present — freightIncluded then
+    // it's used as sourcePriceUsd whenever present - freightIncluded then
     // tells landedCost.ts not to add freight again on top of it. Falls back
     // to the bare Vehicle Price (freightIncluded left false) on the rare
     // listing where Total Price isn't rendered.
@@ -183,7 +183,7 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
       : `https://www.sbtjapan.com/used-cars/${stockId}`;
 
     if (!year || !sourcePriceUsd) continue;
-    if (year < IMPORT_ELIGIBLE_FROM_YEAR) continue; // older than Kenya's import threshold — not buyable, don't store it
+    if (year < IMPORT_ELIGIBLE_FROM_YEAR) continue; // older than Kenya's import threshold - not buyable, don't store it
 
     vehicles.push({
       sourceSite: "sbtjapan",
@@ -213,7 +213,7 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
 
 /**
  * Scrapes a single page for a single configured make. Re-establishes the
- * session cookie on every call rather than sharing it across a whole run —
+ * session cookie on every call rather than sharing it across a whole run -
  * one extra request per unit, but it's I/O wait, not CPU, so it doesn't
  * threaten the per-request CPU budget the way parsing many pages in one
  * invocation would (see runScrapeUnit).
@@ -229,7 +229,7 @@ export async function scrapeSbtJapanUnit(makeIndex: number, page: number): Promi
     // SBT's listing thumbnail already reliably serves a real ?imwidth=1200
     // photo (unlike beforward's ?w= param, which some listings silently
     // ignore), and this site's units are already hitting Workers' CPU limit
-    // on a meaningful fraction of runs — adding another fetch+parse per
+    // on a meaningful fraction of runs - adding another fetch+parse per
     // vehicle here would only make that worse for no real quality gain.
   } catch (err) {
     if (err instanceof RateLimitedError) return "rate-limited";

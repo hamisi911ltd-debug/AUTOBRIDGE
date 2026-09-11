@@ -40,7 +40,7 @@ export const BEFORWARD_MAKES: { id: number; make: string }[] = [
   { id: 52, make: "Land Rover" },
   { id: 79, make: "Jaguar" },
   { id: 44, make: "Hyundai" },
-  // Kia deliberately excluded — removed from inventory at the user's
+  // Kia deliberately excluded - removed from inventory at the user's
   // request (over-represented relative to Kenya's actual popular-import
   // mix); keeping it out of the make list stops future scrapes from
   // silently reintroducing it.
@@ -69,7 +69,7 @@ function detailedSpecMap(row: HTMLElement): Record<string, string> {
 export class RateLimitedError extends Error {}
 
 // Any of these on a stocklist page means "the request failed," never
-// "genuinely zero vehicles" — a real incident showed 429 wasn't the only
+// "genuinely zero vehicles" - a real incident showed 429 wasn't the only
 // status BE FORWARD's edge (AWS ELB) hands back under load; 403/502/503/504
 // are the standard set an ELB/WAF can return while it's throttling or
 // unhealthy. Treating only literal 429 as retry-worthy let those other
@@ -98,9 +98,9 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
     const yearMatch = nameText.match(/\b(19|20)\d{2}\b/);
     const year = yearMatch ? parseInt(yearMatch[0], 10) : 0;
     const afterYear = yearMatch ? nameText.slice(nameText.indexOf(yearMatch[0]) + 4).trim() : nameText;
-    // afterYear is roughly "TOYOTA REGIUSACE VAN LONG SUPER GL" — the make
+    // afterYear is roughly "TOYOTA REGIUSACE VAN LONG SUPER GL" - the make
     // (already known from the search facet) is repeated first, then model/trim.
-    // Sliced by word COUNT, not a fixed 1, since "Land Rover" is two words —
+    // Sliced by word COUNT, not a fixed 1, since "Land Rover" is two words -
     // slicing exactly 1 left "ROVER" as the first remaining word for every
     // single Land Rover listing, which splitModelTrim then took as the whole
     // model, collapsing Range Rover/Discovery/Defender/etc. all down to "Rover".
@@ -125,14 +125,14 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
     if (imageUrl?.startsWith("//")) imageUrl = "https:" + imageUrl;
     // The listing page requests a 200px thumbnail (?w=200); the "medium"
     // folder's native resolution is closer to 480px, so ask for that
-    // instead — same file, no extra request, noticeably sharper.
+    // instead - same file, no extra request, noticeably sharper.
     if (imageUrl) imageUrl = imageUrl.replace(/([?&])w=\d+/, "$1w=640");
 
     const detailHref = row.querySelector(".veh-stock-no a")?.getAttribute("href") || row.querySelector(".make-model a")?.getAttribute("href");
     const sourceUrl = detailHref ? new URL(detailHref, "https://www.beforward.jp").toString() : "https://www.beforward.jp";
 
-    if (!year || !sourcePriceUsd) continue; // incomplete listing — skip rather than store junk
-    if (year < IMPORT_ELIGIBLE_FROM_YEAR) continue; // older than Kenya's import threshold — not buyable, don't store it
+    if (!year || !sourcePriceUsd) continue; // incomplete listing - skip rather than store junk
+    if (year < IMPORT_ELIGIBLE_FROM_YEAR) continue; // older than Kenya's import threshold - not buyable, don't store it
 
     vehicles.push({
       sourceSite: "beforward",
@@ -161,7 +161,7 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
 
 /**
  * Scrapes a single page for a single configured make from beforward.jp's
- * public stocklist. No auth, no API — this is a plain HTML scrape. Kept to
+ * public stocklist. No auth, no API - this is a plain HTML scrape. Kept to
  * one (make, page) per call so each call's parsing work stays small: on
  * Cloudflare Workers this runs as one HTTP request per unit (see
  * runScrapeUnit), which keeps every invocation well under the platform's
@@ -185,8 +185,8 @@ export async function scrapeBeforwardUnit(makeIndex: number, page: number): Prom
  * Mutates v in place: upgrades imageUrl/imageWidthPx if a better detail-page
  * photo is found, fills in the extended spec sheet, derives the real source
  * country from the spec sheet's Location field (defaulting to "Japan" only
- * matters for the ~90%+ of stock that's actually there — see
- * deriveBeforwardSourceCountry), and — when the page publishes one — swaps
+ * matters for the ~90%+ of stock that's actually there - see
+ * deriveBeforwardSourceCountry), and - when the page publishes one - swaps
  * in BE FORWARD's own Mombasa RORO total price in place of the bare FOB
  * price, flagging freightIncluded so landedCost.ts doesn't add shipping on
  * top of a figure that already has it baked in (same convention already
@@ -212,7 +212,7 @@ async function upgradeCoverImage(v: ScrapedVehicle): Promise<void> {
  * Model-filtered listing fetch, used for one-off deep-dive batches (e.g. a
  * specific make's most popular models) run from a local script rather than
  * the Workers-deployed nightly unit. Deliberately skips the cover-image
- * upgrade step here — callers that want it should upgrade sequentially
+ * upgrade step here - callers that want it should upgrade sequentially
  * themselves (see scripts/scrapeToyotaModels.ts): scrapeBeforwardUnit's
  * Promise.all-of-30 detail-page fetches is fine for a single nightly page
  * but tripped BE FORWARD's rate limiter when run repeatedly across many

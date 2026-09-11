@@ -16,9 +16,9 @@ const LINKS = [
 ];
 
 /**
- * Desktop-only left sidebar. Mobile navigation is AdminBottomNav instead —
+ * Desktop-only left sidebar. Mobile navigation is AdminBottomNav instead -
  * this component only renders the persistent desktop rail plus the small
- * floating mobile top bar (logo only, no menu — nav lives at the bottom).
+ * floating mobile top bar (logo only, no menu - nav lives at the bottom).
  */
 export function AdminSidebar({ email, signOutAction }: { email?: string | null; signOutAction: () => Promise<void> }) {
   const pathname = usePathname();
@@ -63,7 +63,7 @@ export function AdminSidebar({ email, signOutAction }: { email?: string | null; 
         </div>
       </aside>
 
-      {/* Mobile top bar — same fixed gradient-pill treatment as the public
+      {/* Mobile top bar - same fixed gradient-pill treatment as the public
           site's Header, so the admin panel reads as the same product. Logo
           only; nav lives in AdminBottomNav. */}
       <header className="md:hidden fixed top-2 inset-x-0 z-40 px-3">

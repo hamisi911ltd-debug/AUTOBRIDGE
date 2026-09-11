@@ -2,7 +2,7 @@ import type { Filters } from "@/lib/constants";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 
-/** Classic edit-distance — small strings only (car-name tokens), so the O(n*m) DP table is cheap. */
+/** Classic edit-distance - small strings only (car-name tokens), so the O(n*m) DP table is cheap. */
 function levenshtein(a: string, b: string): number {
   if (a === b) return 0;
   const m = a.length;
@@ -24,15 +24,15 @@ function levenshtein(a: string, b: string): number {
 }
 
 /**
- * One search word against one haystack word — a substring match either way
+ * One search word against one haystack word - a substring match either way
  * (so "corol" finds "corolla" and "rx" finds "rx-8") OR a small edit
  * distance (so a typo like "corola" still finds "corolla"). The allowed
  * distance scales with word length so short words ("rx", "gt") don't
  * fuzzy-match everything nearby.
  *
  * Both words need to be at least 3 characters before the substring/distance
- * checks kick in — without that floor, a one- or two-letter trim code like
- * "S" or "GX" (extremely common — most trims are short) is technically a
+ * checks kick in - without that floor, a one- or two-letter trim code like
+ * "S" or "GX" (extremely common - most trims are short) is technically a
  * "substring" of nearly any longer search word purely by coincidence (every
  * letter in "harrier" is itself a 1-char substring), which was flooding
  * unrelated makes into a plain model search. Below that floor, only an
@@ -48,7 +48,7 @@ function fuzzyWordMatches(hayWord: string, needleWord: string): boolean {
 /**
  * In-memory filter/sort over an already-fetched vehicle list. Isolated here
  * so a real search index (Meilisearch etc.) can replace the implementation
- * later without touching callers — catalog is small and Kenya-only for now,
+ * later without touching callers - catalog is small and Kenya-only for now,
  * so this is plenty fast.
  */
 export function matchesFilters(
@@ -76,7 +76,7 @@ export function matchesFilters(
     const normalize = (s: string) => s.toLowerCase().trim().replace(/\s+/g, " ");
     const k = normalize(f.keyword);
     // Make/model/trim first (most searches), then the identifiers a buyer
-    // might paste straight from a listing or an inspection sheet — ref
+    // might paste straight from a listing or an inspection sheet - ref
     // number, chassis number, model code (e.g. a Mercedes "C200").
     const hay = normalize(
       [v.make, v.model, v.trim, v.refNo, v.chassisNo, v.modelCode].filter((s): s is string => !!s).join(" ")
@@ -84,10 +84,10 @@ export function matchesFilters(
     // Exact substring is the fast, common path (handles correctly-spelled
     // multi-word searches like "toyota hilux" in one shot). Squashing
     // spaces out of both sides next catches a query like "c 200" against a
-    // trim/model-code that's stored as one word ("C200") — the space is
+    // trim/model-code that's stored as one word ("C200") - the space is
     // real to the typer but doesn't exist in the source data. Only after
-    // both of those fail does it drop to per-word fuzzy matching —
-    // order-independent and typo-tolerant — so "corola" or "hilux toyota"
+    // both of those fail does it drop to per-word fuzzy matching -
+    // order-independent and typo-tolerant - so "corola" or "hilux toyota"
     // still finds a result instead of coming back empty.
     const squash = (s: string) => s.replace(/[\s-]+/g, "");
     if (!hay.includes(k) && !squash(hay).includes(squash(k))) {
@@ -101,7 +101,7 @@ export function matchesFilters(
 }
 
 /**
- * The default "recent" ordering used to be a flat year-desc sort — harmless
+ * The default "recent" ordering used to be a flat year-desc sort - harmless
  * on a balanced catalogue, but once a handful of models (Toyota Crown,
  * Harrier, Dyna...) each have hundreds of units concentrated in the same
  * couple of model years, that flat sort let one or two models dominate
@@ -114,7 +114,7 @@ export function matchesFilters(
  * interleaves at the BRAND level first (every make gets one pick per round,
  * so a 20-brand catalogue puts a different brand in each of the first 20
  * positions), and only within a brand's turn does it round-robin across
- * that brand's own models — so Toyota's internal variety still shows up
+ * that brand's own models - so Toyota's internal variety still shows up
  * without one brand crowding out every other brand's early presence.
  */
 function diverseByMake(list: PublicVehicle[]): PublicVehicle[] {
@@ -132,7 +132,7 @@ function diverseByMake(list: PublicVehicle[]): PublicVehicle[] {
   }
 
   // Each brand's own model list, newest-first within a model and ordered as
-  // a flat round-robin queue across that brand's models — so pulling
+  // a flat round-robin queue across that brand's models - so pulling
   // sequentially from one brand's queue already varies by model too.
   const brandQueues = [...byMake.values()].map((models) => {
     for (const g of models.values()) g.sort((a, b) => b.year - a.year || a.id.localeCompare(b.id));

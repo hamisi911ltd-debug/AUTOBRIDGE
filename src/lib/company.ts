@@ -1,5 +1,5 @@
 /**
- * Ferbil Interfreight Limited — the trading entity on customer-facing
+ * Ferbil Interfreight Limited - the trading entity on customer-facing
  * documents (invoices, quotations). Kept in one place so the proforma
  * invoice here and any future final/taxed invoice stay identical.
  */
@@ -12,7 +12,7 @@ export const COMPANY = {
   web: "www.ferbil.co.ke",
 } as const;
 
-/** NCBA USD account — where invoice payments are settled. */
+/** NCBA USD account - where invoice payments are settled. */
 export const BANK_DETAILS: { label: string; value: string }[] = [
   { label: "Account type", value: "USD Account" },
   { label: "Bank name", value: "NCBA" },

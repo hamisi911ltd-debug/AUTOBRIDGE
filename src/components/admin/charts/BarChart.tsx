@@ -1,6 +1,6 @@
 import { COLORS } from "@/lib/constants";
 
-// Validated categorical palette (dataviz skill) — passes CVD-safe adjacent
+// Validated categorical palette (dataviz skill) - passes CVD-safe adjacent
 // separation on a white surface. Chart chrome (text, gridlines) stays in
 // AutoBridge's own navy/slate so the chart still reads as part of the app;
 // only the data marks themselves use these hues, since raw brand navy/gold
@@ -20,10 +20,10 @@ const GRID = "#e1e0d9";
 const AXIS_TEXT = COLORS.slate;
 
 /**
- * Horizontal bar chart — single measure across categories, or (when
+ * Horizontal bar chart - single measure across categories, or (when
  * `compareValue` is set per row) a bullet-style pair: a light full-width
  * track for the comparison figure with the main value overlaid as a
- * narrower, solid bar — e.g. "visible" over "scraped" per make, without
+ * narrower, solid bar - e.g. "visible" over "scraped" per make, without
  * resorting to a plain table. One hue for the main measure (this is
  * magnitude, not multi-series identity), value labelled at the tip of each
  * bar per the mark spec, thin bars with a rounded end.
@@ -41,7 +41,7 @@ export function BarChart({
   height?: number;
   gap?: number;
   formatValue?: (v: number) => string;
-  /** e.g. "visible / scraped" — shown once above the chart when rows carry a compareValue. */
+  /** e.g. "visible / scraped" - shown once above the chart when rows carry a compareValue. */
   compareLabel?: string;
 }) {
   if (data.length === 0) {

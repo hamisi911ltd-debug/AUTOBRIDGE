@@ -7,18 +7,18 @@ const REQUEST_DELAY_MS = 1200;
 const COOLDOWN_ON_429_MS = 45_000;
 const MAX_429_COOLDOWNS = 4;
 const FLUSH_EVERY = 30;
-const MAX_PAGES_PER_MODEL = 12; // 30 listings/page — bumped from 8: several brands (Honda/Mazda/Subaru/Mitsubishi/Suzuki) stayed under 300 total after a full pass at depth 8, so real per-model stock needs more pages, not more models
+const MAX_PAGES_PER_MODEL = 12; // 30 listings/page - bumped from 8: several brands (Honda/Mazda/Subaru/Mitsubishi/Suzuki) stayed under 300 total after a full pass at depth 8, so real per-model stock needs more pages, not more models
 
 /**
  * Same deep-dive approach as scrapeToyotaModels.ts, generalized across the
  * rest of Kenya's popular import brands. Model IDs and stock volumes pulled
  * live from each brand's own beforward.jp/stocklist/make=<id> model filter
- * dropdown, same as the Toyota list — top ~18 models per brand by listed
+ * dropdown, same as the Toyota list - top ~18 models per brand by listed
  * stock, which is what actually drives BE FORWARD's own count, not a
  * hand-picked guess at what's "typically Kenyan".
  *
  * Deliberately run as its own process rather than merged into the Toyota
- * script or launched alongside it — same BE FORWARD site, same rate-limit
+ * script or launched alongside it - same BE FORWARD site, same rate-limit
  * budget, so this should only run once the Toyota deep-dive isn't also
  * hitting BE FORWARD concurrently.
  */
@@ -387,19 +387,19 @@ async function main() {
         if (listed === "rate-limited") {
           cooldowns++;
           if (cooldowns > MAX_429_COOLDOWNS) {
-            console.log(`Hit the rate limit ${cooldowns} times — stopping this run. Re-run later to continue from ${brand.makeName} ${model.name}.`);
+            console.log(`Hit the rate limit ${cooldowns} times - stopping this run. Re-run later to continue from ${brand.makeName} ${model.name}.`);
             await flushToD1(pending);
             totalUpserted += pending.length;
             console.log(`\nDone (rate-limit stop). ${totalUpserted} vehicles upserted, ${totalFound} total found.`);
             return;
           }
-          console.log(`  page ${page}: rate limited — cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
+          console.log(`  page ${page}: rate limited - cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
           await sleep(COOLDOWN_ON_429_MS);
           continue;
         }
 
         if (listed.length === 0) {
-          console.log(`  page ${page}: no listings — done with ${model.name}`);
+          console.log(`  page ${page}: no listings - done with ${model.name}`);
           break;
         }
         console.log(`  page ${page}: ${listed.length} eligible listings`);
@@ -411,13 +411,13 @@ async function main() {
           if (better === "rate-limited") {
             cooldowns++;
             if (cooldowns > MAX_429_COOLDOWNS) {
-              console.log(`Hit the rate limit ${cooldowns} times — stopping this run. Re-run later to continue from ${brand.makeName} ${model.name}.`);
+              console.log(`Hit the rate limit ${cooldowns} times - stopping this run. Re-run later to continue from ${brand.makeName} ${model.name}.`);
               await flushToD1(pending);
               totalUpserted += pending.length;
               console.log(`\nDone (rate-limit stop). ${totalUpserted} vehicles upserted, ${totalFound} total found.`);
               return;
             }
-            console.log(`  rate limited — cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
+            console.log(`  rate limited - cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
             await sleep(COOLDOWN_ON_429_MS);
             continue;
           }

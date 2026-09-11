@@ -9,12 +9,12 @@ import type { ScrapedVehicle } from "@/lib/scrapers/types";
 export type ScrapeSite = "beforward" | "sbtjapan" | "dubicars";
 
 /**
- * How many configured makes exist per site — lets orchestrators (the
+ * How many configured makes exist per site - lets orchestrators (the
  * cron-worker, the admin panel) enumerate every (site, makeIndex) unit
  * without duplicating the make lists. For dubicars, "make" is really a page
  * number (see dubicars.ts).
  *
- * sbtjapan pinned to 0 on purpose — BE FORWARD-only inventory was explicitly
+ * sbtjapan pinned to 0 on purpose - BE FORWARD-only inventory was explicitly
  * requested (all 15,202 existing SBT Japan vehicles were deleted at the same
  * time), so this zeroes out every orchestrator's unit list for that site
  * without deleting scrapeSbtJapanUnit/SBT_MAKES themselves, in case it's
@@ -37,7 +37,7 @@ export type UnitScrapeSummary = {
 };
 
 // Same bar getPublicVehicles.ts used to require before swapping in a
-// same-model stand-in photo — now that stand-ins are gone entirely, a photo
+// same-model stand-in photo - now that stand-ins are gone entirely, a photo
 // this small (or missing) is never worth showing at all, so it's rejected
 // right at scrape time instead of having to be pruned from the catalogue
 // afterward.
@@ -45,7 +45,7 @@ const MIN_SHARP_WIDTH_PX = 500;
 
 async function upsertVehicle(v: ScrapedVehicle, refreshOnly: boolean): Promise<"created" | "updated" | "skipped"> {
   // A price/accuracy refresh pass wants every existing row touched up, not
-  // the catalogue quietly growing while it runs — checked first, before any
+  // the catalogue quietly growing while it runs - checked first, before any
   // of the more expensive work below (the detail-page fetch this vehicle's
   // width measurement depends on), so a genuinely new listing costs nothing
   // extra when refreshOnly is on.
@@ -55,14 +55,14 @@ async function upsertVehicle(v: ScrapedVehicle, refreshOnly: boolean): Promise<"
   }
 
   // beforward.ts already measures the width of any detail-page photo it
-  // upgrades to (see fetchCoverImage) — only fall back to measuring here
+  // upgrades to (see fetchCoverImage) - only fall back to measuring here
   // when that didn't happen (sbtjapan's listing thumbnail, or an upgrade
   // that failed and left the original listing-page thumbnail in place).
   const imageWidthPx = v.imageWidthPx ?? (await measureImageWidthPx(v.imageUrl));
 
   if (!v.imageUrl || (imageWidthPx ?? 0) < MIN_SHARP_WIDTH_PX) {
     // A vehicle with no real photo, or one too small to look sharp on a
-    // normal card, never gets written at all — no stand-in photo exists to
+    // normal card, never gets written at all - no stand-in photo exists to
     // patch it over with any more, so it would only ever show the branded
     // placeholder. Better to just not list it.
     return "skipped";
@@ -124,15 +124,15 @@ async function upsertVehicle(v: ScrapedVehicle, refreshOnly: boolean): Promise<"
 /**
  * Nightly inventory sync, one (site, make, page) unit at a time: scrapes a
  * single listing page and upserts its vehicles into the Vehicle table, keyed
- * by externalId so re-running never creates duplicates — only new listings
+ * by externalId so re-running never creates duplicates - only new listings
  * get created, previously-seen ones get their price/mileage/etc refreshed in
  * place. Hand-entered admin vehicles (externalId = null) are never touched.
  *
  * Deliberately scoped to one unit per call rather than looping over every
  * make internally: Cloudflare Workers' free-tier CPU budget is 10ms per
  * request, and parsing dozens of pages in a single invocation blew well past
- * that (confirmed live via "Worker exceeded CPU time limit"). Callers —
- * the cron-worker nightly, the admin "Run scrape now" button — loop over
+ * that (confirmed live via "Worker exceeded CPU time limit"). Callers -
+ * the cron-worker nightly, the admin "Run scrape now" button - loop over
  * every (site, makeIndex) pair themselves via SCRAPE_MAKE_COUNTS, so each
  * individual call's parsing work stays small.
  */
@@ -151,7 +151,7 @@ export async function runScrapeUnit(site: ScrapeSite, makeIndex: number, page = 
         : site === "sbtjapan"
           ? await scrapeSbtJapanUnit(makeIndex, page)
           : await scrapeDubicarsUnit(makeIndex);
-    // A single nightly unit isn't worth a cooldown-and-retry loop — treat a
+    // A single nightly unit isn't worth a cooldown-and-retry loop - treat a
     // rate-limited page the same as "nothing found this run", same as any
     // other transient failure; the next scheduled run picks it up again.
     vehicles = result === "rate-limited" ? [] : result;

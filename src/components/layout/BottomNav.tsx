@@ -5,12 +5,12 @@ import { COLORS } from "@/lib/constants";
 import type { Page } from "@/components/AutoBridgeApp";
 
 /**
- * Mobile's primary navigation — a fixed app-style bottom bar instead of the
+ * Mobile's primary navigation - a fixed app-style bottom bar instead of the
  * desktop top header's links/hamburger menu. `env(safe-area-inset-bottom)`
  * keeps it clear of the home-indicator strip on notched phones. "Contact"
  * (a WhatsApp shortcut) sat here before; replaced with "Quotation" so the
  * higher-intent printable-quote flow (with its import-only vs.
- * taxation-and-clearance choice) is one tap away on mobile too — WhatsApp
+ * taxation-and-clearance choice) is one tap away on mobile too - WhatsApp
  * is still reachable from the quote page itself and every vehicle's detail
  * page, and Favorites is still reachable from Search's own filter.
  */

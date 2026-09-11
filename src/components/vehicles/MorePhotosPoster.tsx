@@ -19,7 +19,7 @@ const SHOW_AFTER_MS = 1100;
  *
  * The image box's aspect ratio is set from the photo's own natural
  * dimensions once it loads (not a fixed 4:3) so the photo always fills the
- * box exactly — no letterboxed brand-color bars down the sides, which a
+ * box exactly - no letterboxed brand-color bars down the sides, which a
  * fixed ratio produced whenever a photo's real proportions didn't match it.
  */
 export function MorePhotosPoster({ vehicle }: { vehicle: PublicVehicle }) {

@@ -1,4 +1,4 @@
-/** The real WhatsApp glyph (not a generic chat bubble) — instantly recognizable is the whole point of every button that uses it. */
+/** The real WhatsApp glyph (not a generic chat bubble) - instantly recognizable is the whole point of every button that uses it. */
 export function WhatsAppIcon({ size, color = "#fff" }: { size: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={color} aria-hidden="true">

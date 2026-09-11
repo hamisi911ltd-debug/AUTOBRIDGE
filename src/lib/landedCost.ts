@@ -11,7 +11,7 @@ export function computeInsuranceUsd(sourcePriceUsd: number): number {
   return Math.round(sourcePriceUsd * 0.01);
 }
 
-/** Freight in USD for a vehicle — 0 when the source price already has it baked in (see freightIncluded below). */
+/** Freight in USD for a vehicle - 0 when the source price already has it baked in (see freightIncluded below). */
 export function computeFreightUsd(sourceCountry: string, freightIncluded: boolean): number {
   return freightIncluded ? 0 : FREIGHT_USD[sourceCountry] || 1000;
 }
@@ -19,13 +19,13 @@ export function computeFreightUsd(sourceCountry: string, freightIncluded: boolea
 export type LandedCostInput = {
   sourceCountry: string;
   // Retail price the customer pays AutoBridge for the car itself (source
-  // cost + margin) — shown as its own line and added once to the total.
+  // cost + margin) - shown as its own line and added once to the total.
   sellingPriceUsd: number;
   // Insurance estimate, computed server-side from the real source price
-  // (see getPublicVehicles.ts) — shown as its own line alongside freight.
+  // (see getPublicVehicles.ts) - shown as its own line alongside freight.
   insuranceUsd: number;
   // True when sellingPriceUsd already has freight baked in (SBT Japan's own
-  // C&F-to-Mombasa "Total Price") — freight is left off the total for these,
+  // C&F-to-Mombasa "Total Price") - freight is left off the total for these,
   // since it's already inside the price passed in.
   freightIncluded: boolean;
 };
@@ -39,24 +39,24 @@ export type LandedCost = {
 /**
  * All-in price estimate: vehicle price (source cost + AutoBridge's margin)
  * plus freight and insurance to Mombasa. Deliberately does NOT estimate KRA
- * import duty/excise/VAT/IDF/RDL — that breakdown was removed at the user's
+ * import duty/excise/VAT/IDF/RDL - that breakdown was removed at the user's
  * explicit request after repeated rounds of disputed rates, plus a gap that
  * was never fully resolved: KRA actually values used vehicles off its CRSP
  * (Current Retail Selling Price) schedule with age-based depreciation, not
  * the invoice price, and that schedule isn't public data this app could
- * replicate — so any duty figure shown here risked reading as authoritative
+ * replicate - so any duty figure shown here risked reading as authoritative
  * when it wasn't. A buyer confirms actual duty with a licensed clearing
  * agent instead.
  *
  * Freight: BE FORWARD only ever publishes a bare FOB price (confirmed via
  * their own price-filter URL params, which are literally named
  * `fob_price_from`/`fob_price_to`), so freight is always added on top for
- * that source. SBT Japan is different — most of their listings also show a
+ * that source. SBT Japan is different - most of their listings also show a
  * "Total Price", which is their own C&F (Cost & Freight) figure already
  * quoted to Mombasa specifically (their default destination port). The
  * scraper captures that Total Price as sourcePriceUsd whenever it's present
  * and sets freightIncluded, so freight must NOT be added again here for
- * those vehicles — doing so would double-count shipping that's already
+ * those vehicles - doing so would double-count shipping that's already
  * inside the price.
  */
 export function computeLandedCost(v: LandedCostInput, fx: number): LandedCost {

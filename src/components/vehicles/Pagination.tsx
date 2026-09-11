@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { COLORS } from "@/lib/constants";
 
-/** Real page-number navigation — replaces "keep scrolling" / "show more" patterns for long vehicle grids. */
+/** Real page-number navigation - replaces "keep scrolling" / "show more" patterns for long vehicle grids. */
 export function Pagination({ page, pageCount, onPageChange }: { page: number; pageCount: number; onPageChange: (page: number) => void }) {
   if (pageCount <= 1) return null;
 

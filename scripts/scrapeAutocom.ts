@@ -26,7 +26,7 @@ const FLUSH_EVERY = 25;
 
 async function main() {
   const startCount = await countVehicles();
-  console.log(`AUTOCOM scrape — catalogue at ${startCount}, want ${WANT_NEW} new autocom cars, from page ${START_PAGE}.`);
+  console.log(`AUTOCOM scrape - catalogue at ${startCount}, want ${WANT_NEW} new autocom cars, from page ${START_PAGE}.`);
 
   let pending: PendingRow[] = [];
   let addedThisRun = 0;
@@ -41,7 +41,7 @@ async function main() {
     const before = liveCount;
     liveCount = await countVehicles();
     addedThisRun += Math.max(0, liveCount - before);
-    console.log(`  flushed ${batch.length} (${reason}) — catalogue ${before} -> ${liveCount} (+${addedThisRun} new this run)`);
+    console.log(`  flushed ${batch.length} (${reason}) - catalogue ${before} -> ${liveCount} (+${addedThisRun} new this run)`);
   }
 
   for (let page = START_PAGE; page < START_PAGE + MAX_PAGES; page++) {
@@ -51,10 +51,10 @@ async function main() {
     if (listed === "rate-limited") {
       cooldowns++;
       if (cooldowns > MAX_COOLDOWNS) {
-        console.log(`Rate-limited ${cooldowns}x — stopping. Resume: npx tsx scripts/scrapeAutocom.ts ${WANT_NEW} ${page}`);
+        console.log(`Rate-limited ${cooldowns}x - stopping. Resume: npx tsx scripts/scrapeAutocom.ts ${WANT_NEW} ${page}`);
         break;
       }
-      console.log(`  page ${page}: rate limited — cooling ${COOLDOWN_MS / 1000}s (${cooldowns}/${MAX_COOLDOWNS})`);
+      console.log(`  page ${page}: rate limited - cooling ${COOLDOWN_MS / 1000}s (${cooldowns}/${MAX_COOLDOWNS})`);
       await sleep(COOLDOWN_MS);
       page--; // retry same page
       continue;
@@ -76,19 +76,19 @@ async function main() {
         continue;
       }
       // Detail page adds the full chassis/engine numbers (when the car has
-      // them), doors, seats, dimensions and model code — the search feed has
+      // them), doors, seats, dimensions and model code - the search feed has
       // none of that.
       const refno = v.externalId.replace(/^autocom:/, "");
       const specs = await scrapeAutocomDetail(refno);
       if (specs === "rate-limited") {
         cooldowns++;
         if (cooldowns > MAX_COOLDOWNS) {
-          console.log(`Rate-limited on detail — stopping. Resume: npx tsx scripts/scrapeAutocom.ts ${WANT_NEW} ${page}`);
+          console.log(`Rate-limited on detail - stopping. Resume: npx tsx scripts/scrapeAutocom.ts ${WANT_NEW} ${page}`);
           await flush("rate-limit stop");
           console.log(`\nDone (rate-limit stop). Catalogue ${startCount} -> ${liveCount}.`);
           return;
         }
-        console.log(`  detail ${refno}: rate limited — cooling ${COOLDOWN_MS / 1000}s (${cooldowns}/${MAX_COOLDOWNS})`);
+        console.log(`  detail ${refno}: rate limited - cooling ${COOLDOWN_MS / 1000}s (${cooldowns}/${MAX_COOLDOWNS})`);
         await sleep(COOLDOWN_MS);
       }
       const merged = specs === "rate-limited" ? v : { ...v, ...specs };

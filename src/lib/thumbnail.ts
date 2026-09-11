@@ -5,7 +5,7 @@
  * blurry once stretched to a real card width), and even a "?w=400" resize
  * on the "large" path still looked noticeably soft on wider grid cards.
  * The full "large" photo already stored in R2 is only ~30-40KB, which is
- * small enough on its own — not worth trading visible quality for — so
+ * small enough on its own - not worth trading visible quality for - so
  * this is now a pass-through and every context (cards, gallery, detail
  * hero) shows the same full-quality photo. Kept as a named function rather
  * than inlining `src` everywhere it's called, so a real resize strategy

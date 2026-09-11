@@ -6,7 +6,7 @@ export const revalidate = 0;
 /**
  * Returns the build id of the currently-deployed Worker. The client
  * (VersionWatcher) polls this and reloads itself when the id no longer
- * matches the one its bundle was built with — so an open tab never keeps
+ * matches the one its bundle was built with - so an open tab never keeps
  * running a superseded deploy. Sent no-store so it's never itself cached.
  */
 export async function GET() {

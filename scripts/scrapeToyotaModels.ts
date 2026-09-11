@@ -9,7 +9,7 @@ const COOLDOWN_ON_429_MS = 45_000;
 const MAX_429_COOLDOWNS = 4;
 const FLUSH_EVERY = 30;
 // Deep coverage (15 pages) only for the models Kenya buyers actually search
-// for — Harrier/Crown (explicitly requested) plus the next tier by stock
+// for - Harrier/Crown (explicitly requested) plus the next tier by stock
 // volume. Uniform 15-page depth across all 245 models would spend hours on
 // just the first few before ever reaching RAV4 or Land Cruiser; this trades
 // some depth on the long tail for breadth across the whole catalog sooner.
@@ -18,7 +18,7 @@ const MAX_PAGES_DEEP = 15;
 const MAX_PAGES_SHALLOW = 6;
 
 /**
- * Full deep-dive model list — every model BE FORWARD lists under Toyota,
+ * Full deep-dive model list - every model BE FORWARD lists under Toyota,
  * ordered per the user's explicit request: Harrier first, then Crown (and
  * every Crown sub-line), then the rest of the catalog by listed stock
  * volume, so the batch spends its early time on models that actually move
@@ -298,19 +298,19 @@ async function main() {
       if (listed === "rate-limited") {
         cooldowns++;
         if (cooldowns > MAX_429_COOLDOWNS) {
-          console.log(`Hit the rate limit ${cooldowns} times — stopping this run. Re-run later to continue from ${model.name}.`);
+          console.log(`Hit the rate limit ${cooldowns} times - stopping this run. Re-run later to continue from ${model.name}.`);
           await flushToD1(pending);
           totalUpserted += pending.length;
           console.log(`\nDone (rate-limit stop). ${totalUpserted} vehicles upserted, ${totalFound} total found.`);
           return;
         }
-        console.log(`  page ${page}: rate limited — cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
+        console.log(`  page ${page}: rate limited - cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
         await sleep(COOLDOWN_ON_429_MS);
         continue; // retry this same page
       }
 
       if (listed.length === 0) {
-        console.log(`  page ${page}: no listings — done with ${model.name}`);
+        console.log(`  page ${page}: no listings - done with ${model.name}`);
         break;
       }
       console.log(`  page ${page}: ${listed.length} eligible listings`);
@@ -323,15 +323,15 @@ async function main() {
         if (better === "rate-limited") {
           cooldowns++;
           if (cooldowns > MAX_429_COOLDOWNS) {
-            console.log(`Hit the rate limit ${cooldowns} times — stopping this run. Re-run later to continue from ${model.name}.`);
+            console.log(`Hit the rate limit ${cooldowns} times - stopping this run. Re-run later to continue from ${model.name}.`);
             await flushToD1(pending);
             totalUpserted += pending.length;
             console.log(`\nDone (rate-limit stop). ${totalUpserted} vehicles upserted, ${totalFound} total found.`);
             return;
           }
-          console.log(`  rate limited — cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
+          console.log(`  rate limited - cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
           await sleep(COOLDOWN_ON_429_MS);
-          continue; // this vehicle keeps its listing-thumbnail image, not lost — just not upgraded
+          continue; // this vehicle keeps its listing-thumbnail image, not lost - just not upgraded
         }
 
         const row: PendingRow = { ...v, imageWidthPx: better ? better.widthPx : null };

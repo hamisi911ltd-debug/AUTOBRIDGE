@@ -3,7 +3,7 @@
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
 
-/** One number, not a line-item breakdown — the CIF total in USD is what a buyer needs to decide; freight and insurance are already folded in. */
+/** One number, not a line-item breakdown - the CIF total in USD is what a buyer needs to decide; freight and insurance are already folded in. */
 export function CostLadder({ totalUsd }: { totalUsd: number }) {
   return (
     <div className="bg-white rounded-2xl border overflow-hidden shadow-sm" style={{ borderColor: COLORS.line }}>
@@ -25,7 +25,7 @@ export function CostLadder({ totalUsd }: { totalUsd: number }) {
         </p>
 
         <p className="hidden lg:block text-[11px] mt-4 leading-relaxed" style={{ color: COLORS.slate }}>
-          CIF estimate in USD. Excludes KRA import duty, excise, VAT and registration — confirm those with a licensed
+          CIF estimate in USD. Excludes KRA import duty, excise, VAT and registration - confirm those with a licensed
           clearing agent before you commit.
         </p>
       </div>

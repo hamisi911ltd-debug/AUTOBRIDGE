@@ -7,14 +7,14 @@ export type VehicleForPricing = {
   bodyType: string;
   sourceCountry: string;
   sourcePriceUsd: number;
-  // Needed to work out the commission base below — see commissionBaseUsd.
+  // Needed to work out the commission base below - see commissionBaseUsd.
   freightIncluded: boolean;
 };
 
 /**
  * The amount commission is actually calculated against: source price plus
  * freight and insurance to Mombasa, not the bare vehicle price alone. Buyers
- * requested this explicitly — a markup meant to reflect margin on the whole
+ * requested this explicitly - a markup meant to reflect margin on the whole
  * landed deal should scale with the deal's real size (a car with expensive
  * shipping is a bigger transaction), not just the FOB price. This is also
  * what PRICE_BAND scope and TIERED markup bands are matched against, so a
@@ -93,7 +93,7 @@ function marginForRule(rule: PricingRule, commissionBase: number): number {
 /**
  * Resolves the single best-matching active rule for a vehicle (most specific
  * scope wins, then highest priority, then most recently updated) and applies
- * its markup to sourcePriceUsd. Pure function — no I/O — so callers fetch the
+ * its markup to sourcePriceUsd. Pure function - no I/O - so callers fetch the
  * rule set once and reuse it across a whole vehicle list.
  */
 export function computeSellingPriceUsd(

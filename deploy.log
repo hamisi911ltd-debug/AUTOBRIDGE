@@ -24,22 +24,22 @@ Loaded Prisma config from prisma.config.ts.
 
 Prisma schema loaded from prisma\schema.prisma.
 
-✔ Generated Prisma Client (7.9.1) to .\src\generated\prisma in 151ms
+✔ Generated Prisma Client (7.9.1) to .\src\generated\prisma in 160ms
 
 ▲ Next.js 16.2.12 (Turbopack)
 - Environments: .env
 
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
   Creating an optimized production build ...
-✓ Compiled successfully in 14.9s
+✓ Compiled successfully in 8.4s
   Running TypeScript ...
-  Finished TypeScript in 9.2s ...
+  Finished TypeScript in 9.7s ...
   Collecting page data using 7 workers ...
   Generating static pages using 7 workers (0/13) ...
   Generating static pages using 7 workers (3/13) 
   Generating static pages using 7 workers (6/13) 
   Generating static pages using 7 workers (9/13) 
-✓ Generating static pages using 7 workers (13/13) in 1195ms
+✓ Generating static pages using 7 workers (13/13) in 596ms
   Finalizing page optimization ...
 
 Route (app)
@@ -62,6 +62,7 @@ Route (app)
 ├ ƒ /api/enquiries
 ├ ƒ /api/vehicle-image/[...key]
 ├ ƒ /api/vehicles/full
+├ ƒ /api/version
 ├ ○ /login
 ├ ○ /privacy
 ├ ○ /robots.txt
@@ -82,7 +83,7 @@ Bundling middleware function...
 Bundling static assets...
 Bundling cache assets...
 Building server function: default...
-Applying code patches: 7.546s
+Applying code patches: 10.169s
 # copyPackageTemplateFiles
 [35m⚙️ Bundling the OpenNext server...
 [0m
@@ -99,31 +100,27 @@ WARN For optimal performance, it is recommended to use Windows Subsystem for Lin
 WARN While OpenNext may function on Windows, it could encounter unpredictable failures during runtime.
 
 Populating remote R2 incremental cache...
-(node:22328) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
+(node:20172) [DEP0190] DeprecationWarning: Passing args to a child process with shell option true can lead to security vulnerabilities, as the arguments are not escaped, only concatenated.
 (Use `node --trace-deprecation ...` to show where the warning was created)
-[0G 16%|███████                                      | 1/6 [00:00:<00:00:, 0.00it/s][0G 33%|███████████████                              | 2/6 [00:00:<00:00:, 250.00it/s][0G 50%|██████████████████████                       | 3/6 [00:00:<00:00:, 333.33it/s][0G 66%|██████████████████████████████               | 4/6 [00:00:<00:00:, 400.00it/s][0G 83%|█████████████████████████████████████        | 5/6 [00:00:<00:00:, 500.00it/s][0G100%|█████████████████████████████████████████████| 6/6 [00:00:<00:00:, 545.45it/s]
+[0G 16%|███████                                      | 1/6 [00:00:<00:00:, 0.00it/s][0G 33%|███████████████                              | 2/6 [00:00:<00:00:, 200.00it/s][0G 50%|██████████████████████                       | 3/6 [00:00:<00:00:, 250.00it/s][0G 66%|██████████████████████████████               | 4/6 [00:00:<00:00:, 307.69it/s][0G 83%|█████████████████████████████████████        | 5/6 [00:00:<00:00:, 357.14it/s][0G100%|█████████████████████████████████████████████| 6/6 [00:00:<00:00:, 400.00it/s]
 Successfully populated cache with 6 entries
 Tag cache does not need populating
 
- ⛅️ wrangler 4.120.0 (update available 4.130.0)
+ ⛅️ wrangler 4.120.0 (update available 4.131.0)
 ───────────────────────────────────────────────
 🌀 Building list of assets...
-✨ Read 51 files from the assets directory C:\Users\USER\Downloads\autobridge-kenya-web\.open-next\assets
+✨ Read 52 files from the assets directory C:\Users\USER\Downloads\autobridge-kenya-web\.open-next\assets
 🌀 Starting asset upload...
-🌀 Found 6 new or modified static assets to upload. Proceeding with upload...
+🌀 Found 3 new or modified static assets to upload. Proceeding with upload...
 + /BUILD_ID
-+ /_next/static/chunks/31nyls_sfvhnu.js
-+ /_next/static/chunks/2tlkxs10ehz-8.js
-+ /_next/static/chunks/3rinboc_hxy1n.css
-+ /_next/static/chunks/35frfa4ceqs1t.js
-+ /_next/static/chunks/3gqrzqztcc-pa.js
-Uploaded 2 of 6 assets
-Uploaded 4 of 6 assets
-Uploaded 6 of 6 assets
-✨ Success! Uploaded 6 files (40 already uploaded) (1.94 sec)
++ /_next/static/chunks/26yyx9zegkpj2.js
++ /_next/static/chunks/3l3zffg15doka.js
+Uploaded 1 of 3 assets
+Uploaded 2 of 3 assets
+Uploaded 3 of 3 assets
+✨ Success! Uploaded 3 files (44 already uploaded) (2.37 sec)
 
-Total Upload: 11345.56 KiB / gzip: 2891.73 KiB
-Worker Startup Time: 35 ms
+Total Upload: 11366.92 KiB / gzip: 2894.17 KiB
 Your Worker has access to the following bindings:
 Binding                                                        Resource         
 env.DB (autobridge-kenya-db)                                   D1 Database      
@@ -133,8 +130,27 @@ env.WORKER_SELF_REFERENCE (autobridge-kenya-web)               Worker
 env.IMAGES                                                     Images           
 env.ASSETS                                                     Assets           
 
-Uploaded autobridge-kenya-web (22.13 sec)
-Deployed autobridge-kenya-web triggers (5.01 sec)
-  https://autobridge-kenya-web.glotech.workers.dev
-Current Version ID: cc6237cb-8d80-4b8b-a0fd-8ebd79be5e81
-EXIT=0
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mA request to the Cloudflare API (/accounts/7ae8d26215d22e65db04d1ce0febe9e7/workers/scripts/autobridge-kenya-web/versions) failed.[0m
+
+  binding DB of type d1 failed to generate. Please try again later or contact support. [code: 10021]
+  To learn more about this error, visit: [4mhttps://developers.cloudflare.com/workers/observability/errors/#validation-errors-10021[0m
+
+  
+  If you think this is a bug, please open an issue at: [4mhttps://github.com/cloudflare/workers-sdk/issues/new/choose[0m
+
+
+🪵  Logs were written to "C:\Users\USER\AppData\Roaming\xdg.config\.wrangler\logs\wrangler-2026-09-11_09-48-54_718.log"
+ERROR Wrangler deploy command failed:
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mA request to the Cloudflare API (/accounts/7ae8d26215d22e65db04d1ce0febe9e7/workers/scripts/autobridge-kenya-web/versions) failed.[0m
+
+  binding DB of type d1 failed to generate. Please try again later or contact support. [code: 10021]
+  To learn more about this error, visit: [4mhttps://developers.cloudflare.com/workers/observability/errors/#validation-errors-10021[0m
+
+  
+  If you think this is a bug, please open an issue at: [4mhttps://github.com/cloudflare/workers-sdk/issues/new/choose[0m
+
+
+🪵  Logs were written to "C:\Users\USER\AppData\Roaming\xdg.config\.wrangler\logs\wrangler-2026-09-11_09-48-54_718.log"
+
+EXIT=1

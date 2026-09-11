@@ -37,7 +37,7 @@ export async function savePricingRule(formData: FormData) {
       ? scopeValueRaw || null
       : null,
     markupType,
-    // The form collects PERCENT as a whole number (e.g. "8" for 8%) —
+    // The form collects PERCENT as a whole number (e.g. "8" for 8%) -
     // convert to the fraction the pricing engine expects. FIXED is a raw
     // USD amount, so it passes through unchanged.
     value:
@@ -147,7 +147,7 @@ export async function getScrapeManifest(): Promise<Record<ScrapeSite, number>> {
 
 /**
  * Manual "run it now" trigger for the same nightly scrape the cron route
- * runs — lets the admin refresh inventory on demand instead of waiting for
+ * runs - lets the admin refresh inventory on demand instead of waiting for
  * the schedule. Scrapes exactly one (site, make) page per call; the button
  * that calls this loops over every unit itself, calling this action once per
  * unit so each individual invocation's parsing work stays under Cloudflare
@@ -167,7 +167,7 @@ export async function revalidateAfterScrape() {
 }
 
 /**
- * One small batch of the image migration (see src/lib/imageMigration.ts) —
+ * One small batch of the image migration (see src/lib/imageMigration.ts) -
  * copies a few vehicles' photos from the source sites' CDNs into our own R2
  * bucket. The button that calls this loops, calling it repeatedly until
  * `done`, same reasoning as runScrapeUnitNow: keep each individual
@@ -195,7 +195,7 @@ export async function deleteEnquiry(formData: FormData) {
   revalidatePath("/admin");
 }
 
-/** Real customer feedback only — this form exists for an admin to transcribe an actual conversation, not to invent testimonials. */
+/** Real customer feedback only - this form exists for an admin to transcribe an actual conversation, not to invent testimonials. */
 export async function createReview(formData: FormData) {
   await requireAdmin();
   const customerName = (formData.get("customerName") as string).trim();

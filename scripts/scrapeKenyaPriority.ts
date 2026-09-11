@@ -13,21 +13,21 @@ import { flushToD1, countVehicles, sleep, type PendingRow } from "./lib/d1Upsert
  * "get the catalogue to N cars" is a bounded run, not an open-ended one.
  *
  * Usage:  npx tsx scripts/scrapeKenyaPriority.ts [targetCount] [startMakeIndex]
- * Default target 6800 (a "first pass" size — bump to 10000 for the full goal).
+ * Default target 6800 (a "first pass" size - bump to 10000 for the full goal).
  *
  * Model IDs are the ones already verified live against beforward.jp's own
  * make=N model-filter dropdown in scrapeToyotaModels.ts and
- * scrapeOtherBrandsModels.ts — only demand-ranked differently here.
+ * scrapeOtherBrandsModels.ts - only demand-ranked differently here.
  */
 
 const TARGET_COUNT = process.argv[2] ? parseInt(process.argv[2], 10) : 6800;
 const START_MAKE_INDEX = process.argv[3] ? parseInt(process.argv[3], 10) : 0;
-// Minutes to wait before the first request — lets a resumed run sit out
+// Minutes to wait before the first request - lets a resumed run sit out
 // BE FORWARD's rolling throttle window instead of burning its cooldown
 // budget the moment it starts.
 const INITIAL_WAIT_MIN = process.argv[4] ? parseInt(process.argv[4], 10) : 0;
 
-const REQUEST_DELAY_MS = 2500; // gentler steady-state — 1.2s tripped BE FORWARD's limiter on a resumed run
+const REQUEST_DELAY_MS = 2500; // gentler steady-state - 1.2s tripped BE FORWARD's limiter on a resumed run
 const COOLDOWN_ON_429_MS = 120_000;
 const MAX_429_COOLDOWNS = 10; // ~20 min of cooldown budget before giving up
 const FLUSH_EVERY = 30;
@@ -46,7 +46,7 @@ const KENYA_PRIORITY: Make[] = [
     makeId: 1,
     make: "Toyota",
     models: [
-      // Newer models lead — the classic Kenya staples (Vitz/Fielder/Axio/
+      // Newer models lead - the classic Kenya staples (Vitz/Fielder/Axio/
       // Probox) are now mostly pre-2019 and get filtered out at scrape time,
       // so the 2019+ stock that actually exists is concentrated here.
       { id: 13235, name: "Aqua" },
@@ -186,18 +186,18 @@ const KENYA_PRIORITY: Make[] = [
 async function main() {
   const startCount = await countVehicles();
   console.log(
-    `Kenya-priority scrape — catalogue at ${startCount}, target ${TARGET_COUNT} ` +
+    `Kenya-priority scrape - catalogue at ${startCount}, target ${TARGET_COUNT} ` +
       `(need ~${Math.max(0, TARGET_COUNT - startCount)} more). Starting at make index ${START_MAKE_INDEX}.`,
   );
   if (startCount >= TARGET_COUNT) {
-    console.log("Already at or above target — nothing to do.");
+    console.log("Already at or above target - nothing to do.");
     return;
   }
 
   if (INITIAL_WAIT_MIN > 0) {
     console.log(`Waiting ${INITIAL_WAIT_MIN} min for BE FORWARD's throttle window to clear before the first request...`);
     await sleep(INITIAL_WAIT_MIN * 60_000);
-    console.log("Initial wait done — starting.");
+    console.log("Initial wait done - starting.");
   }
 
   let pending: PendingRow[] = [];
@@ -213,7 +213,7 @@ async function main() {
     await flushToD1(batch);
     totalUpserted += batch.length;
     liveCount = await countVehicles();
-    console.log(`  flushed ${batch.length} (${reason}) — ${totalUpserted} upserted this run, catalogue now ${liveCount}`);
+    console.log(`  flushed ${batch.length} (${reason}) - ${totalUpserted} upserted this run, catalogue now ${liveCount}`);
   }
 
   for (let m = START_MAKE_INDEX; m < KENYA_PRIORITY.length; m++) {
@@ -231,18 +231,18 @@ async function main() {
         if (listed === "rate-limited") {
           cooldowns++;
           if (cooldowns > MAX_429_COOLDOWNS) {
-            console.log(`Hit the rate limit ${cooldowns}x — stopping. Re-run: npx tsx scripts/scrapeKenyaPriority.ts ${TARGET_COUNT} ${m}`);
+            console.log(`Hit the rate limit ${cooldowns}x - stopping. Re-run: npx tsx scripts/scrapeKenyaPriority.ts ${TARGET_COUNT} ${m}`);
             await flush("rate-limit stop");
             console.log(`\nDone (rate-limit stop). ${totalUpserted} upserted, ${totalFound} found, catalogue ${liveCount}.`);
             return;
           }
-          console.log(`  page ${page}: rate limited — cooling ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})`);
+          console.log(`  page ${page}: rate limited - cooling ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})`);
           await sleep(COOLDOWN_ON_429_MS);
           continue;
         }
 
         if (listed.length === 0) {
-          console.log(`  page ${page}: no listings — done with ${model.name}`);
+          console.log(`  page ${page}: no listings - done with ${model.name}`);
           break;
         }
         console.log(`  page ${page}: ${listed.length} eligible listings`);
@@ -253,12 +253,12 @@ async function main() {
           if (better === "rate-limited") {
             cooldowns++;
             if (cooldowns > MAX_429_COOLDOWNS) {
-              console.log(`Hit the rate limit ${cooldowns}x — stopping. Re-run: npx tsx scripts/scrapeKenyaPriority.ts ${TARGET_COUNT} ${m}`);
+              console.log(`Hit the rate limit ${cooldowns}x - stopping. Re-run: npx tsx scripts/scrapeKenyaPriority.ts ${TARGET_COUNT} ${m}`);
               await flush("rate-limit stop");
               console.log(`\nDone (rate-limit stop). ${totalUpserted} upserted, ${totalFound} found, catalogue ${liveCount}.`);
               return;
             }
-            console.log(`  rate limited — cooling ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})`);
+            console.log(`  rate limited - cooling ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})`);
             await sleep(COOLDOWN_ON_429_MS);
             continue;
           }
@@ -287,7 +287,7 @@ async function main() {
 
   await flush("end of priority list");
   console.log(
-    `\nDone — exhausted the Kenya-priority model list. ${totalUpserted} upserted this run, ` +
+    `\nDone - exhausted the Kenya-priority model list. ${totalUpserted} upserted this run, ` +
       `${totalFound} found, catalogue ${liveCount} (target was ${TARGET_COUNT}).`,
   );
 }

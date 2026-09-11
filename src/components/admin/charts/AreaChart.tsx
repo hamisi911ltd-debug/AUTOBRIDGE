@@ -10,7 +10,7 @@ const GRID = "#e1e0d9";
  * Single-series line + area chart for a value over time (enquiries/day,
  * scrape volume/day, etc). 2px line, ~10% opacity area wash, end-value
  * label, hover crosshair with a per-point tooltip via native SVG title
- * plus a lightweight synced label — enough interactivity for an internal
+ * plus a lightweight synced label - enough interactivity for an internal
  * admin tool without a charting dependency.
  */
 export function AreaChart({

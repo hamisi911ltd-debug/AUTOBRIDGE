@@ -31,7 +31,7 @@ export const MAKE_LOGO: Record<string, string> = {
   Volvo: "https://cdn.simpleicons.org/volvo",
 };
 
-// Real flag images (flagcdn.com) instead of emoji — flag emoji glyphs
+// Real flag images (flagcdn.com) instead of emoji - flag emoji glyphs
 // silently fall back to plain two-letter text on systems without a
 // colour-emoji font (common on Windows Server / some browsers), so an actual
 // image renders consistently everywhere instead of leaving it to chance.

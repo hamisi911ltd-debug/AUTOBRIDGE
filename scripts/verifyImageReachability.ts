@@ -8,7 +8,7 @@ import path from "node:path";
 const execFileAsync = promisify(execFile);
 const DATABASE = "autobridge-kenya-db";
 // BeForward rate-limits aggressively under concurrent load (confirmed by
-// scripts/backfillSpecs.ts's own cooldown handling) — a burst of HEAD
+// scripts/backfillSpecs.ts's own cooldown handling) - a burst of HEAD
 // requests here previously got misread as mass "photo gone" and wrongly
 // cleared ~1,100 live vehicles' imageUrl before a D1 Time Travel restore
 // undid it. Low concurrency + real request spacing avoids that entirely;
@@ -23,14 +23,14 @@ type Row = { id: string; imageUrl: string; imageUrls: string | null };
 
 /**
  * Every listing's `imageUrl` was live at scrape time, but source sites
- * (BE FORWARD especially) do delist units — their photo goes with them, and
+ * (BE FORWARD especially) do delist units - their photo goes with them, and
  * the browsing pages currently show every eligible vehicle "regardless of
  * photo presence" (see getPublicVehicles.ts), so a dead link there falls
  * through to VehicleImage's branded placeholder rather than a real photo.
  *
  * This checks every eligible vehicle's own image (and its gallery, if the
  * cover is dead) against the live source, and clears `imageUrl`/`imageUrls`
- * for any vehicle where nothing resolves — getPublicVehicles then excludes
+ * for any vehicle where nothing resolves - getPublicVehicles then excludes
  * those from what customers actually browse (see the imageUrl: { not: null }
  * filter added alongside this script).
  */
@@ -52,14 +52,14 @@ async function checkUrl(url: string): Promise<CheckResult> {
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
     let res = await fetch(url, { method: "HEAD", signal: controller.signal });
-    // Some CDNs don't implement HEAD properly (405/501) — fall back to a
+    // Some CDNs don't implement HEAD properly (405/501) - fall back to a
     // ranged GET, which still avoids downloading the whole image.
     if (!res.ok && (res.status === 405 || res.status === 501)) {
       res = await fetch(url, { method: "GET", headers: { Range: "bytes=0-1024" }, signal: controller.signal });
     }
     if (res.ok || res.status === 206) return "live";
     // 429/403/503 mean the source is throttling us, not that the photo is
-    // gone — never treat those as "dead". Only a genuine 404/410 counts.
+    // gone - never treat those as "dead". Only a genuine 404/410 counts.
     if (res.status === 429 || res.status === 403 || res.status === 503) return "rate-limited";
     if (res.status === 404 || res.status === 410) return "dead";
     return "error";
@@ -71,7 +71,7 @@ async function checkUrl(url: string): Promise<CheckResult> {
 }
 
 /** First image (cover, then gallery) that actually resolves. `null` only
- * when every candidate came back a genuine 404/410 — anything ambiguous
+ * when every candidate came back a genuine 404/410 - anything ambiguous
  * (timeout, rate-limit, other error) is treated as "can't tell", never as
  * dead, so a network blip can never get mistaken for a delisted photo. */
 async function findDeadOrNull(row: Row): Promise<"live" | "dead" | "unknown"> {
@@ -111,7 +111,7 @@ async function flushDead(ids: string[]): Promise<void> {
 }
 
 async function main() {
-  console.log(DRY_RUN ? "DRY RUN — nothing will be written. Pass --write to actually clear dead rows.\n" : "WRITE MODE — dead rows will be cleared in D1.\n");
+  console.log(DRY_RUN ? "DRY RUN - nothing will be written. Pass --write to actually clear dead rows.\n" : "WRITE MODE - dead rows will be cleared in D1.\n");
   console.log("Fetching vehicle list from D1...");
   const rows = await fetchVehicleRows();
   console.log(`Checking ${rows.length} vehicles' images for reachability (concurrency ${CONCURRENCY})...`);
@@ -163,8 +163,8 @@ async function main() {
 
   console.log(`\nDone. ${done} checked.`);
   console.log(`  Confirmed dead (genuine 404/410 on every candidate photo): ${deadIds.length}`);
-  console.log(`  Unknown (timeout/rate-limit/other — left untouched): ${unknownCount}`);
-  console.log(DRY_RUN ? `  Dry run — nothing written. Re-run with --write to clear the ${deadIds.length} confirmed-dead rows.` : `  Cleared in D1: ${totalCleared}`);
+  console.log(`  Unknown (timeout/rate-limit/other - left untouched): ${unknownCount}`);
+  console.log(DRY_RUN ? `  Dry run - nothing written. Re-run with --write to clear the ${deadIds.length} confirmed-dead rows.` : `  Cleared in D1: ${totalCleared}`);
 }
 
 main();

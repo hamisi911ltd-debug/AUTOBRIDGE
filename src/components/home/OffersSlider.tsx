@@ -13,23 +13,23 @@ const CARDS_PER_VIEW = 12; // divisible by both 2 (mobile) and 4 (sm:+) so a pag
 const MAX_OFFERS = 60;
 
 /**
- * A dedicated strip for standout-value vehicles — distinct from
+ * A dedicated strip for standout-value vehicles - distinct from
  * PromoShowcase's one-car-at-a-time hero, this reads as a classic "current
  * offers" rail: several deal cards visible at once, auto-advancing a page
  * at a time. No listing here actually carries a discount (nothing scraped
  * has real "was/now" pricing), so "offer" means the cheapest well-
- * photographed pick per make+model instead of a fabricated markdown badge —
+ * photographed pick per make+model instead of a fabricated markdown badge -
  * deliberately per-model (not per body type, which caps out around 7 cards
  * no matter how big the catalogue gets) so this rail can actually grow with
  * the inventory. The catalogue has far more distinct models than fit in
  * MAX_OFFERS, so instead of always showing the same globally-cheapest set,
  * a random sample is drawn from a generous good-value pool (3x the display
- * count) — a page refresh surfaces a different lineup rather than the
+ * count) - a page refresh surfaces a different lineup rather than the
  * identical one every visit, while still skewing toward the better deals
  * rather than being fully random.
  */
 function pickOffers(vehicles: PublicVehicle[], randomize: boolean): PublicVehicle[] {
-  // Each tile pitches one specific car's own price and photo — a stand-in
+  // Each tile pitches one specific car's own price and photo - a stand-in
   // photo borrowed from a different unit doesn't belong in a deals rail.
   const eligible = vehicles.filter((v) => v.eligible && v.imageUrl && !v.isRepresentativePhoto);
   const cheapestPerModel = new Map<string, PublicVehicle>();
@@ -52,12 +52,12 @@ function pickOffers(vehicles: PublicVehicle[], randomize: boolean): PublicVehicl
 export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]; goDetail: (id: string) => void }) {
   // Deterministic on the very first render (server and client must match to
   // avoid a hydration mismatch), then reshuffled once on the client right
-  // after mount — that reshuffle is what makes each page load look
+  // after mount - that reshuffle is what makes each page load look
   // different, without touching Math.random() during SSR.
   const [offers, setOffers] = useState(() => pickOffers(vehicles, false));
   useEffect(() => {
     setOffers(pickOffers(vehicles, true));
-    // Deliberately mount-only — re-shuffling every time `vehicles` merely
+    // Deliberately mount-only - re-shuffling every time `vehicles` merely
     // gets a fresh reference (same data) would visibly reorder the rail
     // mid-browse, which reads as a glitch rather than a refresh-only effect.
     // eslint-disable-next-line react-hooks/exhaustive-deps

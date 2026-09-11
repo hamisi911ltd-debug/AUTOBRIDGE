@@ -1,22 +1,22 @@
 import { IMPORT_ELIGIBLE_FROM_YEAR } from "@/lib/scrapers/normalize";
 
-// Ferbil Autos brand palette — matched to the logo's orange-to-magenta-to-
+// Ferbil Autos brand palette - matched to the logo's orange-to-magenta-to-
 // violet gradient. Key names (navy/gold/burgundy/...) are kept as-is even
 // though the actual hues moved, since hundreds of components reference
-// COLORS.navy etc. — renaming every key would mean touching every one of
+// COLORS.navy etc. - renaming every key would mean touching every one of
 // those call sites for no functional benefit; only the values needed to
 // change to retheme the whole site around the new logo.
 export const COLORS = {
-  navy: "#3B1F63", // deep violet — was navy blue; primary text/ink and dark UI surfaces
-  navyDeep: "#241142", // near-black violet — deepest gradient/shadow tone
+  navy: "#3B1F63", // deep violet - was navy blue; primary text/ink and dark UI surfaces
+  navyDeep: "#241142", // near-black violet - deepest gradient/shadow tone
   paper: "#FBF7F9", // warm near-white page background
   card: "#F4EEF6", // soft lavender card/pill background
-  burgundy: "#D6336C", // magenta from the logo's midtone — CTAs, prices, badges
-  gold: "#F2762E", // orange from the logo's top — accents, highlights
-  goldLight: "#FFA35C", // light orange — icon tint on dark surfaces
+  burgundy: "#D6336C", // magenta from the logo's midtone - CTAs, prices, badges
+  gold: "#F2762E", // orange from the logo's top - accents, highlights
+  goldLight: "#FFA35C", // light orange - icon tint on dark surfaces
   ink: "#3B1F63", // body text, same as navy
-  slate: "#6B5B7E", // muted violet-gray — secondary text
-  line: "#E9E1EF", // pale violet — borders/dividers
+  slate: "#6B5B7E", // muted violet-gray - secondary text
+  line: "#E9E1EF", // pale violet - borders/dividers
 } as const;
 
 export const FONT_DISPLAY = "var(--font-fraunces), Georgia, 'Times New Roman', serif";
@@ -25,7 +25,7 @@ export const FONT_BODY = "var(--font-inter), -apple-system, 'Segoe UI', sans-ser
 const CURRENT_YEAR = new Date().getFullYear();
 export const YEARS = Array.from({ length: CURRENT_YEAR - 2014 + 1 }, (_, i) => 2014 + i);
 
-// The brands Kenyan buyers actually shop for, in volume — used to curate
+// The brands Kenyan buyers actually shop for, in volume - used to curate
 // the homepage's promotional surfaces (hero posters, best-sellers header)
 // so they spotlight this lineup instead of whatever happens to have the
 // deepest scraped stock that week. The full catalogue with every brand

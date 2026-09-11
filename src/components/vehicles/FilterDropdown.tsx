@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { COLORS } from "@/lib/constants";
 
 /**
- * A single filter's button + popover panel — the building block of the
+ * A single filter's button + popover panel - the building block of the
  * horizontal filter bar. Active (count > 0) buttons fill navy so it's
  * obvious at a glance which filters are actually narrowing the results.
  * Closes on outside click, not on inner clicks, so checking several boxes

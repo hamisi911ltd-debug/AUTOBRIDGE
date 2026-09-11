@@ -7,17 +7,17 @@ const REQUEST_DELAY_MS = 1200;
 const COOLDOWN_ON_429_MS = 45_000;
 const MAX_429_COOLDOWNS = 4;
 const FLUSH_EVERY = 30;
-const MAX_PAGES_PER_MODEL = 15; // bumped from 10 — Jaguar/Hino still short of 500 after a full pass at depth 10
+const MAX_PAGES_PER_MODEL = 15; // bumped from 10 - Jaguar/Hino still short of 500 after a full pass at depth 10
 
 /**
  * Brands that were sitting well under 500 vehicles with no active scrape
- * queue — Ford, Volvo, Hyundai, Peugeot, Land Rover, Jaguar, Hino. Small
+ * queue - Ford, Volvo, Hyundai, Peugeot, Land Rover, Jaguar, Hino. Small
  * catalogs (Land Rover, Jaguar, Peugeot, Hino) get their FULL model list
  * since there aren't many to begin with; bigger ones (Hyundai, Volvo, Ford)
  * get a generous top slice by real BE FORWARD stock volume.
  */
 const BRANDS: { makeId: number; makeName: string; models: { id: number; name: string }[] }[] = [
-  // Volvo, Jaguar, Hino ordered first — confirmed via SQL that SBT Japan
+  // Volvo, Jaguar, Hino ordered first - confirmed via SQL that SBT Japan
   // sources these almost entirely through the dealer network that
   // cleanSbtImage() correctly filters (100% null imageUrl for Volvo/Jaguar
   // on SBT), so BE FORWARD is the only real path to more visible stock for
@@ -234,19 +234,19 @@ async function main() {
         if (listed === "rate-limited") {
           cooldowns++;
           if (cooldowns > MAX_429_COOLDOWNS) {
-            console.log(`Hit the rate limit ${cooldowns} times — stopping this run. Re-run later to continue from ${brand.makeName} ${model.name}.`);
+            console.log(`Hit the rate limit ${cooldowns} times - stopping this run. Re-run later to continue from ${brand.makeName} ${model.name}.`);
             await flushToD1(pending);
             totalUpserted += pending.length;
             console.log(`\nDone (rate-limit stop). ${totalUpserted} vehicles upserted, ${totalFound} total found.`);
             return;
           }
-          console.log(`  page ${page}: rate limited — cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
+          console.log(`  page ${page}: rate limited - cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
           await sleep(COOLDOWN_ON_429_MS);
           continue;
         }
 
         if (listed.length === 0) {
-          console.log(`  page ${page}: no listings — done with ${model.name}`);
+          console.log(`  page ${page}: no listings - done with ${model.name}`);
           break;
         }
         console.log(`  page ${page}: ${listed.length} eligible listings`);
@@ -258,13 +258,13 @@ async function main() {
           if (better === "rate-limited") {
             cooldowns++;
             if (cooldowns > MAX_429_COOLDOWNS) {
-              console.log(`Hit the rate limit ${cooldowns} times — stopping this run. Re-run later to continue from ${brand.makeName} ${model.name}.`);
+              console.log(`Hit the rate limit ${cooldowns} times - stopping this run. Re-run later to continue from ${brand.makeName} ${model.name}.`);
               await flushToD1(pending);
               totalUpserted += pending.length;
               console.log(`\nDone (rate-limit stop). ${totalUpserted} vehicles upserted, ${totalFound} total found.`);
               return;
             }
-            console.log(`  rate limited — cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
+            console.log(`  rate limited - cooling down ${COOLDOWN_ON_429_MS / 1000}s (${cooldowns}/${MAX_429_COOLDOWNS})...`);
             await sleep(COOLDOWN_ON_429_MS);
             continue;
           }

@@ -1,14 +1,14 @@
 import type { NextAuthConfig } from "next-auth";
 
 /**
- * Edge-safe base config (no Credentials provider here — that needs bcrypt +
+ * Edge-safe base config (no Credentials provider here - that needs bcrypt +
  * Prisma, which can't run in the Edge middleware runtime). middleware.ts
  * uses this directly; auth.ts extends it with the real provider for
  * Node-runtime contexts (route handlers, server components, server actions).
  */
 export const authConfig = {
   // Cloudflare Workers terminates the connection itself (no untrusted proxy
-  // in front), and the deployed host isn't known at build time — without
+  // in front), and the deployed host isn't known at build time - without
   // this, Auth.js rejects every request with "UntrustedHost".
   trustHost: true,
   session: { strategy: "jwt" },

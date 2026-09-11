@@ -7,7 +7,7 @@ export type CatalogueStats = {
 
 /**
  * Two cheap COUNT queries (not the full vehicle rows) for the homepage
- * promo banner's stats strip — real numbers, not a placeholder, matching
+ * promo banner's stats strip - real numbers, not a placeholder, matching
  * how the rest of the site avoids fabricated figures.
  */
 export async function getCatalogueStats(): Promise<CatalogueStats> {

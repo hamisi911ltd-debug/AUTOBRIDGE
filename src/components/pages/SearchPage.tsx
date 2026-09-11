@@ -17,11 +17,11 @@ import { Pagination } from "@/components/vehicles/Pagination";
 const PAGE_SIZE = 15;
 
 // Below this count, a shopper has likely found the right model but not
-// enough actual units to choose from — worth actively offering to go find
+// enough actual units to choose from - worth actively offering to go find
 // more, rather than leaving them to just scroll a short list.
 const FEW_RESULTS_THRESHOLD = 5;
 
-/** Plain-language summary of the active search, for the enquiry message — whatever the shopper actually typed/picked, not the raw filter object. */
+/** Plain-language summary of the active search, for the enquiry message - whatever the shopper actually typed/picked, not the raw filter object. */
 function describeSearch(filters: Filters): string {
   const parts: string[] = [];
   if (filters.makes.length > 0) parts.push(filters.makes.join(", "));
@@ -31,7 +31,7 @@ function describeSearch(filters: Filters): string {
   return parts.length > 0 ? parts.join(" · ") : "their current search";
 }
 
-/** Compact inline request card — asks us to source more of a model that's thin in stock right now, without leaving the search results. */
+/** Compact inline request card - asks us to source more of a model that's thin in stock right now, without leaving the search results. */
 function RequestMoreStock({ vehicleId, searchLabel }: { vehicleId: string; searchLabel: string }) {
   const [open, setOpen] = useState(false);
   const [sending, setSending] = useState(false);
@@ -150,7 +150,7 @@ export function SearchPage({
     const allSourceCountries = Object.keys(sourceCountryCounts).sort((a, b) => sourceCountryCounts[b] - sourceCountryCounts[a]);
 
     // Same "Make Model" labels as allModels, just grouped under their own
-    // make instead of one long mixed list — lets the sidebar show models
+    // make instead of one long mixed list - lets the sidebar show models
     // nested under each make so finding one doesn't mean scanning past
     // every other brand's models first.
     const modelsByMake: Record<string, string[]> = {};
@@ -179,7 +179,7 @@ export function SearchPage({
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   useEffect(() => {
-    // Filters changed since the last page view — a stale page number could
+    // Filters changed since the last page view - a stale page number could
     // point past the end of the new (usually shorter) result set.
     setPage(1);
   }, [filters]);

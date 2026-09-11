@@ -13,7 +13,7 @@ import { Pagination } from "@/components/vehicles/Pagination";
 const PAGE_SIZE = 24;
 
 /**
- * The homepage's own catalogue grid — full width, no search bar or filter
+ * The homepage's own catalogue grid - full width, no search bar or filter
  * chips (those live on the dedicated Search page now); this is a fast,
  * uncluttered scan of live inventory right below the offers rail.
  */

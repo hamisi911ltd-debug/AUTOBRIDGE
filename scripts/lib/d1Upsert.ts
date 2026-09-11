@@ -90,8 +90,8 @@ export async function flushToD1(pending: PendingRow[]): Promise<void> {
   await writeFile(file, statements.join("\n"));
 
   // wrangler occasionally can't resolve Cloudflare's API host (transient DNS
-  // blip, not an auth/data problem — "your DB will return to its original
-  // state" per wrangler's own message on failure) — a bare crash here throws
+  // blip, not an auth/data problem - "your DB will return to its original
+  // state" per wrangler's own message on failure) - a bare crash here throws
   // away an entire multi-hour scrape run over one flaky request, so retry a
   // few times with backoff before actually giving up.
   let lastErr: unknown;
@@ -144,10 +144,10 @@ export async function countVehicles(): Promise<number> {
 /**
  * Runs an arbitrary read-only SELECT against the remote D1 and returns its
  * result rows. Deliberately goes through `--command` (one shell string via
- * execAsync), not `--file=` — on --remote, `--file=` reports run *stats*
+ * execAsync), not `--file=` - on --remote, `--file=` reports run *stats*
  * ("Rows read": N) rather than the actual result rows, which only
  * `--command` returns; see countVehicles just above for the same finding.
- * Callers should keep queries cheap (a WHERE + LIMIT) — D1's free tier
+ * Callers should keep queries cheap (a WHERE + LIMIT) - D1's free tier
  * bills every row a query touches against its daily read quota, not just
  * the rows returned; see the getPublicVehicles fix this backfill script
  * exists alongside for what an unindexed full-table read costs.
@@ -155,8 +155,8 @@ export async function countVehicles(): Promise<number> {
 export async function queryRows<T = Record<string, unknown>>(sql: string): Promise<T[]> {
   const cmd = `npx wrangler d1 execute ${DATABASE} --remote --json --command "${sql.replace(/"/g, '\\"')}"`;
   // Same transient-failure shape flushToD1 retries around ("your DB will
-  // return to its original state" — wrangler's own DNS/API blip, not a data
-  // problem) — a bare crash here otherwise kills an entire backfill run on
+  // return to its original state" - wrangler's own DNS/API blip, not a data
+  // problem) - a bare crash here otherwise kills an entire backfill run on
   // the very first flaky request.
   let lastErr: unknown;
   for (let attempt = 1; attempt <= 4; attempt++) {

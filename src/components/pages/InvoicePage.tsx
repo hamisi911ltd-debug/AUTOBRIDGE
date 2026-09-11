@@ -14,10 +14,10 @@ import { Pagination } from "@/components/vehicles/Pagination";
 // Same page size as the homepage's own catalogue grid.
 const PAGE_SIZE = 24;
 
-// The magenta/maroon of Ferbil Interfreight's printed invoice — used for the
+// The magenta/maroon of Ferbil Interfreight's printed invoice - used for the
 // INVOICE block, the line-item table header and the footer band.
 const MAROON = "#8B2A5B";
-// The site's own orange-to-magenta-to-violet logo sweep — kept for the mark
+// The site's own orange-to-magenta-to-violet logo sweep - kept for the mark
 // and the thin top/bottom accents so the document still reads as ours.
 const BRAND_GRADIENT = "linear-gradient(90deg, #F2762E 0%, #D6336C 50%, #3B1F63 100%)";
 
@@ -26,11 +26,11 @@ function usd(n: number): string {
 }
 
 /**
- * The customer-facing **proforma invoice** — vehicle CIF (cost, insurance &
+ * The customer-facing **proforma invoice** - vehicle CIF (cost, insurance &
  * freight to Mombasa) only, all in USD, laid out and branded like Ferbil
  * Interfreight's own invoice (maroon INVOICE block, company + NCBA bank
  * block, maroon line-item table). Sized deliberately small/compact on
- * mobile — every font size and padding below carries a smaller mobile value
+ * mobile - every font size and padding below carries a smaller mobile value
  * and a larger `sm:` one, not the other way round, since this is viewed on a
  * phone screen far more than a desktop one.
  *
@@ -40,16 +40,16 @@ function usd(n: number): string {
  * with the confirmed tax lines once that figure is known.
  *
  * Two steps from here, both starting from a picked vehicle:
- *  1. "Send invoice to" — a short compulsory form (who it's for) that gates
- *     the document. Filling it does NOT file an enquiry or open WhatsApp —
+ *  1. "Send invoice to" - a short compulsory form (who it's for) that gates
+ *     the document. Filling it does NOT file an enquiry or open WhatsApp -
  *     it only unlocks the CIF invoice below, instantly.
- *  2. Once viewing it, requesting the *other* document — the final invoice
- *     that adds KRA duty/excise/VAT and Ferbil's in-house clearing — is what
+ *  2. Once viewing it, requesting the *other* document - the final invoice
+ *     that adds KRA duty/excise/VAT and Ferbil's in-house clearing - is what
  *     actually files an enquiry (that one can't be shown instantly since
  *     it's prepared by the team, so it's a request, not something rendered
  *     here).
  *
- * With nothing selected it's just the homepage browsing grid — a car is
+ * With nothing selected it's just the homepage browsing grid - a car is
  * picked, and its invoice requested, through the familiar detail page.
  */
 export function InvoicePage({
@@ -66,11 +66,11 @@ export function InvoicePage({
   const [selectedId, setSelectedId] = useState<string | null>(preselectedId);
   const [page, setPage] = useState(1);
   const [sending, setSending] = useState(false);
-  // Gates the invoice document — set once the "Send invoice to" form is
+  // Gates the invoice document - set once the "Send invoice to" form is
   // submitted. Also supplies the "Bill to" name/contact on the document.
   const [lead, setLead] = useState<{ name: string; phone: string; email: string } | null>(null);
   // Set only once the *separate* clearance-invoice request below actually
-  // files an enquiry — distinct from `lead`, which never does.
+  // files an enquiry - distinct from `lead`, which never does.
   const [clearanceRequested, setClearanceRequested] = useState(false);
 
   const vehicle = vehicles.find((v) => v.id === selectedId) || null;
@@ -118,7 +118,7 @@ export function InvoicePage({
   const insurance = landed ? landed.insurance : vehicle.insuranceUsd;
   const cifTotal = vehiclePrice + freight + insurance;
 
-  // Only the fields that matter on an import invoice — identity, powertrain,
+  // Only the fields that matter on an import invoice - identity, powertrain,
   // condition. Seats/doors/dimensions/version/location are dropped.
   const specRows: [string, string][] = (
     [
@@ -137,7 +137,7 @@ export function InvoicePage({
     ] as [string, string | null | undefined][]
   ).filter(([, v]) => v !== null && v !== undefined && v !== "") as [string, string][];
 
-  /** Unlocks the invoice document — purely local, never files an enquiry. */
+  /** Unlocks the invoice document - purely local, never files an enquiry. */
   function submitDeliveryForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
@@ -147,13 +147,13 @@ export function InvoicePage({
     setLead({ name, phone, email });
   }
 
-  /** The actual enquiry-filing action — requests the final invoice that
+  /** The actual enquiry-filing action - requests the final invoice that
    * includes clearance, reusing the contact details already on `lead`. */
   async function requestClearanceInvoice() {
     if (!vehicle || !lead) return;
     setSending(true);
     try {
-      const message = `[Invoice ${invoiceNo} issued, CIF ${usd(cifTotal)} — customer requests final invoice incl. KRA duty/excise/VAT + in-house clearing]`;
+      const message = `[Invoice ${invoiceNo} issued, CIF ${usd(cifTotal)} - customer requests final invoice incl. KRA duty/excise/VAT + in-house clearing]`;
       await fetch("/api/enquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -166,7 +166,7 @@ export function InvoicePage({
         `Name: ${lead.name}`,
         `Phone: ${lead.phone}`,
         lead.email ? `Email: ${lead.email}` : null,
-        `Please send the final invoice — KRA duty, excise & VAT, plus your in-house clearing.`,
+        `Please send the final invoice - KRA duty, excise & VAT, plus your in-house clearing.`,
       ]
         .filter(Boolean)
         .join("\n");
@@ -211,7 +211,7 @@ export function InvoicePage({
             Send invoice to
           </div>
           <div className="text-xs sm:text-sm mb-3 sm:mb-4" style={{ color: COLORS.slate }}>
-            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim} — enter who this CIF invoice (vehicle,
+            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim} - enter who this CIF invoice (vehicle,
             freight &amp; insurance to Mombasa, USD) is for, then view it below.
           </div>
           <form className="grid gap-2 sm:gap-3" onSubmit={submitDeliveryForm}>
@@ -232,7 +232,7 @@ export function InvoicePage({
           <div id="invoice-document" className="bg-white rounded-xl border overflow-hidden text-[10px] sm:text-[12px]" style={{ borderColor: MAROON }}>
             <div className="h-1 sm:h-1.5" style={{ background: BRAND_GRADIENT }} />
 
-            {/* Header — solid maroon INVOICE block + company box on the right. */}
+            {/* Header - solid maroon INVOICE block + company box on the right. */}
             <div className="flex items-stretch">
               <div className="flex flex-col justify-center px-3 sm:px-7 py-3 sm:py-5 w-[38%]" style={{ background: MAROON }}>
                 <span className="text-lg sm:text-3xl font-extrabold text-white tracking-wide leading-none" style={{ fontFamily: FONT_DISPLAY }}>
@@ -256,7 +256,7 @@ export function InvoicePage({
             </div>
 
             <div className="p-2.5 sm:p-5 space-y-2 sm:space-y-3">
-              {/* Bill-to + invoice meta — two matching boxes. */}
+              {/* Bill-to + invoice meta - two matching boxes. */}
               <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <Box title="Bill to">
                   {lead.name ? (
@@ -283,9 +283,9 @@ export function InvoicePage({
                 </Box>
               </div>
 
-              {/* Total — the one and only figure on this document, no
+              {/* Total - the one and only figure on this document, no
                  vehicle/freight/insurance breakdown. */}
-              <Box title="Total — CIF Mombasa (USD)">
+              <Box title="Total - CIF Mombasa (USD)">
                 <div className="flex items-center justify-between gap-2 sm:gap-3">
                   <div className="text-[8px] sm:text-[11px]" style={{ color: COLORS.slate }}>
                     Vehicle, ocean freight &amp; marine insurance to Mombasa, all-in.
@@ -309,7 +309,7 @@ export function InvoicePage({
               </Box>
 
               {/* Bank box. */}
-              <Box title="Payment — NCBA USD account">
+              <Box title="Payment - NCBA USD account">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-2.5 sm:gap-x-4 gap-y-1 sm:gap-y-1.5">
                   {BANK_DETAILS.map((b) => (
                     <Row key={b.label} k={b.label} v={b.value} />
@@ -318,9 +318,9 @@ export function InvoicePage({
               </Box>
 
               <p className="text-[7px] sm:text-[9px] leading-relaxed" style={{ color: COLORS.slate }}>
-                Proforma — CIF Mombasa, all amounts in USD. KRA import duty, excise, VAT, IDF, RDL and registration are
-                not included; request below for a final invoice with those confirmed, plus clearing — handled
-                entirely in-house by {COMPANY.name}, no third-party agent. Not a demand for payment — settle only
+                Proforma - CIF Mombasa, all amounts in USD. KRA import duty, excise, VAT, IDF, RDL and registration are
+                not included; request below for a final invoice with those confirmed, plus clearing - handled
+                entirely in-house by {COMPANY.name}, no third-party agent. Not a demand for payment - settle only
                 against a final invoice confirmed by {COMPANY.name}.
               </p>
             </div>
@@ -331,7 +331,7 @@ export function InvoicePage({
           <div className="invoice-no-print mt-3 sm:mt-4">
             {clearanceRequested ? (
               <div className="flex items-center gap-2 text-xs sm:text-sm font-medium py-2" style={{ color: MAROON }}>
-                <CheckCircle2 size={17} /> Requested. We&apos;ll follow up with the invoice that includes clearance —
+                <CheckCircle2 size={17} /> Requested. We&apos;ll follow up with the invoice that includes clearance -
                 KRA duty, excise &amp; VAT, plus in-house clearing.
               </div>
             ) : (
@@ -341,7 +341,7 @@ export function InvoicePage({
                 </div>
                 <div className="text-xs mb-3" style={{ color: COLORS.slate }}>
                   Request the final invoice with KRA duty, excise &amp; VAT plus {COMPANY.name}&apos;s in-house
-                  clearing — no third-party agent.
+                  clearing - no third-party agent.
                 </div>
                 <button
                   onClick={requestClearanceInvoice}

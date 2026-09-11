@@ -8,7 +8,7 @@ const CONSENT_KEY = "ferbil:consent:v1";
 
 /**
  * Blocks the storefront behind a full-screen overlay until the visitor
- * accepts the privacy policy — checked once on mount so there's no flash on
+ * accepts the privacy policy - checked once on mount so there's no flash on
  * repeat visits once accepted. Scoped to AutoBridgeApp only (not rendered in
  * the root layout), so it never appears over /admin or /login.
  */
@@ -19,7 +19,7 @@ export function ConsentGate() {
     try {
       setAccepted(localStorage.getItem(CONSENT_KEY) === "1");
     } catch {
-      // localStorage unavailable — fail open rather than block the site.
+      // localStorage unavailable - fail open rather than block the site.
       setAccepted(true);
     }
   }, []);
@@ -29,7 +29,7 @@ export function ConsentGate() {
     try {
       localStorage.setItem(CONSENT_KEY, "1");
     } catch {
-      // Nothing to persist to — the gate will just show again next visit.
+      // Nothing to persist to - the gate will just show again next visit.
     }
   }
 

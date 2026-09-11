@@ -11,10 +11,10 @@ const BRAND_GRADIENT = "linear-gradient(135deg, #3B1F63 0%, #D6336C 55%, #F2762E
 /**
  * Detail-page photo slideshow: a big main slide, arrow + dot navigation, a
  * clickable thumbnail strip, and gentle auto-advance that pauses on
- * hover/touch — mirrors the interaction pattern already used by the
+ * hover/touch - mirrors the interaction pattern already used by the
  * homepage's PromoShowcase carousel. Falls back to a single placeholder
  * icon when a vehicle has no photos at all. `images` should only ever be
- * this exact vehicle's own real photos (other angles/features) — never
+ * this exact vehicle's own real photos (other angles/features) - never
  * photos borrowed from a similar unit, which would misrepresent the car a
  * visitor is about to enquire about.
  */
@@ -83,7 +83,7 @@ export function VehicleGallery({
       >
         {index < images.length && !loadedIdx.has(index) && <div className="absolute inset-0 img-shimmer" />}
         {visibleIndices.map((i) => (
-          // object-cover, no letterbox gaps — the aspect-[4/3] box above
+          // object-cover, no letterbox gaps - the aspect-[4/3] box above
           // already closely matches typical car-listing photos, so this
           // only crops a sliver off the edges.
           // eslint-disable-next-line @next/next/no-img-element -- external R2 CDN
@@ -170,7 +170,7 @@ export function VehicleGallery({
                 loading="lazy"
                 onError={(e) => {
                   // Not every source photo actually has a downsized variant
-                  // on disk — fall back to the original full-size URL rather
+                  // on disk - fall back to the original full-size URL rather
                   // than show a broken thumbnail.
                   const img = e.currentTarget;
                   if (img.src !== src) img.src = src;

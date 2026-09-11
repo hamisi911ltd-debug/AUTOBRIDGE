@@ -28,14 +28,14 @@ export function HomePage({
   goSearch: (patch: Partial<Filters>) => void;
   reviews: PublicReview[];
 }) {
-  // "Featured" needs a real, sharp photo to actually feature — a badge alone
+  // "Featured" needs a real, sharp photo to actually feature - a badge alone
   // isn't enough (hand-entered listings carry badges but no photo), so this
   // ranks by photo quality first and price second rather than filtering on
   // `badge`, which used to let unphotographed vehicles through.
   const featured = vehicles
     .filter((v) => v.eligible && v.imageUrl)
     .sort((a, b) => Number(b.hqImage) - Number(a.hqImage) || b.sellingPriceUsd - a.sellingPriceUsd)
-    .slice(0, 48); // multiple of 3/4/6 — the carousel scales up to 6-across, so a clean multiple avoids a dangling gap in the last page
+    .slice(0, 48); // multiple of 3/4/6 - the carousel scales up to 6-across, so a clean multiple avoids a dangling gap in the last page
 
   return (
     <div>

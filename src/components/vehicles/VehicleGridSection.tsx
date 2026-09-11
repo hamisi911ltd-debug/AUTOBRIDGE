@@ -9,7 +9,7 @@ import { VehicleCard } from "@/components/vehicles/VehicleCard";
 const CARDS_PER_VIEW = 24; // divisible by 2 (mobile), 4 (sm:) and 6 (lg:) so a page always fills evenly at every size
 const SLIDE_MS = 4200;
 
-/** Auto-advancing, as many cards per page as the viewport allows — same sliding-page pattern as the homepage's "Current offers" rail. */
+/** Auto-advancing, as many cards per page as the viewport allows - same sliding-page pattern as the homepage's "Current offers" rail. */
 export function VehicleGridSection({
   title,
   subtitle,

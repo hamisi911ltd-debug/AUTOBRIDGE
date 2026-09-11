@@ -17,7 +17,7 @@ export default async function AdminVehiclesPage({
 
   const where: Prisma.VehicleWhereInput = {};
   if (q) {
-    // "Toyota Noah" as one query used to fail even when the vehicle exists —
+    // "Toyota Noah" as one query used to fail even when the vehicle exists -
     // make and model are separate columns, so no single field ever contained
     // the whole two-word string. Splitting into words and requiring each one
     // to match SOMEWHERE (any field, independently) fixes that, and also

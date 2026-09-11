@@ -5,7 +5,7 @@ import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 
 /**
  * Small-N categorical proportion chart (source mix, eligibility split, etc).
- * Kept to a handful of segments by design — a pie/donut stops being readable
+ * Kept to a handful of segments by design - a pie/donut stops being readable
  * past 5-6 slices, at which point a sorted bar chart (see BarChart) is the
  * right call instead. Center label swaps to the hovered/tapped segment;
  * legend rows share the same hover state so either side highlights the arc.

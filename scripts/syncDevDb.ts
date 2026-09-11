@@ -9,7 +9,7 @@ const DATABASE = "autobridge-kenya-db";
 
 /**
  * Next.js prerenders the homepage at build time using the local dev.db
- * fallback (see src/lib/prisma.ts), not live D1 — so a build run right after
+ * fallback (see src/lib/prisma.ts), not live D1 - so a build run right after
  * a scrape batch would still ship the pre-batch vehicle count until ISR
  * catches up. This pulls every Vehicle row from remote D1 and replaces the
  * local dev.db copy so `next build` prerenders against current data.
@@ -17,7 +17,7 @@ const DATABASE = "autobridge-kenya-db";
  * Writes via better-sqlite3 directly rather than the generated Prisma
  * client: the schema's generator is pinned to `runtime = "workerd"` for the
  * deployed D1 adapter, and that wasm-engine client fails to load outside an
- * actual workerd process ("wasm module unexpectedly undefined") — raw SQL
+ * actual workerd process ("wasm module unexpectedly undefined") - raw SQL
  * against the same file sidesteps that entirely.
  */
 async function fetchRemoteVehicles(): Promise<Record<string, unknown>[]> {

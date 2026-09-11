@@ -6,12 +6,12 @@ const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 
 // Dubicars' "export cars" category lists every make together on one
-// page=N sequence (no per-make URL, unlike beforward/sbtjapan) — 331 pages
+// page=N sequence (no per-make URL, unlike beforward/sbtjapan) - 331 pages
 // / ~15,000 listings as of the last check. Rather than add a second
 // orchestration shape alongside the site+makeIndex+page model the
 // cron-worker and admin panel already loop over, PAGE_COUNT vehicles worth
 // of pages are exposed as "makes" here: makeIndex N simply means page N+1.
-// Kept modest deliberately — the site occasionally serves a Cloudflare bot
+// Kept modest deliberately - the site occasionally serves a Cloudflare bot
 // challenge instead of the real page, so wide, slow coverage beats trying
 // to grab everything in one run.
 export const DUBICARS_PAGE_COUNT = 331;
@@ -41,7 +41,7 @@ function extractCarJsonLd(html: string): Record<string, unknown> | null {
       const car = graph.find((g: Record<string, unknown>) => typeof g["@id"] === "string" && (g["@id"] as string).includes("#car"));
       if (car) return car;
     } catch {
-      // malformed block — try the next one
+      // malformed block - try the next one
     }
   }
   return null;
@@ -82,7 +82,7 @@ function parseVehicleFromDetail(html: string, detailUrl: string): ScrapedVehicle
   const car = extractCarJsonLd(html);
   if (!car) return null;
 
-  // Kenya drives on the left, so only right-hand-drive stock is buyable —
+  // Kenya drives on the left, so only right-hand-drive stock is buyable -
   // Dubicars is one of the few sources that states this directly rather
   // than needing it inferred.
   if (car.steeringPosition !== "https://schema.org/RightHandDriving") return null;
@@ -92,7 +92,7 @@ function parseVehicleFromDetail(html: string, detailUrl: string): ScrapedVehicle
 
   const offers = car.offers as { price?: string; priceCurrency?: string } | undefined;
   const rawPrice = parseFloat(offers?.price ?? "0");
-  if (!rawPrice) return null; // "price on request" listings — nothing to show
+  if (!rawPrice) return null; // "price on request" listings - nothing to show
   const sourcePriceUsd = Math.round(offers?.priceCurrency === "AED" ? rawPrice * AED_TO_USD : rawPrice);
   if (!sourcePriceUsd) return null;
 
@@ -106,7 +106,7 @@ function parseVehicleFromDetail(html: string, detailUrl: string): ScrapedVehicle
   const modelName = titleCase(modelSlug.replace(/-/g, " "));
 
   // Dubicars' "name" field is the full listing title (e.g. "Toyota Hilux
-  // ADVENTURE", occasionally prefixed "New ...") — strip the make/model
+  // ADVENTURE", occasionally prefixed "New ...") - strip the make/model
   // words already captured above and keep whatever's left as the trim.
   const nameWords = String(car.name ?? "")
     .replace(/^New\s+/i, "")
@@ -169,9 +169,9 @@ function extractDetailUrls(listHtml: string): string[] {
  * Scrapes one page (~30 listings) of Dubicars' UAE export-cars category:
  * fetches the search-results page for its list of detail-page URLs (the
  * visible card grid itself is client-rendered, but this JSON-LD block is
- * server-rendered), then fetches each detail page — which *is* fully
+ * server-rendered), then fetches each detail page - which *is* fully
  * server-rendered with a schema.org Car/Product block carrying price,
- * specs and a real photo — one at a time.
+ * specs and a real photo - one at a time.
  */
 export async function scrapeDubicarsUnit(makeIndex: number): Promise<ScrapedVehicle[]> {
   const entry = DUBICARS_MAKES[makeIndex];
@@ -197,7 +197,7 @@ export async function scrapeDubicarsUnit(makeIndex: number): Promise<ScrapedVehi
   for (const url of detailUrls) {
     try {
       const html = await fetchText(url);
-      if (isBotChallenge(html)) continue; // transient — the local backfill sweep re-tries these later
+      if (isBotChallenge(html)) continue; // transient - the local backfill sweep re-tries these later
       const vehicle = parseVehicleFromDetail(html, url);
       if (vehicle) vehicles.push(vehicle);
     } catch (err) {

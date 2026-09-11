@@ -12,7 +12,7 @@ export function whatsAppLink(message: string): string {
  * more photos") ends up as the admin's own notification, since there's no
  * server-side WhatsApp API here, only this wa.me deep-link pattern. Reusing
  * one detail block everywhere means the admin always gets the same full
- * picture, and always gets a link straight to the vehicle in /admin — from
+ * picture, and always gets a link straight to the vehicle in /admin - from
  * there the existing "Original listing" link tracks it back to the
  * exporter's own page, which is why this only needs to carry the internal
  * admin link, not the source URL itself (that stays out of anything a

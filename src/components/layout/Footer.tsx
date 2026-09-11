@@ -9,14 +9,14 @@ import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { Page } from "@/components/AutoBridgeApp";
 
 const GRADIENT = "linear-gradient(90deg, #F2762E 0%, #D6336C 50%, #3B1F63 100%)";
-// Orange-themed footer — white at full and reduced opacity reads cleanly on
+// Orange-themed footer - white at full and reduced opacity reads cleanly on
 // the solid COLORS.gold background this now uses (the navy-tuned muted
 // grays it had before were sized for a dark navy footer, not orange).
 const MUTED = "rgba(255,255,255,0.85)";
 const FAINT = "rgba(255,255,255,0.65)";
 
 /**
- * No gap above or below — sits flush against the page content, and its own
+ * No gap above or below - sits flush against the page content, and its own
  * bottom padding (not blank page background) is what clears the fixed
  * mobile BottomNav, so that clearance reads as more footer, not empty
  * space. Always anchored to the true bottom of the viewport: the page
@@ -37,8 +37,8 @@ export function Footer({
 
   return (
     <footer className="text-white pb-16 md:pb-0" style={{ background: COLORS.gold }}>
-      {/* Mobile: one compact block — logo, a single row of links, phone &
-         email — instead of the full 3-section desktop layout stacked tall. */}
+      {/* Mobile: one compact block - logo, a single row of links, phone &
+         email - instead of the full 3-section desktop layout stacked tall. */}
       <div className="sm:hidden max-w-7xl mx-auto px-4 py-3.5">
         <div className="flex items-center gap-2 mb-2">
           <div className="w-7 h-7 rounded-md shrink-0" style={{ background: GRADIENT }} />
@@ -81,7 +81,7 @@ export function Footer({
             </span>
           </div>
           <p className="text-xs leading-relaxed" style={{ color: MUTED }}>
-            Kenya&apos;s vehicle import marketplace — real, import-eligible cars sourced from Japan and the UAE, landed
+            Kenya&apos;s vehicle import marketplace - real, import-eligible cars sourced from Japan and the UAE, landed
             and cleared in-house.
           </p>
           <a

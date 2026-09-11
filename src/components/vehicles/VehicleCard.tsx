@@ -6,7 +6,7 @@ import { computeFreightUsd } from "@/lib/landedCost";
 import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { PublicVehicle } from "@/types/vehicle";
 
-/** Photo-forward card — name and price only; everything else (mileage, transmission, fuel, specs) shows once you click through to the detail page. */
+/** Photo-forward card - name and price only; everything else (mileage, transmission, fuel, specs) shows once you click through to the detail page. */
 export function VehicleCard({
   vehicle: v,
   onView,
@@ -14,11 +14,11 @@ export function VehicleCard({
 }: {
   vehicle: PublicVehicle;
   onView: () => void;
-  /** Eager/high-priority load — pass true only for a genuinely above-the-fold card (e.g. the first in a grid). */
+  /** Eager/high-priority load - pass true only for a genuinely above-the-fold card (e.g. the first in a grid). */
   priority?: boolean;
 }) {
-  // The card's own headline number is the full total a buyer would pay —
-  // vehicle price + freight + insurance — not the bare vehicle price alone,
+  // The card's own headline number is the full total a buyer would pay -
+  // vehicle price + freight + insurance - not the bare vehicle price alone,
   // so it never reads as cheaper than what the detail/quote pages show.
   const totalUsd = v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd;
 

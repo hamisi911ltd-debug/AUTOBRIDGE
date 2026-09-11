@@ -8,7 +8,7 @@ const ORANGE = "#F2782E";
 const SLIDE_MS = 3800;
 
 // Four real stages, four real photos. Shown one at a time with a cross-fade
-// + rise-in on the caption, not a static 4-up grid — each stage gets a real
+// + rise-in on the caption, not a static 4-up grid - each stage gets a real
 // moment on screen instead of competing for attention all at once.
 const STEPS = [
   {

@@ -5,7 +5,7 @@ import { matchVehicles } from "@/lib/assistant";
 import { formatKes } from "@/lib/format";
 
 // Same default rate the storefront starts with (AutoBridgeApp's initial fx
-// state) — this endpoint doesn't know the visitor's live exchange-rate
+// state) - this endpoint doesn't know the visitor's live exchange-rate
 // input, so candidate prices shown to the LLM use this fixed baseline
 // rather than guessing.
 const DEFAULT_FX = 129;
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 // The LLM is deliberately never given individual vehicle names/prices to
-// restate — a real test caught it inventing a "2019 Honda Grace LX" that
+// restate - a real test caught it inventing a "2019 Honda Grace LX" that
 // didn't exist while still linking the correct (unrelated) real vehicle ID,
 // a classic hallucination that would misinform a buyer about a specific
 // car. The clickable cards below the reply already render the real make,
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "message is required" }, { status: 400 });
   }
 
-  // Unbounded on purpose — Ferbot needs to search the real, full catalogue.
+  // Unbounded on purpose - Ferbot needs to search the real, full catalogue.
   // A bounded "recent" window (fine for the homepage's promo sections) can
   // easily lack a given body type or budget range entirely if the newest
   // scraped batch happens to skew toward other categories, which is what
@@ -52,13 +52,13 @@ export async function POST(req: Request) {
   for (const v of vehicles) landedMap[v.id] = computeLandedCost(v, DEFAULT_FX);
 
   // The deterministic local matcher still decides WHICH real vehicles get
-  // linked below the reply — the LLM only writes the words around them, so
+  // linked below the reply - the LLM only writes the words around them, so
   // a hallucinated car can never make it into the response as a clickable
   // result, only into prose (which the system prompt forbids).
   const localMatch = matchVehicles(message, vehicles, landedMap);
   const candidates = vehicles.filter((v) => localMatch.vehicleIds.includes(v.id));
 
-  // A summary only, never itemized vehicle facts — see the note on
+  // A summary only, never itemized vehicle facts - see the note on
   // SYSTEM_PROMPT above for why.
   let vehicleContext: string;
   if (candidates.length === 0) {
@@ -102,7 +102,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ reply: reply || localMatch.reply, vehicleIds: localMatch.vehicleIds });
   } catch {
-    // Network hiccup, timeout, or malformed response from the LLM provider —
+    // Network hiccup, timeout, or malformed response from the LLM provider -
     // the chat should never just break, so fall back to the deterministic
     // local answer instead of surfacing an error to the visitor.
     return NextResponse.json({ reply: localMatch.reply, vehicleIds: localMatch.vehicleIds });

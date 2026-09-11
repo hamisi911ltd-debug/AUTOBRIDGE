@@ -90,7 +90,7 @@ function parseYearFilter(text: string): YearFilter | null {
 type MakeModelMatch = { make?: string; model?: string };
 
 /** Matches an explicit make (always) and, only once a make is confirmed or
- * the model name is distinctive enough on its own, a model — this avoids a
+ * the model name is distinctive enough on its own, a model - this avoids a
  * short common word like a model named "Fit" or "Note" matching by itself
  * inside ordinary sentences ("a car that will fit my family"). */
 function detectMakeModel(text: string, vehicles: AssistantVehicle[]): MakeModelMatch {
@@ -131,7 +131,7 @@ function detectMakeModel(text: string, vehicles: AssistantVehicle[]): MakeModelM
     return { make: matchedMake, model: matchedModel };
   }
 
-  // No make mentioned — only trust a model name on its own if it's long
+  // No make mentioned - only trust a model name on its own if it's long
   // enough to be unlikely to collide with ordinary English words.
   let bestMake: string | undefined;
   let bestModel: string | undefined;
@@ -151,7 +151,7 @@ function detectMakeModel(text: string, vehicles: AssistantVehicle[]): MakeModelM
 }
 
 /**
- * Local, rule-based inventory matcher — no external LLM call. Runs entirely
+ * Local, rule-based inventory matcher - no external LLM call. Runs entirely
  * client-side against the vehicle list already loaded on the page.
  */
 export function matchVehicles(

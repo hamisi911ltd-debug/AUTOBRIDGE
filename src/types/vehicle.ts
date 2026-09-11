@@ -1,5 +1,5 @@
 /**
- * The customer-facing vehicle shape. `sourcePriceUsd` never appears here —
+ * The customer-facing vehicle shape. `sourcePriceUsd` never appears here -
  * only `sellingPriceUsd` (source cost + pricing-engine markup) is sent to
  * any non-admin page, per the Model 1 reseller pricing decision.
  */
@@ -19,12 +19,12 @@ export type PublicVehicle = {
   color: string;
   sourceCountry: string;
   sellingPriceUsd: number;
-  // Insurance estimate for the freight+insurance line — computed server-side
+  // Insurance estimate for the freight+insurance line - computed server-side
   // from the real sourcePriceUsd before it's stripped, since it depends on
   // the hidden source price rather than anything public.
   insuranceUsd: number;
   // True when sellingPriceUsd already has freight baked in (SBT Japan's own
-  // C&F-to-Mombasa "Total Price") — computeLandedCost must not add freight
+  // C&F-to-Mombasa "Total Price") - computeLandedCost must not add freight
   // again on top, or the total double-counts shipping.
   freightIncluded: boolean;
   imageUrl: string | null;
@@ -32,11 +32,11 @@ export type PublicVehicle = {
   // Empty when the vehicle only has a single cover photo.
   imageUrls: string[];
   // True when a real multi-photo gallery was fetched for this vehicle
-  // (rather than just a single listing thumbnail) — lets image-heavy
+  // (rather than just a single listing thumbnail) - lets image-heavy
   // sections (promo carousel, featured grid) prefer the sharpest photos.
   hqImage: boolean;
   // True when imageUrl/imageUrls were borrowed from another in-stock unit of
-  // the same make+model (this exact unit has no photo of its own yet) — the
+  // the same make+model (this exact unit has no photo of its own yet) - the
   // UI must label this clearly rather than presenting it as this car's photo.
   isRepresentativePhoto: boolean;
   condition: string;
@@ -44,7 +44,7 @@ export type PublicVehicle = {
   lifestyle: string[];
   eligible: boolean;
   ineligibleReason: string | null;
-  // Extended spec sheet — populated for BE FORWARD listings scraped after
+  // Extended spec sheet - populated for BE FORWARD listings scraped after
   // this field set was added; older rows and other sources leave these null.
   refNo: string | null;
   chassisNo: string | null;

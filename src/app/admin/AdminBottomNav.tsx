@@ -18,7 +18,7 @@ const MORE = [
 ];
 
 /**
- * Admin's mobile nav — same bottom-bar pattern as the public site. Only the
+ * Admin's mobile nav - same bottom-bar pattern as the public site. Only the
  * 3 most-used sections get a direct slot; everything else sits behind a
  * "+" that pops up a sheet rather than cramming 6 icons into one bar.
  */

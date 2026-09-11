@@ -17,7 +17,7 @@ const RELOAD_KEY = "ab_reloaded_for";
  *   two-second "updating" strip first so a reload never happens mid-tap
  *
  * `location.reload()` re-requests the HTML (served no-store), which points at
- * the new content-hashed chunks — so this also clears any stale cached JS.
+ * the new content-hashed chunks - so this also clears any stale cached JS.
  */
 export function VersionWatcher() {
   const [updating, setUpdating] = useState(false);
@@ -31,7 +31,7 @@ export function VersionWatcher() {
         if (sessionStorage.getItem(RELOAD_KEY) === serverId) return; // already reloaded for this id
         sessionStorage.setItem(RELOAD_KEY, serverId);
       } catch {
-        /* private mode / storage blocked — still fine to reload */
+        /* private mode / storage blocked - still fine to reload */
       }
       window.location.reload();
     }
@@ -55,7 +55,7 @@ export function VersionWatcher() {
           setTimeout(reloadOnce, 2000);
         }
       } catch {
-        /* offline / transient — try again next tick */
+        /* offline / transient - try again next tick */
       } finally {
         busy.current = false;
       }

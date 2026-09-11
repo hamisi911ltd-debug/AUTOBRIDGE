@@ -6,24 +6,24 @@ import type { PublicVehicle } from "@/types/vehicle";
 /**
  * Fetches vehicles (optionally capped via `opts.limit`, newest first) and
  * the active pricing rules, resolves each vehicle's selling price
- * server-side, and strips sourcePriceUsd before returning — no
+ * server-side, and strips sourcePriceUsd before returning - no
  * customer-facing code path ever sees the source cost.
  *
- * Every eligible vehicle with a live photo is a candidate — photo
+ * Every eligible vehicle with a live photo is a candidate - photo
  * *resolution* still isn't gated on (a smaller photo beats none), but a
  * vehicle with no reachable photo at all is excluded from browsing, since a
  * customer picking a specific car shouldn't be shown a branded placeholder
  * in its place. `scripts/verifyImageReachability.ts` is what actually
  * clears `imageUrl` to null for vehicles whose source photo has gone dead
- * (the listing itself got delisted) — this query just respects that.
+ * (the listing itself got delisted) - this query just respects that.
  *
- * Unbounded, this runs to 27,000+ rows — too large to embed in every page's
+ * Unbounded, this runs to 27,000+ rows - too large to embed in every page's
  * initial payload. The homepage calls this with a `limit` (freshest-first,
  * plenty for the promo/browse sections); `/api/vehicles/full` calls it
  * unbounded for Search and Ferbot, which genuinely need the whole catalogue,
  * fetched lazily only once those are actually used.
  *
- * Every vehicle shows only its own real photo, or none at all — an earlier
+ * Every vehicle shows only its own real photo, or none at all - an earlier
  * version borrowed a same-model unit's sharper photo as a labeled "stand-in"
  * for photo-less/blurry listings, but that read as misleading (a shopper
  * deciding on a specific car shouldn't be shown a different unit's photo).
@@ -31,7 +31,7 @@ import type { PublicVehicle } from "@/types/vehicle";
  * branded placeholder instead. Genuinely low-quality photos (under 500px)
  * are pruned from the catalogue directly rather than patched over here.
  */
-// Only the columns the code below actually reads — sourceSite, externalId,
+// Only the columns the code below actually reads - sourceSite, externalId,
 // sourceUrl, lastScrapedAt, updatedAt were being pulled and transferred out
 // of D1 on every request for no reason, adding real D1 read + serialization
 // cost that multiplies badly under concurrent traffic.
@@ -79,12 +79,12 @@ type VehicleRow = Awaited<ReturnType<typeof prisma.vehicle.findMany<{ select: ty
 
 /**
  * Dealers commonly stock several physically-identical units of the same new
- * model (same trim, same price, mileage 0, different stock/ref numbers) —
+ * model (same trim, same price, mileage 0, different stock/ref numbers) -
  * confirmed live: BE FORWARD had 4 separate 2026 Kia Sorento listings, same
  * spec and price down to the dollar, each with its own photo. Shown as
  * separate cards that reads as spammy duplication rather than real choice,
  * so identical-spec units are grouped into a single listing here, with
- * every unit's photo folded into one gallery — one post per distinct car,
+ * every unit's photo folded into one gallery - one post per distinct car,
  * not one post per stock unit.
  */
 function dedupeKey(v: VehicleRow): string {
@@ -115,7 +115,7 @@ function groupIdenticalUnits(vehicles: VehicleRow[]): VehicleRow[] {
 
 /**
  * A plain "newest N overall" fetch, bounded by `opts.limit`, badly starves
- * whichever makes weren't scraped most recently — confirmed live: a growth
+ * whichever makes weren't scraped most recently - confirmed live: a growth
  * crawl that happened to finish on Jaguar and Hyundai last left the
  * homepage's bounded pool almost entirely those two makes, since every one
  * of their rows was newer than everything else. `opts.diverse` fetches per
@@ -126,7 +126,7 @@ function groupIdenticalUnits(vehicles: VehicleRow[]): VehicleRow[] {
 async function fetchDiverseVehicles(limit: number): Promise<VehicleRow[]> {
   // Raw DISTINCT so SQLite answers it from the [make, model] index (~one
   // read per make) instead of Prisma's `distinct`, which pulls every
-  // eligible row into memory first — that was ~4.6k rows read on every
+  // eligible row into memory first - that was ~4.6k rows read on every
   // homepage load and the main reason D1's daily read quota kept getting
   // exhausted.
   const makeRows = await prisma.$queryRaw<{ make: string }[]>`SELECT DISTINCT make FROM Vehicle WHERE eligible = 1 ORDER BY make`;

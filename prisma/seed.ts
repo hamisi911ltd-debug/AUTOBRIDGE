@@ -14,7 +14,7 @@ const DEFAULT_TIERS = [
 ];
 
 /**
- * All real inventory comes from the nightly scraper (see src/lib/scrapers) —
+ * All real inventory comes from the nightly scraper (see src/lib/scrapers) -
  * this script only sets up the two things a fresh database needs that
  * scraping can't provide: an admin login and a default pricing rule. It's
  * intentionally idempotent (create-if-missing, never delete) so re-running
@@ -35,7 +35,7 @@ async function main() {
     });
     console.log("Created default global pricing rule.");
   } else {
-    console.log("Global pricing rule already exists — left untouched.");
+    console.log("Global pricing rule already exists - left untouched.");
   }
 
   const adminEmail = "admin@autobridge.co.ke";
@@ -50,9 +50,9 @@ async function main() {
         passwordHash: await bcrypt.hash(adminPassword, 10),
       },
     });
-    console.log(`Created admin user — email: ${adminEmail}  password: ${adminPassword}`);
+    console.log(`Created admin user - email: ${adminEmail}  password: ${adminPassword}`);
   } else {
-    console.log(`Admin user ${adminEmail} already exists — left untouched.`);
+    console.log(`Admin user ${adminEmail} already exists - left untouched.`);
   }
 }
 

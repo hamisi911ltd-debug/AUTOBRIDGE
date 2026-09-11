@@ -10,13 +10,13 @@ import type { PublicVehicle } from "@/types/vehicle";
 const SLIDE_MS = 3500;
 
 // 2019-2020 specifically: the sweet spot of KRA's import-age window where
-// actual import volume concentrates — old enough to be genuinely affordable,
+// actual import volume concentrates - old enough to be genuinely affordable,
 // still comfortably inside the 8-year eligibility cutoff.
 const POSTER_YEAR_MIN = 2019;
 const POSTER_YEAR_MAX = 2020;
 
 /**
- * Two full-photo "posters" side by side, auto-sliding as a pair — a
+ * Two full-photo "posters" side by side, auto-sliding as a pair - a
  * dealership poster wall, not a single giant hero image hogging the whole
  * viewport. Deliberately scoped to the brands and 2019-2020 model years
  * Kenyan buyers actually import in volume; the full catalogue with every
@@ -30,20 +30,20 @@ export function PromoShowcase({
   goDetail: (id: string) => void;
 }) {
   const featured = useMemo(() => {
-    // A featured "hot pick" poster reads as one specific car — never show a
+    // A featured "hot pick" poster reads as one specific car - never show a
     // stand-in photo borrowed from a different unit here, even though it's
     // fine (and labeled) in the plain search grid.
     const base = vehicles.filter((v) => v.eligible && v.imageUrl && !v.isRepresentativePhoto);
     const onBrand = base.filter((v) => POPULAR_MAKES.includes(v.make));
     const inYears = onBrand.filter((v) => v.year >= POSTER_YEAR_MIN && v.year <= POSTER_YEAR_MAX);
-    // Widen in stages rather than dropping straight to "everything" — first
-    // relax the year window, then the brand list — so the poster wall stays
+    // Widen in stages rather than dropping straight to "everything" - first
+    // relax the year window, then the brand list - so the poster wall stays
     // on-theme as long as inventory allows it to.
     const pool = inYears.length >= 4 ? inYears : onBrand.length >= 4 ? onBrand : base;
     const sharp = pool.filter((v) => v.hqImage);
     const ranked = sharp.length >= 4 ? sharp : pool;
 
-    // One slide per make+model max — otherwise a make with lots of stock in
+    // One slide per make+model max - otherwise a make with lots of stock in
     // one model (e.g. Toyota Dyna trucks) can fill every slot with the same
     // car photographed differently, which reads as a bug, not variety.
     const byModel = new Map<string, PublicVehicle[]>();
@@ -57,7 +57,7 @@ export function PromoShowcase({
     }
     // Random pick within each model (not always the priciest unit) so the
     // wall varies from load to load instead of showing the same fixed set
-    // every time — still one per model, still quality-filtered.
+    // every time - still one per model, still quality-filtered.
     const bestPerModel = [...byModel.entries()].map(([key, units]) => {
       const badged = units.filter((u) => u.badge);
       const from = badged.length > 0 ? badged : units;
@@ -67,7 +67,7 @@ export function PromoShowcase({
 
     // Round-robin across brands so a 10-slide wall spans as many of the
     // popular makes as the pool actually has, instead of one brand crowding
-    // out the rest — shuffled within each brand (not sorted by price) so
+    // out the rest - shuffled within each brand (not sorted by price) so
     // which model leads for a given brand also varies.
     const byBrand = new Map<string, typeof bestPerModel>();
     for (const m of bestPerModel) {

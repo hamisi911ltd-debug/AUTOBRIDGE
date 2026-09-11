@@ -12,7 +12,7 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
  * `next dev` (plain Node, no Workers runtime) falls back to the SQLite file
  * via better-sqlite3. getCloudflareContext() only resolves real bindings
  * once called from inside a request's execution scope, so this must stay
- * lazy — never called at module top-level — which is why `prisma` below is
+ * lazy - never called at module top-level - which is why `prisma` below is
  * a Proxy instead of a plain client instance.
  */
 function createPrismaClient(): PrismaClient {
@@ -24,7 +24,7 @@ function createPrismaClient(): PrismaClient {
       return new PrismaClient({ adapter });
     }
   } catch {
-    // Not running on Cloudflare (e.g. local `next dev`) — fall through to SQLite.
+    // Not running on Cloudflare (e.g. local `next dev`) - fall through to SQLite.
   }
 
   const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! });

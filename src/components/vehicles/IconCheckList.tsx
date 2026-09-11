@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { COLORS } from "@/lib/constants";
 
-/** A dense, scrollable list with an optional leading icon per row — used for Make, Model and Country, which all need more visual weight than a plain checkbox pill. `counts` still drives sort order upstream, just isn't shown as a number here. */
+/** A dense, scrollable list with an optional leading icon per row - used for Make, Model and Country, which all need more visual weight than a plain checkbox pill. `counts` still drives sort order upstream, just isn't shown as a number here. */
 export function IconCheckList({
   items,
   selected,
