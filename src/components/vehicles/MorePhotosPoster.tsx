@@ -77,13 +77,10 @@ export function MorePhotosPoster({ vehicle }: { vehicle: PublicVehicle }) {
           >
             <X size={16} color="#fff" />
           </button>
-          {/* Same translucent-orange strip used on every other card photo, over
-             the exact spot the source site stamps its own watermark. */}
-          <div
-            className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] flex items-center justify-center gap-1"
-            style={{ background: "rgba(242,118,46,0.45)" }}
-          >
-            <span className="text-[8px] sm:text-[9px] font-bold text-white">
+          {/* Same white strip used on every other card photo, over the
+             exact spot the source site stamps its own watermark. */}
+          <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] bg-white/25 flex items-center justify-center gap-1">
+            <span className="text-[8px] sm:text-[9px] font-bold" style={{ color: "#F2762E" }}>
               {vehicle.year} &middot; {vehicle.sourceCountry}
             </span>
           </div>
