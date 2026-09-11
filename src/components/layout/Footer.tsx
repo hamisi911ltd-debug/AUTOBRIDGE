@@ -9,15 +9,20 @@ import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { Page } from "@/components/AutoBridgeApp";
 
 const GRADIENT = "linear-gradient(90deg, #F2762E 0%, #D6336C 50%, #3B1F63 100%)";
-const MUTED = "#8792A8";
-const FAINT = "#6B7688";
+// Orange-themed footer — white at full and reduced opacity reads cleanly on
+// the solid COLORS.gold background this now uses (the navy-tuned muted
+// grays it had before were sized for a dark navy footer, not orange).
+const MUTED = "rgba(255,255,255,0.85)";
+const FAINT = "rgba(255,255,255,0.65)";
 
 /**
- * Always anchored to the true bottom of the viewport (the page shell above
- * this is a flex column with `<main>` set to flex-1 — see AutoBridgeApp) —
- * on a short page it sits flush with the bottom edge instead of floating
- * wherever the content happens to end; on a long page it's simply the last
- * thing you scroll to, same as any normal footer.
+ * No gap above or below — sits flush against the page content, and its own
+ * bottom padding (not blank page background) is what clears the fixed
+ * mobile BottomNav, so that clearance reads as more footer, not empty
+ * space. Always anchored to the true bottom of the viewport: the page
+ * shell above this is a flex column with `<main>` set to flex-1 (see
+ * AutoBridgeApp), so on a short page it sits flush with the bottom edge
+ * instead of floating wherever the content happens to end.
  */
 export function Footer({
   setPage,
@@ -31,9 +36,7 @@ export function Footer({
   const year = new Date().getFullYear();
 
   return (
-    <footer className="text-white mt-12" style={{ background: COLORS.navyDeep }}>
-      <div className="h-[3px]" style={{ background: GRADIENT }} />
-
+    <footer className="text-white pb-16 md:pb-0" style={{ background: COLORS.gold }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-10">
         {/* Brand */}
         <div>
@@ -60,9 +63,7 @@ export function Footer({
 
         {/* Explore */}
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: COLORS.goldLight }}>
-            Explore
-          </div>
+          <div className="text-[11px] font-bold uppercase tracking-wider mb-3 text-white">Explore</div>
           <ul className="space-y-2.5 text-xs">
             <li>
               <button onClick={() => setPage?.("home")} className="hover:text-white transition-colors" style={{ color: MUTED }}>
@@ -89,9 +90,7 @@ export function Footer({
 
         {/* Contact */}
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: COLORS.goldLight }}>
-            Contact
-          </div>
+          <div className="text-[11px] font-bold uppercase tracking-wider mb-3 text-white">Contact</div>
           <ul className="space-y-2.5 text-xs" style={{ color: MUTED }}>
             <li className="flex items-start gap-2">
               <MapPin size={13} className="shrink-0 mt-0.5" />
@@ -111,7 +110,7 @@ export function Footer({
         </div>
       </div>
 
-      <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.08)" }}>
+      <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.25)" }}>
         <div
           className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[11px] text-center sm:text-left"
           style={{ color: FAINT }}

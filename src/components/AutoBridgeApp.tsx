@@ -125,7 +125,7 @@ export function AutoBridgeApp({
   return (
     <div
       style={{ fontFamily: FONT_BODY, background: COLORS.paper, minHeight: "100vh", color: COLORS.ink }}
-      className="w-full pb-16 md:pb-0 flex flex-col"
+      className="w-full flex flex-col"
     >
       <ConsentGate />
 
