@@ -53,9 +53,11 @@ export function InvoicePage({
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(preselectedId);
   const [page, setPage] = useState(1);
-  const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
-  const [wantFinal, setWantFinal] = useState(true);
+  // Gates the actual invoice (its CIF figure included) behind a short
+  // sign-up — no name/contact on file, no invoice shown. Once set, this
+  // also supplies the "Bill to" name on the printed document.
+  const [lead, setLead] = useState<{ name: string; phone: string; email: string } | null>(null);
 
   const vehicle = vehicles.find((v) => v.id === selectedId) || null;
 
@@ -121,43 +123,36 @@ export function InvoicePage({
     ] as [string, string | null | undefined][]
   ).filter(([, v]) => v !== null && v !== undefined && v !== "") as [string, string][];
 
-  const lineItems: { desc: string; amount: number }[] = [
-    { desc: `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""} — vehicle`, amount: vehiclePrice },
-  ];
-  if (freight > 0) lineItems.push({ desc: `Ocean freight — ${vehicle.sourceCountry} to Mombasa`, amount: freight });
-  lineItems.push({ desc: "Marine insurance", amount: insurance });
-
-  async function submit(e: React.FormEvent<HTMLFormElement>) {
+  /**
+   * Signing up is compulsory to see the invoice at all, and getting the
+   * final clearing quote afterward is compulsory too — there's no "import
+   * only, I'll clear it myself" option any more: Ferbil clears every unit
+   * in-house, so every invoice request is also a clearing-quote request.
+   */
+  async function submitSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!vehicle) return;
     const data = new FormData(e.currentTarget);
+    const name = String(data.get("name") ?? "");
+    const phone = String(data.get("phone") ?? "");
+    const email = String(data.get("email") ?? "");
     setSending(true);
     try {
-      const message = `[Proforma invoice ${invoiceNo}${wantFinal ? " — customer also wants the FINAL invoice with KRA duty/excise/VAT" : ""}]${
-        data.get("message") ? "\n" + data.get("message") : ""
-      }`;
+      const message = `[Invoice ${invoiceNo} issued, CIF ${usd(cifTotal)} — compulsory follow-up: final quote incl. KRA duty/excise/VAT + in-house clearing]`;
       await fetch("/api/enquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          vehicleId: vehicle.id,
-          name: data.get("name"),
-          phone: data.get("phone"),
-          email: data.get("email") || null,
-          message,
-        }),
+        body: JSON.stringify({ vehicleId: vehicle.id, name, phone, email: email || null, message }),
       });
-      setSent(true);
+      setLead({ name, phone, email });
       const waText = [
-        `Proforma invoice ${invoiceNo}`,
+        `Invoice request ${invoiceNo}`,
         vehicleDetailBlock(vehicle, ref, window.location.origin),
         `CIF total: ${usd(cifTotal)}`,
-        `Name: ${data.get("name")}`,
-        `Phone: ${data.get("phone")}`,
-        data.get("email") ? `Email: ${data.get("email")}` : null,
-        wantFinal
-          ? `Please assess KRA duty, excise & VAT and send the final invoice.`
-          : `I'll arrange KRA clearance separately — please confirm this proforma.`,
+        `Name: ${name}`,
+        `Phone: ${phone}`,
+        email ? `Email: ${email}` : null,
+        `Please send the final quote — KRA duty, excise & VAT, plus your in-house clearing — this is compulsory before I proceed.`,
       ]
         .filter(Boolean)
         .join("\n");
@@ -184,160 +179,155 @@ export function InvoicePage({
         <button onClick={() => setSelectedId(null)} className="text-xs sm:text-sm font-medium" style={{ color: COLORS.burgundy }}>
           &larr; Choose a different vehicle
         </button>
-        <button
-          onClick={() => window.print()}
-          className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-white"
-          style={{ background: MAROON }}
-        >
-          <Printer size={14} /> Print / Save as PDF
-        </button>
+        {lead && (
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-white"
+            style={{ background: MAROON }}
+          >
+            <Printer size={14} /> Print / Save as PDF
+          </button>
+        )}
       </div>
 
-      <div id="invoice-document" className="bg-white rounded-xl border overflow-hidden text-[12px]" style={{ borderColor: MAROON }}>
-        <div className="h-1.5" style={{ background: BRAND_GRADIENT }} />
-
-        {/* Header — solid maroon INVOICE block + company box on the right. */}
-        <div className="flex items-stretch">
-          <div className="flex flex-col justify-center px-5 sm:px-7 py-5 w-[38%]" style={{ background: MAROON }}>
-            <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide leading-none" style={{ fontFamily: FONT_DISPLAY }}>
-              INVOICE
-            </span>
-            <span className="text-[9px] text-white/80 mt-1 uppercase tracking-wider">Proforma · USD</span>
+      {!lead ? (
+        // Compulsory sign-up gate — no name/contact on file yet, so no
+        // invoice (and no CIF figure) is shown. Submitting doubles as the
+        // request for the compulsory next step too: the final quote with
+        // KRA duty/excise/VAT and in-house clearing.
+        <div className="invoice-no-print bg-white rounded-xl border p-5 sm:p-7" style={{ borderColor: MAROON }}>
+          <div className="text-lg sm:text-xl font-bold mb-1" style={{ fontFamily: FONT_DISPLAY, color: MAROON }}>
+            Sign up to get your invoice
           </div>
-          <div className="flex-1 flex items-center gap-2.5 px-3 sm:px-5 py-3" style={{ background: COLORS.card }}>
-            <div className="w-8 h-8 rounded-md shrink-0" style={{ background: BRAND_GRADIENT }} />
-            <div className="leading-snug">
-              <div className="text-[13px] sm:text-[15px] font-extrabold" style={{ fontFamily: FONT_DISPLAY, color: MAROON }}>
-                {COMPANY.name}
-              </div>
-              <div className="text-[9px] sm:text-[10px] mt-0.5" style={{ color: COLORS.slate }}>
-                {COMPANY.poBox} · {COMPANY.addressLines.join(", ")}
-                <br />
-                {COMPANY.phone} · {COMPANY.email} · {COMPANY.web}
-              </div>
-            </div>
+          <div className="text-xs sm:text-sm mb-4" style={{ color: COLORS.slate }}>
+            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim} — a few details and your proforma invoice (CIF
+            Mombasa, USD) is ready to view and print. This also requests the compulsory next step: the final quote with
+            KRA duty, excise &amp; VAT, cleared in-house by {COMPANY.name} — no third-party clearing agent.
           </div>
+          <form className="grid sm:grid-cols-2 gap-2 sm:gap-3" onSubmit={submitSignup}>
+            <input name="name" required placeholder="Full name" className="border rounded-lg px-3 py-2 text-xs sm:text-sm" style={{ borderColor: "#D8DCE3" }} />
+            <input name="phone" required placeholder="Phone number" className="border rounded-lg px-3 py-2 text-xs sm:text-sm" style={{ borderColor: "#D8DCE3" }} />
+            <input
+              name="email"
+              type="email"
+              placeholder="Email (optional)"
+              className="border rounded-lg px-3 py-2 text-xs sm:text-sm sm:col-span-2"
+              style={{ borderColor: "#D8DCE3" }}
+            />
+            <button
+              type="submit"
+              disabled={sending}
+              className="sm:col-span-2 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold text-white disabled:opacity-60"
+              style={{ background: MAROON }}
+            >
+              {sending ? "Signing up…" : "Sign up & view invoice"}
+            </button>
+          </form>
         </div>
+      ) : (
+        <>
+          <div id="invoice-document" className="bg-white rounded-xl border overflow-hidden text-[12px]" style={{ borderColor: MAROON }}>
+            <div className="h-1.5" style={{ background: BRAND_GRADIENT }} />
 
-        <div className="p-3.5 sm:p-5 space-y-3">
-          {/* Bill-to + invoice meta — two matching boxes. */}
-          <div className="grid grid-cols-2 gap-3">
-            <Box title="Bill to">
-              <div className="font-semibold" style={{ color: COLORS.navy }}>
-                &mdash;
+            {/* Header — solid maroon INVOICE block + company box on the right. */}
+            <div className="flex items-stretch">
+              <div className="flex flex-col justify-center px-5 sm:px-7 py-5 w-[38%]" style={{ background: MAROON }}>
+                <span className="text-2xl sm:text-3xl font-extrabold text-white tracking-wide leading-none" style={{ fontFamily: FONT_DISPLAY }}>
+                  INVOICE
+                </span>
+                <span className="text-[9px] text-white/80 mt-1 uppercase tracking-wider">Proforma · USD</span>
               </div>
-              <div className="text-[10px] mt-0.5" style={{ color: COLORS.slate }}>
-                Buyer name added on request
+              <div className="flex-1 flex items-center gap-2.5 px-3 sm:px-5 py-3" style={{ background: COLORS.card }}>
+                <div className="w-8 h-8 rounded-md shrink-0" style={{ background: BRAND_GRADIENT }} />
+                <div className="leading-snug">
+                  <div className="text-[13px] sm:text-[15px] font-extrabold" style={{ fontFamily: FONT_DISPLAY, color: MAROON }}>
+                    {COMPANY.name}
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] mt-0.5" style={{ color: COLORS.slate }}>
+                    {COMPANY.poBox} · {COMPANY.addressLines.join(", ")}
+                    <br />
+                    {COMPANY.phone} · {COMPANY.email} · {COMPANY.web}
+                  </div>
+                </div>
               </div>
-            </Box>
-            <Box title="Invoice">
-              <Row k="No." v={invoiceNo} />
-              <Row k="Date" v={today.toLocaleDateString("en-GB")} />
-              <Row k="Currency" v="USD" />
-              <Row k="Terms" v="Due on receipt" />
-            </Box>
+            </div>
+
+            <div className="p-3.5 sm:p-5 space-y-3">
+              {/* Bill-to + invoice meta — two matching boxes. */}
+              <div className="grid grid-cols-2 gap-3">
+                <Box title="Bill to">
+                  <div className="font-semibold" style={{ color: COLORS.navy }}>
+                    {lead.name}
+                  </div>
+                  <div className="text-[10px] mt-0.5" style={{ color: COLORS.slate }}>
+                    {lead.phone}
+                    {lead.email ? ` · ${lead.email}` : ""}
+                  </div>
+                </Box>
+                <Box title="Invoice">
+                  <Row k="No." v={invoiceNo} />
+                  <Row k="Date" v={today.toLocaleDateString("en-GB")} />
+                  <Row k="Currency" v="USD" />
+                  <Row k="Terms" v="Due on receipt" />
+                </Box>
+              </div>
+
+              {/* Total — the one and only figure on this document, no
+                 vehicle/freight/insurance breakdown. */}
+              <Box title="Total — CIF Mombasa (USD)">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-[10px] sm:text-[11px]" style={{ color: COLORS.slate }}>
+                    Vehicle, ocean freight &amp; marine insurance to Mombasa, all-in.
+                  </div>
+                  <div className="text-xl sm:text-2xl font-extrabold whitespace-nowrap" style={{ color: MAROON, fontFamily: FONT_DISPLAY }}>
+                    {usd(cifTotal)}
+                  </div>
+                </div>
+              </Box>
+
+              {/* Vehicle box. */}
+              <Box title="Vehicle">
+                <div className="text-[13px] font-bold mb-2" style={{ color: COLORS.navy }}>
+                  {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
+                  {specRows.map(([label, value]) => (
+                    <Row key={label} k={label} v={value} />
+                  ))}
+                </div>
+              </Box>
+
+              {/* Bank box. */}
+              <Box title="Payment — NCBA USD account">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
+                  {BANK_DETAILS.map((b) => (
+                    <Row key={b.label} k={b.label} v={b.value} />
+                  ))}
+                </div>
+              </Box>
+
+              <p className="text-[9px] leading-relaxed" style={{ color: COLORS.slate }}>
+                Proforma — CIF Mombasa, all amounts in USD. KRA import duty, excise, VAT, IDF, RDL and registration are
+                not included; a final quote with those confirmed, plus clearing — handled entirely in-house by{" "}
+                {COMPANY.name}, no third-party agent — follows as a compulsory next step. Not a demand for payment —
+                settle only against a final invoice confirmed by {COMPANY.name}.
+              </p>
+            </div>
+
+            <div className="h-5" style={{ background: MAROON }} />
           </div>
 
-          {/* Vehicle box. */}
-          <Box title="Vehicle">
-            <div className="text-[13px] font-bold mb-2" style={{ color: COLORS.navy }}>
-              {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
+          <div className="invoice-no-print mt-4">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium py-2" style={{ color: MAROON }}>
+              <CheckCircle2 size={17} /> Signed up. We&apos;ll follow up with the compulsory final quote — KRA duty,
+              excise &amp; VAT, plus clearing handled in-house.
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
-              {specRows.map(([label, value]) => (
-                <Row key={label} k={label} v={value} />
-              ))}
-            </div>
-          </Box>
-
-          {/* Charges box — line-item table inside. */}
-          <Box title="Charges (USD)" pad={false}>
-            <table className="w-full text-[11px]">
-              <tbody>
-                {lineItems.map((li) => (
-                  <tr key={li.desc} className="border-b" style={{ borderColor: COLORS.line }}>
-                    <td className="py-1.5 px-3" style={{ color: COLORS.ink }}>
-                      {li.desc}
-                    </td>
-                    <td className="py-1.5 px-3 text-right font-medium whitespace-nowrap" style={{ color: COLORS.ink }}>
-                      {usd(li.amount)}
-                    </td>
-                  </tr>
-                ))}
-                <tr style={{ background: MAROON }}>
-                  <td className="py-2 px-3 font-bold text-white">Total — CIF Mombasa</td>
-                  <td className="py-2 px-3 text-right font-bold text-white whitespace-nowrap">{usd(cifTotal)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </Box>
-
-          {/* Bank box. */}
-          <Box title="Payment — NCBA USD account">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1.5">
-              {BANK_DETAILS.map((b) => (
-                <Row key={b.label} k={b.label} v={b.value} />
-              ))}
-            </div>
-          </Box>
-
-          <p className="text-[9px] leading-relaxed" style={{ color: COLORS.slate }}>
-            Proforma — CIF Mombasa, all amounts in USD. KRA import duty, excise, VAT, IDF, RDL and registration are not
-            included; these are assessed by KRA at clearance and billed on a separate final invoice. Not a demand for
-            payment — settle only against a final invoice confirmed by {COMPANY.name}.
-          </p>
-        </div>
-
-        <div className="h-5" style={{ background: MAROON }} />
-      </div>
-
-      <div className="invoice-no-print mt-4">
-          {sent ? (
-            <div className="invoice-no-print flex items-center gap-2 text-xs sm:text-sm font-medium py-2" style={{ color: MAROON }}>
-              <CheckCircle2 size={17} /> Request sent. We&apos;ll follow up
-              {wantFinal ? " with the final invoice including duty, excise & VAT." : " to confirm this proforma."}
-            </div>
-          ) : (
-            <form className="invoice-no-print grid sm:grid-cols-2 gap-2 sm:gap-3" onSubmit={submit}>
-              <div className="sm:col-span-2 flex items-start gap-2 text-[10px] sm:text-xs" style={{ color: COLORS.ink }}>
-                <input type="checkbox" checked={wantFinal} onChange={(e) => setWantFinal(e.target.checked)} className="w-4 h-4 mt-0.5 shrink-0" />
-                <span>Also send the final invoice with KRA duty, excise &amp; VAT once assessed</span>
-              </div>
-              <input name="name" required placeholder="Full name" className="border rounded-lg px-3 py-2 text-xs sm:text-sm" style={{ borderColor: "#D8DCE3" }} />
-              <input name="phone" required placeholder="Phone number" className="border rounded-lg px-3 py-2 text-xs sm:text-sm" style={{ borderColor: "#D8DCE3" }} />
-              <input
-                name="email"
-                type="email"
-                placeholder="Email (optional)"
-                className="border rounded-lg px-3 py-2 text-xs sm:text-sm sm:col-span-2"
-                style={{ borderColor: "#D8DCE3" }}
-              />
-              <textarea
-                name="message"
-                rows={2}
-                placeholder="Anything else we should know? (optional)"
-                className="border rounded-lg px-3 py-2 text-xs sm:text-sm resize-none sm:col-span-2"
-                style={{ borderColor: "#D8DCE3" }}
-              />
-              <button
-                type="submit"
-                disabled={sending}
-                className="sm:col-span-2 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold text-white disabled:opacity-60"
-                style={{ background: MAROON }}
-              >
-                {sending ? "Sending…" : "Send this invoice request"}
-              </button>
-            </form>
-          )}
-
-        <button
-          onClick={() => goDetail(vehicle.id)}
-          className="block text-xs sm:text-sm font-medium mt-4"
-          style={{ color: COLORS.burgundy }}
-        >
-          View full listing &rarr;
-        </button>
-      </div>
+            <button onClick={() => goDetail(vehicle.id)} className="block text-xs sm:text-sm font-medium mt-2" style={{ color: COLORS.burgundy }}>
+              View full listing &rarr;
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
