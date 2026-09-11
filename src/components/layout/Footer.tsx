@@ -37,10 +37,10 @@ export function Footer({
 
   return (
     <footer className="text-white pb-16 md:pb-0" style={{ background: COLORS.gold }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-7 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
         {/* Brand */}
         <div>
-          <div className="flex items-center gap-2.5 mb-3">
+          <div className="flex items-center gap-2.5 mb-2">
             <div className="w-9 h-9 rounded-lg shrink-0" style={{ background: GRADIENT }} />
             <span className="text-sm font-bold leading-tight" style={{ fontFamily: FONT_DISPLAY }}>
               {COMPANY.name}
@@ -54,7 +54,7 @@ export function Footer({
             href={whatsAppLink("Hi, I'd like help finding a car.")}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 mt-4 text-xs font-semibold px-3.5 py-2 rounded-full"
+            className="inline-flex items-center gap-2 mt-3 text-xs font-semibold px-3.5 py-2 rounded-full"
             style={{ background: "#25D366", color: "#fff" }}
           >
             <WhatsAppIcon size={13} /> Chat with us
@@ -63,8 +63,8 @@ export function Footer({
 
         {/* Explore */}
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider mb-3 text-white">Explore</div>
-          <ul className="space-y-2.5 text-xs">
+          <div className="text-[11px] font-bold uppercase tracking-wider mb-2 text-white">Explore</div>
+          <ul className="space-y-2 text-xs">
             <li>
               <button onClick={() => setPage?.("home")} className="hover:text-white transition-colors" style={{ color: MUTED }}>
                 Home
@@ -90,8 +90,8 @@ export function Footer({
 
         {/* Contact */}
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider mb-3 text-white">Contact</div>
-          <ul className="space-y-2.5 text-xs" style={{ color: MUTED }}>
+          <div className="text-[11px] font-bold uppercase tracking-wider mb-2 text-white">Contact</div>
+          <ul className="space-y-2 text-xs" style={{ color: MUTED }}>
             <li className="flex items-start gap-2">
               <MapPin size={13} className="shrink-0 mt-0.5" />
               <span>
@@ -112,7 +112,7 @@ export function Footer({
 
       <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.25)" }}>
         <div
-          className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-1.5 text-[11px] text-center sm:text-left"
+          className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row items-center justify-between gap-1 text-[11px] text-center sm:text-left"
           style={{ color: FAINT }}
         >
           <span>

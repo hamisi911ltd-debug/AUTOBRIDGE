@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Car, MessageSquare, Plus, X, Tag, Star, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Car, MessageSquare, Plus, X, Star, Users, LogOut } from "lucide-react";
 import { COLORS } from "@/lib/constants";
 
 const PRIMARY = [
@@ -13,7 +13,6 @@ const PRIMARY = [
 ];
 
 const MORE = [
-  { href: "/admin/pricing", label: "Pricing rules", icon: Tag },
   { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/users", label: "Users", icon: Users },
 ];
