@@ -123,7 +123,10 @@ export function AutoBridgeApp({
   const selectedVehicle = vehicles.find((v) => v.id === selectedId) || null;
 
   return (
-    <div style={{ fontFamily: FONT_BODY, background: COLORS.paper, minHeight: "100vh", color: COLORS.ink }} className="w-full pb-16 md:pb-0">
+    <div
+      style={{ fontFamily: FONT_BODY, background: COLORS.paper, minHeight: "100vh", color: COLORS.ink }}
+      className="w-full pb-16 md:pb-0 flex flex-col"
+    >
       <ConsentGate />
 
       {/* Only the header itself stays pinned while the page scrolls — the
@@ -169,7 +172,7 @@ export function AutoBridgeApp({
         )}
       </div>
 
-      <main>
+      <main className="flex-1">
         {/* Desktop only (mobile's copy is pinned above, inside the fixed bar). */}
         {page === "home" && (
           <div className="hidden sm:block">
@@ -215,7 +218,7 @@ export function AutoBridgeApp({
         )}
       </main>
 
-      <Footer />
+      <Footer setPage={setPage} onGoSearch={() => goSearch({})} onGoQuote={() => goQuote()} />
       <WhatsAppButton />
       <BottomNav page={page} setPage={setPage} onGoSearch={() => goSearch({})} onGoQuote={() => goQuote()} />
     </div>
