@@ -116,31 +116,38 @@ export function VehicleImage({
       {!loaded && <div className="absolute inset-0 img-shimmer" />}
       <div ref={wrapperRef} className="absolute inset-0">
         {visible && (
-          /* eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts */
-          <img
-            key={currentSrc}
-            ref={imgRef}
-            src={currentSrc}
-            alt={alt}
-            loading={priority ? "eager" : "lazy"}
-            fetchPriority={priority ? "high" : "auto"}
-            decoding="async"
-            onLoad={() => setLoaded(true)}
-            onError={() => {
-              setLoaded(false);
-              setAttempt((a) => a + 1);
-            }}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"} ${imgClassName}`}
-          />
+          // imgClassName (a hover-zoom transform, where callers pass one) lives on
+          // this wrapper rather than the <img> itself, with the banner nested
+          // inside it — so a zoomed photo and the strip covering its watermark
+          // scale and move together instead of the strip staying put while the
+          // photo grows out from under it and exposes the watermark again.
+          <div className={`absolute inset-0 ${imgClassName}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts */}
+            <img
+              key={currentSrc}
+              ref={imgRef}
+              src={currentSrc}
+              alt={alt}
+              loading={priority ? "eager" : "lazy"}
+              fetchPriority={priority ? "high" : "auto"}
+              decoding="async"
+              onLoad={() => setLoaded(true)}
+              onError={() => {
+                setLoaded(false);
+                setAttempt((a) => a + 1);
+              }}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+            />
+            {banner && (
+              <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] bg-white/25 flex items-center justify-center gap-1">
+                <span className="text-[8px] sm:text-[9px] font-bold" style={{ color: "#F2762E" }}>
+                  {banner.year} &middot; {banner.country}
+                </span>
+              </div>
+            )}
+          </div>
         )}
       </div>
-      {banner && (
-        <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] bg-white/95 flex items-center justify-center gap-1">
-          <span className="text-[8px] sm:text-[9px] font-bold" style={{ color: "#F2762E" }}>
-            {banner.year} &middot; {banner.country}
-          </span>
-        </div>
-      )}
     </>
   );
 }

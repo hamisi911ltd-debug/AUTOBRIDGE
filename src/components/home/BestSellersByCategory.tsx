@@ -151,13 +151,20 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
             className="group text-left rounded-2xl border overflow-hidden bg-white flex-none basis-[calc((100%-0.75rem)/2)] sm:flex-1 sm:basis-44 sm:min-w-[160px]"
             style={{ borderColor: COLORS.line }}
           >
-            <div className="relative aspect-[4/3]" style={{ background: COLORS.card }}>
-              {/* eslint-disable-next-line @next/next/no-img-element -- external R2 CDN */}
-              <img
-                src={t.vehicle.imageUrl!}
-                alt={t.key}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
+            <div className="relative aspect-[4/3] overflow-hidden" style={{ background: COLORS.card }}>
+              {/* The photo and the strip covering its watermark are one zoom
+                 unit — both scale together on hover, so the zoomed photo
+                 never grows out from under a strip that stayed put and
+                 re-exposes the watermark it's there to hide. */}
+              <div className="absolute inset-0 transition-transform duration-300 group-hover:scale-105">
+                {/* eslint-disable-next-line @next/next/no-img-element -- external R2 CDN */}
+                <img src={t.vehicle.imageUrl!} alt={t.key} className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] bg-white/25 flex items-center justify-center gap-1">
+                  <span className="text-[8px] sm:text-[9px] font-bold" style={{ color: "#F2762E" }}>
+                    {t.vehicle.year} &middot; {t.vehicle.sourceCountry}
+                  </span>
+                </div>
+              </div>
               {/* Rank number — hidden on mobile, tiles are too narrow there for it to read as anything but clutter */}
               <span
                 className="hidden sm:flex absolute top-2 left-2 w-6 h-6 rounded-full items-center justify-center text-xs font-bold text-white"
@@ -165,11 +172,6 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
               >
                 {i + 1}
               </span>
-              <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] bg-white/95 flex items-center justify-center gap-1">
-                <span className="text-[8px] sm:text-[9px] font-bold" style={{ color: "#F2762E" }}>
-                  {t.vehicle.year} &middot; {t.vehicle.sourceCountry}
-                </span>
-              </div>
             </div>
             <div className="p-2 sm:p-3">
               <div className="text-xs sm:text-sm font-semibold truncate" style={{ color: COLORS.navy }}>
