@@ -140,3 +140,25 @@ export async function countVehicles(): Promise<number> {
   if (typeof c !== "number") throw new Error(`countVehicles: unexpected wrangler output: ${stdout.slice(0, 400)}`);
   return c;
 }
+
+/**
+ * Runs an arbitrary read-only SELECT against the remote D1 and returns its
+ * result rows. Deliberately goes through `--command` (one shell string via
+ * execAsync), not `--file=` — on --remote, `--file=` reports run *stats*
+ * ("Rows read": N) rather than the actual result rows, which only
+ * `--command` returns; see countVehicles just above for the same finding.
+ * Callers should keep queries cheap (a WHERE + LIMIT) — D1's free tier
+ * bills every row a query touches against its daily read quota, not just
+ * the rows returned; see the getPublicVehicles fix this backfill script
+ * exists alongside for what an unindexed full-table read costs.
+ */
+export async function queryRows<T = Record<string, unknown>>(sql: string): Promise<T[]> {
+  const { stdout } = await execAsync(`npx wrangler d1 execute ${DATABASE} --remote --json --command "${sql.replace(/"/g, '\\"')}"`, {
+    timeout: 120_000,
+    maxBuffer: 1024 * 1024 * 40,
+  });
+  const start = stdout.indexOf("[");
+  const parsed = JSON.parse(start >= 0 ? stdout.slice(start) : stdout);
+  const rows = parsed?.[0]?.results;
+  return Array.isArray(rows) ? (rows as T[]) : [];
+}
