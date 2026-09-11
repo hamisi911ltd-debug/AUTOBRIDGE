@@ -34,8 +34,15 @@ function usd(n: number): string {
  * KRA import duty / excise / VAT / registration are deliberately NOT on this
  * document: those are assessed by KRA at clearance (off its CRSP valuation,
  * not the invoice price), and the team issues a separate **final invoice**
- * with the confirmed tax lines once that figure is known. The request form
- * below is how a customer asks for that next step.
+ * with the confirmed tax lines once that figure is known.
+ *
+ * Two paths from here, both starting from a picked vehicle:
+ *  - "View & print CIF invoice" — instant, no contact details taken, no
+ *    enquiry filed. For a buyer who just wants this document.
+ *  - The sign-up form — files an enquiry and requests the *other* document,
+ *    the final invoice that adds KRA duty/excise/VAT and Ferbil's in-house
+ *    clearing. That one can't be shown instantly since it's prepared by the
+ *    team, so it's a request rather than something rendered here.
  *
  * With nothing selected it's just the homepage browsing grid — a car is
  * picked, and its invoice requested, through the familiar detail page.
@@ -54,10 +61,12 @@ export function InvoicePage({
   const [selectedId, setSelectedId] = useState<string | null>(preselectedId);
   const [page, setPage] = useState(1);
   const [sending, setSending] = useState(false);
-  // Gates the actual invoice (its CIF figure included) behind a short
-  // sign-up — no name/contact on file, no invoice shown. Once set, this
-  // also supplies the "Bill to" name on the printed document.
+  // Gates the actual invoice document (visible once this is non-null). Set
+  // either by submitting the sign-up form (which also files an enquiry and
+  // marks `signedUp`) or by "just view the invoice" (a blank lead — the
+  // document shows, but no enquiry is ever filed).
   const [lead, setLead] = useState<{ name: string; phone: string; email: string } | null>(null);
+  const [signedUp, setSignedUp] = useState(false);
 
   const vehicle = vehicles.find((v) => v.id === selectedId) || null;
 
@@ -124,11 +133,17 @@ export function InvoicePage({
   ).filter(([, v]) => v !== null && v !== undefined && v !== "") as [string, string][];
 
   /**
-   * Signing up is compulsory to see the invoice at all, and getting the
-   * final clearing quote afterward is compulsory too — there's no "import
-   * only, I'll clear it myself" option any more: Ferbil clears every unit
-   * in-house, so every invoice request is also a clearing-quote request.
+   * The CIF-only invoice below (car, freight & insurance) can be viewed and
+   * printed by anyone, instantly, with `viewOnly` — no enquiry filed. Signing
+   * up here is for the *other* document: the final invoice that adds KRA
+   * duty, excise & VAT and Ferbil's in-house clearing (never a third-party
+   * agent) — that one requires contact details because it's a follow-up
+   * Ferbil prepares and sends, not something computed on the spot.
    */
+  function viewOnly() {
+    setLead({ name: "", phone: "", email: "" });
+  }
+
   async function submitSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!vehicle) return;
@@ -152,11 +167,12 @@ export function InvoicePage({
         `Name: ${name}`,
         `Phone: ${phone}`,
         email ? `Email: ${email}` : null,
-        `Please send the final quote — KRA duty, excise & VAT, plus your in-house clearing — this is compulsory before I proceed.`,
+        `Please send the final invoice — KRA duty, excise & VAT, plus your in-house clearing.`,
       ]
         .filter(Boolean)
         .join("\n");
       window.open(whatsAppLink(waText), "_blank", "noopener,noreferrer");
+      setSignedUp(true);
     } finally {
       setSending(false);
     }
@@ -191,38 +207,39 @@ export function InvoicePage({
       </div>
 
       {!lead ? (
-        // Compulsory sign-up gate — no name/contact on file yet, so no
-        // invoice (and no CIF figure) is shown. Submitting doubles as the
-        // request for the compulsory next step too: the final quote with
-        // KRA duty/excise/VAT and in-house clearing.
         <div className="invoice-no-print bg-white rounded-xl border p-5 sm:p-7" style={{ borderColor: MAROON }}>
           <div className="text-lg sm:text-xl font-bold mb-1" style={{ fontFamily: FONT_DISPLAY, color: MAROON }}>
-            Sign up to get your invoice
+            Get your invoice
           </div>
           <div className="text-xs sm:text-sm mb-4" style={{ color: COLORS.slate }}>
-            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim} — a few details and your proforma invoice (CIF
-            Mombasa, USD) is ready to view and print. This also requests the compulsory next step: the final quote with
-            KRA duty, excise &amp; VAT, cleared in-house by {COMPANY.name} — no third-party clearing agent.
+            {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim} — view and print the CIF invoice (vehicle,
+            freight &amp; insurance to Mombasa, USD) instantly below, no sign-up needed.
           </div>
-          <form className="grid sm:grid-cols-2 gap-2 sm:gap-3" onSubmit={submitSignup}>
-            <input name="name" required placeholder="Full name" className="border rounded-lg px-3 py-2 text-xs sm:text-sm" style={{ borderColor: "#D8DCE3" }} />
-            <input name="phone" required placeholder="Phone number" className="border rounded-lg px-3 py-2 text-xs sm:text-sm" style={{ borderColor: "#D8DCE3" }} />
-            <input
-              name="email"
-              type="email"
-              placeholder="Email (optional)"
-              className="border rounded-lg px-3 py-2 text-xs sm:text-sm sm:col-span-2"
-              style={{ borderColor: "#D8DCE3" }}
-            />
-            <button
-              type="submit"
-              disabled={sending}
-              className="sm:col-span-2 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold text-white disabled:opacity-60"
-              style={{ background: MAROON }}
-            >
-              {sending ? "Signing up…" : "Sign up & view invoice"}
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={viewOnly}
+            className="w-full py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold text-white"
+            style={{ background: MAROON }}
+          >
+            View &amp; print CIF invoice
+          </button>
+
+          <div className="flex items-center gap-2 my-4">
+            <div className="flex-1 h-px" style={{ background: "#E4E7EC" }} />
+            <span className="text-[10px] uppercase tracking-wide" style={{ color: COLORS.slate }}>
+              or
+            </span>
+            <div className="flex-1 h-px" style={{ background: "#E4E7EC" }} />
+          </div>
+
+          <div className="text-xs sm:text-sm font-semibold mb-2" style={{ color: COLORS.navy }}>
+            Want the invoice that includes clearance?
+          </div>
+          <div className="text-xs mb-3" style={{ color: COLORS.slate }}>
+            Sign up to request the final invoice with KRA duty, excise &amp; VAT plus {COMPANY.name}&apos;s in-house
+            clearing — no third-party agent.
+          </div>
+          <SignupForm sending={sending} onSubmit={submitSignup} />
         </div>
       ) : (
         <>
@@ -256,13 +273,21 @@ export function InvoicePage({
               {/* Bill-to + invoice meta — two matching boxes. */}
               <div className="grid grid-cols-2 gap-3">
                 <Box title="Bill to">
-                  <div className="font-semibold" style={{ color: COLORS.navy }}>
-                    {lead.name}
-                  </div>
-                  <div className="text-[10px] mt-0.5" style={{ color: COLORS.slate }}>
-                    {lead.phone}
-                    {lead.email ? ` · ${lead.email}` : ""}
-                  </div>
+                  {lead.name ? (
+                    <>
+                      <div className="font-semibold" style={{ color: COLORS.navy }}>
+                        {lead.name}
+                      </div>
+                      <div className="text-[10px] mt-0.5" style={{ color: COLORS.slate }}>
+                        {lead.phone}
+                        {lead.email ? ` · ${lead.email}` : ""}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-[10px]" style={{ color: COLORS.slate }}>
+                      To be confirmed
+                    </div>
+                  )}
                 </Box>
                 <Box title="Invoice">
                   <Row k="No." v={invoiceNo} />
@@ -308,9 +333,9 @@ export function InvoicePage({
 
               <p className="text-[9px] leading-relaxed" style={{ color: COLORS.slate }}>
                 Proforma — CIF Mombasa, all amounts in USD. KRA import duty, excise, VAT, IDF, RDL and registration are
-                not included; a final quote with those confirmed, plus clearing — handled entirely in-house by{" "}
-                {COMPANY.name}, no third-party agent — follows as a compulsory next step. Not a demand for payment —
-                settle only against a final invoice confirmed by {COMPANY.name}.
+                not included; sign up below to request a final invoice with those confirmed, plus clearing — handled
+                entirely in-house by {COMPANY.name}, no third-party agent. Not a demand for payment — settle only
+                against a final invoice confirmed by {COMPANY.name}.
               </p>
             </div>
 
@@ -318,17 +343,54 @@ export function InvoicePage({
           </div>
 
           <div className="invoice-no-print mt-4">
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-medium py-2" style={{ color: MAROON }}>
-              <CheckCircle2 size={17} /> Signed up. We&apos;ll follow up with the compulsory final quote — KRA duty,
-              excise &amp; VAT, plus clearing handled in-house.
-            </div>
-            <button onClick={() => goDetail(vehicle.id)} className="block text-xs sm:text-sm font-medium mt-2" style={{ color: COLORS.burgundy }}>
+            {signedUp ? (
+              <div className="flex items-center gap-2 text-xs sm:text-sm font-medium py-2" style={{ color: MAROON }}>
+                <CheckCircle2 size={17} /> Signed up. We&apos;ll follow up with the invoice that includes clearance —
+                KRA duty, excise &amp; VAT, plus in-house clearing.
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl border p-4 sm:p-5" style={{ borderColor: MAROON }}>
+                <div className="text-xs sm:text-sm font-semibold mb-2" style={{ color: COLORS.navy }}>
+                  Want the invoice that includes clearance?
+                </div>
+                <div className="text-xs mb-3" style={{ color: COLORS.slate }}>
+                  Sign up to request the final invoice with KRA duty, excise &amp; VAT plus {COMPANY.name}&apos;s
+                  in-house clearing — no third-party agent.
+                </div>
+                <SignupForm sending={sending} onSubmit={submitSignup} />
+              </div>
+            )}
+            <button onClick={() => goDetail(vehicle.id)} className="block text-xs sm:text-sm font-medium mt-3" style={{ color: COLORS.burgundy }}>
               View full listing &rarr;
             </button>
           </div>
         </>
       )}
     </div>
+  );
+}
+
+function SignupForm({ sending, onSubmit }: { sending: boolean; onSubmit: (e: React.FormEvent<HTMLFormElement>) => void }) {
+  return (
+    <form className="grid sm:grid-cols-2 gap-2 sm:gap-3" onSubmit={onSubmit}>
+      <input name="name" required placeholder="Full name" className="border rounded-lg px-3 py-2 text-xs sm:text-sm" style={{ borderColor: "#D8DCE3" }} />
+      <input name="phone" required placeholder="Phone number" className="border rounded-lg px-3 py-2 text-xs sm:text-sm" style={{ borderColor: "#D8DCE3" }} />
+      <input
+        name="email"
+        type="email"
+        placeholder="Email (optional)"
+        className="border rounded-lg px-3 py-2 text-xs sm:text-sm sm:col-span-2"
+        style={{ borderColor: "#D8DCE3" }}
+      />
+      <button
+        type="submit"
+        disabled={sending}
+        className="sm:col-span-2 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold text-white disabled:opacity-60"
+        style={{ background: MAROON }}
+      >
+        {sending ? "Signing up…" : "Sign up & request clearance invoice"}
+      </button>
+    </form>
   );
 }
 
