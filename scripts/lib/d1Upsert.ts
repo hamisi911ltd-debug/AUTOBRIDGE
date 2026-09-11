@@ -153,12 +153,24 @@ export async function countVehicles(): Promise<number> {
  * exists alongside for what an unindexed full-table read costs.
  */
 export async function queryRows<T = Record<string, unknown>>(sql: string): Promise<T[]> {
-  const { stdout } = await execAsync(`npx wrangler d1 execute ${DATABASE} --remote --json --command "${sql.replace(/"/g, '\\"')}"`, {
-    timeout: 120_000,
-    maxBuffer: 1024 * 1024 * 40,
-  });
-  const start = stdout.indexOf("[");
-  const parsed = JSON.parse(start >= 0 ? stdout.slice(start) : stdout);
-  const rows = parsed?.[0]?.results;
-  return Array.isArray(rows) ? (rows as T[]) : [];
+  const cmd = `npx wrangler d1 execute ${DATABASE} --remote --json --command "${sql.replace(/"/g, '\\"')}"`;
+  // Same transient-failure shape flushToD1 retries around ("your DB will
+  // return to its original state" — wrangler's own DNS/API blip, not a data
+  // problem) — a bare crash here otherwise kills an entire backfill run on
+  // the very first flaky request.
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      const { stdout } = await execAsync(cmd, { timeout: 120_000, maxBuffer: 1024 * 1024 * 40 });
+      const start = stdout.indexOf("[");
+      const parsed = JSON.parse(start >= 0 ? stdout.slice(start) : stdout);
+      const rows = parsed?.[0]?.results;
+      return Array.isArray(rows) ? (rows as T[]) : [];
+    } catch (err) {
+      lastErr = err;
+      console.error(`[queryRows] attempt ${attempt}/4 failed, retrying in ${5 * attempt}s...`, err instanceof Error ? err.message : err);
+      await sleep(5000 * attempt);
+    }
+  }
+  throw lastErr;
 }
