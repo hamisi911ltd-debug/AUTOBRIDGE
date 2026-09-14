@@ -1,5 +1,6 @@
 import { getPublicVehicles } from "@/lib/getPublicVehicles";
 import { getPublishedReviews } from "@/lib/getPublishedReviews";
+import { getCatalogueStats } from "@/lib/getCatalogueStats";
 import { AutoBridgeApp } from "@/components/AutoBridgeApp";
 
 // Deliberately force-dynamic, not ISR. A 60s revalidate window was tried
@@ -36,9 +37,10 @@ export default async function Page() {
   // most recently silently crowds out every other brand within this bounded
   // pool (confirmed live: a growth crawl ending on Jaguar/Hyundai left the
   // homepage showing almost nothing else).
-  const [vehicles, reviews] = await Promise.all([
+  const [vehicles, reviews, stats] = await Promise.all([
     getPublicVehicles({ limit: HOME_VEHICLE_LIMIT, diverse: true }),
     getPublishedReviews(),
+    getCatalogueStats(),
   ]);
-  return <AutoBridgeApp initialVehicles={vehicles} reviews={reviews} />;
+  return <AutoBridgeApp initialVehicles={vehicles} reviews={reviews} totalCount={stats.total} />;
 }

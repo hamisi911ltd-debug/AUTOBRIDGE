@@ -6,7 +6,6 @@ import { computeLandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import type { PublicReview } from "@/types/review";
 import { Header } from "@/components/layout/Header";
-import { PromoBanner } from "@/components/home/PromoBanner";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
@@ -25,9 +24,11 @@ const FAVORITES_KEY = "ferbil:favorites:v2";
 export function AutoBridgeApp({
   initialVehicles,
   reviews,
+  totalCount,
 }: {
   initialVehicles: PublicVehicle[];
   reviews: PublicReview[];
+  totalCount: number;
 }) {
   const [page, setPage] = useState<Page>("home");
   // Kept only to derive landed.freight / landed.insurance (both USD, so the
@@ -129,17 +130,15 @@ export function AutoBridgeApp({
     >
       <ConsentGate />
 
-      {/* Only the header itself stays pinned while the page scrolls - the
-         promo banner (home page only) scrolls away with the rest of the
-         content instead. Page content below the header needs exactly its
-         real rendered height reserved above it, but that varies slightly by
-         viewport - rather than measuring it in JS (which leaves a gap
-         between SSR's first paint and the post-hydration correction, during
-         which the fixed header covers the top of the page), an identical,
-         invisible copy is rendered in normal document flow right below it.
-         The browser's own layout engine gives that copy the exact same
-         height as the fixed one for free, on the very first paint, with no
-         JS and no guessing. */}
+      {/* Only the header itself stays pinned while the page scrolls. Page
+         content below it needs exactly its real rendered height reserved
+         above it, but that varies slightly by viewport - rather than
+         measuring it in JS (which leaves a gap between SSR's first paint and
+         the post-hydration correction, during which the fixed header covers
+         the top of the page), an identical, invisible copy is rendered in
+         normal document flow right below it. The browser's own layout
+         engine gives that copy the exact same height as the fixed one for
+         free, on the very first paint, with no JS and no guessing. */}
       <div className="fixed top-0 inset-x-0 z-30">
         <Header
           setPage={setPage}
@@ -148,14 +147,6 @@ export function AutoBridgeApp({
           onGoFavorites={() => goSearch({ favoritesOnly: true })}
           onGoQuote={() => goQuote()}
         />
-        {/* Mobile only: the banner stays pinned with the header instead of
-           scrolling away - sm:hidden below moves it into normal flow (and
-           lets it scroll) on desktop instead. */}
-        {page === "home" && (
-          <div className="sm:hidden">
-            <PromoBanner onGoSearch={() => goSearch({})} />
-          </div>
-        )}
       </div>
       <div aria-hidden className="invisible">
         <Header
@@ -165,20 +156,9 @@ export function AutoBridgeApp({
           onGoFavorites={() => {}}
           onGoQuote={() => {}}
         />
-        {page === "home" && (
-          <div className="sm:hidden">
-            <PromoBanner onGoSearch={() => {}} />
-          </div>
-        )}
       </div>
 
       <main className="flex-1">
-        {/* Desktop only (mobile's copy is pinned above, inside the fixed bar). */}
-        {page === "home" && (
-          <div className="hidden sm:block">
-            <PromoBanner onGoSearch={() => goSearch({})} />
-          </div>
-        )}
         {page === "home" && (
           <HomePage
             vehicles={vehicles}
@@ -188,6 +168,7 @@ export function AutoBridgeApp({
             goDetail={goDetail}
             goSearch={goSearch}
             reviews={reviews}
+            totalCount={totalCount}
           />
         )}
         {page === "search" && (

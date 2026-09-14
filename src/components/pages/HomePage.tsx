@@ -4,6 +4,7 @@ import type { Filters } from "@/lib/constants";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import type { PublicReview } from "@/types/review";
+import { HomeSearchHero } from "@/components/home/HomeSearchHero";
 import { OffersSlider } from "@/components/home/OffersSlider";
 import { CatalogueSection } from "@/components/home/CatalogueSection";
 import { BestSellersByCategory } from "@/components/home/BestSellersByCategory";
@@ -19,6 +20,7 @@ export function HomePage({
   goDetail,
   goSearch,
   reviews,
+  totalCount,
 }: {
   vehicles: PublicVehicle[];
   landedMap: Record<string, LandedCost>;
@@ -27,6 +29,7 @@ export function HomePage({
   goDetail: (id: string) => void;
   goSearch: (patch: Partial<Filters>) => void;
   reviews: PublicReview[];
+  totalCount: number;
 }) {
   // "Featured" needs a real, sharp photo to actually feature - a badge alone
   // isn't enough (hand-entered listings carry badges but no photo), so this
@@ -39,6 +42,7 @@ export function HomePage({
 
   return (
     <div>
+      <HomeSearchHero totalCount={totalCount} goSearch={goSearch} />
       <OffersSlider vehicles={vehicles} goDetail={goDetail} />
       <CatalogueSection vehicles={vehicles} landedMap={landedMap} filters={filters} favorites={favorites} goDetail={goDetail} />
       <BestSellersByCategory vehicles={vehicles} goDetail={goDetail} />
