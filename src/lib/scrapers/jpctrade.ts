@@ -37,6 +37,15 @@ export const JPC_COUNTRIES: Record<string, number> = {
   kenya: 110,
 };
 
+// See the comment at BADGE_RISK_MAKES's use in scrapeJpcDetail for why this
+// exists - excludes makes most likely to carry a certified-dealer badge
+// baked into the photo itself, which no edge strip can cover.
+const BADGE_RISK_MAKES = new Set([
+  "BMW", "MERCEDES BENZ", "MERCEDES-BENZ", "AUDI", "LEXUS", "PORSCHE",
+  "JAGUAR", "LAND ROVER", "BENTLEY", "ROLLS ROYCE", "ROLLS-ROYCE",
+  "MASERATI", "FERRARI", "LAMBORGHINI", "ASTON MARTIN", "VOLVO",
+]);
+
 export class JpcRateLimited extends Error {}
 
 const RETRYABLE = new Set([429, 403, 502, 503, 504]);
@@ -138,6 +147,17 @@ export async function scrapeJpcDetail(id: string, url: string): Promise<ScrapedV
   const modelSpec = specField("Model", html);
   const model = modelSpec ? titleCase(modelSpec) : titleCase(modelSlug.replace(/\+/g, " "));
   if (!make || !model) return null;
+  // Confirmed live: a BMW listing's own photo had a "BMW Premium Selection"
+  // dealer-certification badge baked into the middle of the image (over the
+  // plate, plus a logo corner mark) - not an edge watermark our strip can
+  // cover. There's no reliable per-listing HTML marker that distinguishes
+  // these from JPC's own clean stock (the "Third Party Stock" nav text
+  // appears, commented out, on every page - checked and ruled out), so this
+  // excludes the premium/luxury makes most associated with Japan's
+  // certified-dealer photo programs rather than risk showing a branded
+  // photo. Imperfect - a make-level proxy, not real pixel detection - but
+  // the practical option without per-image inspection.
+  if (BADGE_RISK_MAKES.has(make.toUpperCase())) return null;
 
   const grade = specField("Grade", html);
   const transmissionRaw = specField("Transmission", html);
