@@ -170,7 +170,6 @@ export function AutoBridgeApp({
             goDetail={goDetail}
             goSearch={goSearch}
             reviews={reviews}
-            totalCount={totalCount}
           />
         )}
         {page === "search" && (

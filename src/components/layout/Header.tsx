@@ -59,24 +59,12 @@ export function Header({
               <div className="text-sm sm:text-lg font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
                 FERBIL
               </div>
-              <div className="hidden sm:block text-[8px] uppercase tracking-[0.2em] mt-0.5" style={{ color: COLORS.slate }}>
+              <div className="hidden sm:block text-[8px] font-bold uppercase tracking-[0.2em] mt-0.5" style={{ color: COLORS.slate }}>
                 Car Imports
               </div>
             </div>
           </button>
 
-          <div className="hidden lg:flex items-center gap-1.5 shrink-0">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: COLORS.gold }} />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: COLORS.gold }} />
-            </span>
-            <span className="text-sm font-bold animate-pulse" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-              {totalCount.toLocaleString()}+
-            </span>
-            <span className="text-xs" style={{ color: COLORS.slate }}>
-              cars in stock
-            </span>
-          </div>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <button onClick={onGoSearch} style={{ color: COLORS.ink }}>
               Search
@@ -112,6 +100,16 @@ export function Header({
                   </p>
                 </div>
               )}
+            </div>
+
+            <div className="hidden sm:flex items-center gap-1 pl-2 sm:pl-3 border-l" style={{ borderColor: COLORS.line }}>
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: COLORS.gold }} />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: COLORS.gold }} />
+              </span>
+              <span className="text-xs sm:text-sm font-bold animate-pulse" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                {totalCount.toLocaleString()}+
+              </span>
             </div>
           </div>
         </div>
