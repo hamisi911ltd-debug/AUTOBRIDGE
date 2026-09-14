@@ -13,5 +13,6 @@ export async function getPublishedReviews(): Promise<PublicReview[]> {
     rating: r.rating,
     text: r.text,
     vehicleLabel: r.vehicleLabel,
+    photoUrl: r.photoUrl,
   }));
 }

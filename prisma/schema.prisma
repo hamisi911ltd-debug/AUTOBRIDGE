@@ -167,6 +167,7 @@ model Review {
   rating         Int // 1-5
   text           String
   vehicleLabel   String? // free-text e.g. "Toyota Harrier" - no FK, the vehicle listing itself may be long gone by the time a review comes in
+  photoUrl       String? // optional customer/delivery photo, shown on the review card
   published      Boolean  @default(true)
   createdAt      DateTime @default(now())
 }

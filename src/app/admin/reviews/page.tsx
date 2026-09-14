@@ -49,6 +49,18 @@ export default async function AdminReviewsPage() {
           </label>
           <textarea name="text" required rows={3} className="w-full border rounded-lg px-3 py-2 text-sm" style={{ borderColor: COLORS.line }} />
         </div>
+        <div>
+          <label className="text-xs font-medium block mb-1" style={{ color: COLORS.slate }}>
+            Customer photo URL (optional)
+          </label>
+          <input
+            name="photoUrl"
+            type="url"
+            placeholder="https://..."
+            className="w-full border rounded-lg px-3 py-2 text-sm"
+            style={{ borderColor: COLORS.line }}
+          />
+        </div>
         <button type="submit" className="justify-self-start px-4 py-2 rounded-full text-sm font-semibold text-white" style={{ background: COLORS.burgundy }}>
           Add review
         </button>
@@ -57,7 +69,12 @@ export default async function AdminReviewsPage() {
       <div className="space-y-3">
         {reviews.map((r) => (
           <div key={r.id} className="bg-white rounded-2xl border p-4 flex items-start justify-between gap-4" style={{ borderColor: COLORS.line }}>
-            <div className="text-sm">
+            <div className="flex items-start gap-3 text-sm">
+              {r.photoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element -- admin-entered external URL
+                <img src={r.photoUrl} alt="" className="w-12 h-12 rounded-full object-cover shrink-0" />
+              )}
+              <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="font-semibold" style={{ color: COLORS.navy }}>
                   {r.customerName}
@@ -77,6 +94,7 @@ export default async function AdminReviewsPage() {
               <p style={{ color: COLORS.ink }}>{r.text}</p>
               <div className="mt-2 text-xs" style={{ color: COLORS.slate }}>
                 {r.createdAt.toLocaleString()}
+              </div>
               </div>
             </div>
             <div className="flex flex-col items-end gap-2 shrink-0">

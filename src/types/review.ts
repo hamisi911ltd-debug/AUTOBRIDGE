@@ -4,4 +4,5 @@ export type PublicReview = {
   rating: number;
   text: string;
   vehicleLabel: string | null;
+  photoUrl: string | null;
 };

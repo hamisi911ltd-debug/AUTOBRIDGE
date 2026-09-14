@@ -202,9 +202,10 @@ export async function createReview(formData: FormData) {
   const rating = Number(formData.get("rating"));
   const text = (formData.get("text") as string).trim();
   const vehicleLabel = (formData.get("vehicleLabel") as string | null)?.trim() || null;
+  const photoUrl = (formData.get("photoUrl") as string | null)?.trim() || null;
   if (!customerName || !text || rating < 1 || rating > 5) throw new Error("Missing or invalid review fields");
 
-  await prisma.review.create({ data: { customerName, rating, text, vehicleLabel, published: true } });
+  await prisma.review.create({ data: { customerName, rating, text, vehicleLabel, photoUrl, published: true } });
   revalidatePath("/admin/reviews");
   revalidatePath("/");
 }
