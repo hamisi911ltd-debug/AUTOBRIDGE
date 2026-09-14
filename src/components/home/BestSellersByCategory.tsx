@@ -159,8 +159,8 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
               <div className="absolute inset-0 transition-transform duration-300 group-hover:scale-105">
                 {/* eslint-disable-next-line @next/next/no-img-element -- external R2 CDN */}
                 <img src={t.vehicle.imageUrl!} alt={t.key} className="absolute inset-0 w-full h-full object-cover" />
-                <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] bg-white flex items-center justify-center gap-1">
-                  <span className="text-[8px] sm:text-[9px] font-bold" style={{ color: "#F2762E" }}>
+                <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] flex items-center justify-center gap-1" style={{ background: "#3B1F63" }}>
+                  <span className="text-[8px] sm:text-[9px] font-bold text-white">
                     {t.vehicle.year} &middot; {t.vehicle.sourceCountry}
                   </span>
                 </div>
