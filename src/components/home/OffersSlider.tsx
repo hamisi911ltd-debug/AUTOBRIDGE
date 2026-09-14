@@ -152,7 +152,7 @@ export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]
                           <span className="text-sm font-bold" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
                             {formatUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd)}
                           </span>
-                          <span className="text-[10px] line-through" style={{ color: COLORS.slate }}>
+                          <span className="text-[10px] line-through" style={{ color: "#DC2626" }}>
                             {formatUsd(wasPriceUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd, v.id))}
                           </span>
                         </div>

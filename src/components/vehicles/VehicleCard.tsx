@@ -1,8 +1,10 @@
 "use client";
 
+import { ShoppingCart } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { discountPercent, formatUsd, wasPriceUsd } from "@/lib/format";
 import { computeFreightUsd } from "@/lib/landedCost";
+import { useCart } from "@/lib/cartContext";
 import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { PublicVehicle } from "@/types/vehicle";
 
@@ -23,6 +25,8 @@ export function VehicleCard({
   const totalUsd = v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd;
   const percent = discountPercent(v.id);
   const wasUsd = wasPriceUsd(totalUsd, v.id);
+  const { cart, toggleCart } = useCart();
+  const inCart = cart.has(v.id);
 
   return (
     <div
@@ -50,6 +54,17 @@ export function VehicleCard({
         <span className="absolute top-2 right-2 sm:top-3 sm:right-3 text-[10px] sm:text-[11px] font-bold px-2 py-1 rounded-md text-white" style={{ background: "#DC2626" }}>
           -{percent}%
         </span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleCart(v.id);
+          }}
+          aria-label={inCart ? "Remove from cart" : "Add to cart"}
+          className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center shadow"
+          style={{ background: inCart ? COLORS.burgundy : "rgba(255,255,255,0.95)", color: inCart ? "#fff" : COLORS.navy }}
+        >
+          <ShoppingCart size={15} fill={inCart ? "currentColor" : "none"} />
+        </button>
       </div>
       <div className="p-2 sm:p-2.5">
         <h3 className="text-xs sm:text-sm font-semibold leading-snug truncate" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
@@ -59,7 +74,7 @@ export function VehicleCard({
           <span className="text-sm sm:text-base font-bold" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
             {formatUsd(totalUsd)}
           </span>
-          <span className="text-[10px] sm:text-xs line-through" style={{ color: COLORS.slate }}>
+          <span className="text-[10px] sm:text-xs line-through" style={{ color: "#DC2626" }}>
             {formatUsd(wasUsd)}
           </span>
         </div>

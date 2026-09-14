@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { COLORS, DEFAULT_FILTERS, FONT_BODY, type Filters } from "@/lib/constants";
 import { computeLandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
@@ -14,12 +14,15 @@ import { HomePage } from "@/components/pages/HomePage";
 import { SearchPage } from "@/components/pages/SearchPage";
 import { DetailPage } from "@/components/pages/DetailPage";
 import { InvoicePage } from "@/components/pages/InvoicePage";
+import { CartPage } from "@/components/pages/CartPage";
+import { CartProvider } from "@/lib/cartContext";
 
-export type Page = "home" | "search" | "detail" | "quote";
+export type Page = "home" | "search" | "detail" | "quote" | "cart";
 
 // Bumped to v2 to start every visitor fresh (a one-off reset, requested
 // directly) - old data under the v1 keys is simply never read again.
 const FAVORITES_KEY = "ferbil:favorites:v2";
+const CART_KEY = "ferbil:cart:v1";
 
 export function AutoBridgeApp({
   initialVehicles,
@@ -36,6 +39,7 @@ export function AutoBridgeApp({
   const fx = 1;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
+  const [cart, setCart] = useState<Set<string>>(() => new Set());
   const [quoteVehicleId, setQuoteVehicleId] = useState<string | null>(null);
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
 
@@ -74,14 +78,21 @@ export function AutoBridgeApp({
       const savedFavorites = localStorage.getItem(FAVORITES_KEY);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (savedFavorites) setFavorites(new Set(JSON.parse(savedFavorites)));
+      const savedCart = localStorage.getItem(CART_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (savedCart) setCart(new Set(JSON.parse(savedCart)));
     } catch {
-      // localStorage unavailable - favorites just stay session-only
+      // localStorage unavailable - favorites/cart just stay session-only
     }
   }, []);
 
   useEffect(() => {
     localStorage.setItem(FAVORITES_KEY, JSON.stringify([...favorites]));
   }, [favorites]);
+
+  useEffect(() => {
+    localStorage.setItem(CART_KEY, JSON.stringify([...cart]));
+  }, [cart]);
 
   useEffect(() => {
     // Also keyed on selectedId - clicking a "similar vehicles" card at the
@@ -108,9 +119,20 @@ export function AutoBridgeApp({
       return next;
     });
   }
+  function toggleCart(id: string) {
+    setCart((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
   function goDetail(id: string) {
     setSelectedId(id);
     setPage("detail");
+  }
+  function goCart() {
+    setPage("cart");
   }
   function goSearch(patch: Partial<Filters>) {
     setFilters((f) => ({ ...f, ...patch }));
@@ -121,9 +143,36 @@ export function AutoBridgeApp({
     setPage("quote");
   }
 
+  // In-app back navigation - this SPA has no real browser routes (every
+  // "page" is just this one component's own state), so the browser's own
+  // back button can't help. Tracks a simple history stack instead: whenever
+  // `page` actually changes, the previous value gets pushed here first, so
+  // goBack can pop it and return there directly.
+  const pageHistoryRef = useRef<Page[]>([]);
+  const prevPageRef = useRef<Page>("home");
+  useEffect(() => {
+    if (page !== prevPageRef.current) {
+      pageHistoryRef.current.push(prevPageRef.current);
+      prevPageRef.current = page;
+    }
+  }, [page]);
+  const [canGoBack, setCanGoBack] = useState(false);
+  useEffect(() => {
+    setCanGoBack(pageHistoryRef.current.length > 0);
+  }, [page]);
+
+  function goBack() {
+    const prev = pageHistoryRef.current.pop();
+    if (!prev) return;
+    prevPageRef.current = prev;
+    setPage(prev);
+    setCanGoBack(pageHistoryRef.current.length > 0);
+  }
+
   const selectedVehicle = vehicles.find((v) => v.id === selectedId) || null;
 
   return (
+    <CartProvider value={{ cart, toggleCart }}>
     <div
       style={{ fontFamily: FONT_BODY, background: COLORS.paper, minHeight: "100vh", color: COLORS.ink }}
       className="w-full flex flex-col"
@@ -143,20 +192,28 @@ export function AutoBridgeApp({
         <Header
           setPage={setPage}
           favoritesCount={favorites.size}
+          cartCount={cart.size}
           onGoSearch={() => goSearch({})}
           onGoFavorites={() => goSearch({ favoritesOnly: true })}
           onGoQuote={() => goQuote()}
+          onGoCart={goCart}
           totalCount={totalCount}
+          canGoBack={canGoBack}
+          onBack={goBack}
         />
       </div>
       <div aria-hidden className="invisible">
         <Header
           setPage={setPage}
           favoritesCount={favorites.size}
+          cartCount={cart.size}
           onGoSearch={() => {}}
           onGoFavorites={() => {}}
           onGoQuote={() => {}}
+          onGoCart={() => {}}
           totalCount={totalCount}
+          canGoBack={false}
+          onBack={() => {}}
         />
       </div>
 
@@ -198,11 +255,13 @@ export function AutoBridgeApp({
         {page === "quote" && (
           <InvoicePage vehicles={vehicles} landedMap={landedMap} preselectedId={quoteVehicleId} goDetail={goDetail} />
         )}
+        {page === "cart" && <CartPage vehicles={vehicles} landedMap={landedMap} goDetail={goDetail} goQuote={goQuote} goSearch={goSearch} />}
       </main>
 
       <Footer setPage={setPage} onGoSearch={() => goSearch({})} onGoQuote={() => goQuote()} />
       <WhatsAppButton />
       <BottomNav page={page} setPage={setPage} onGoSearch={() => goSearch({})} onGoQuote={() => goQuote()} />
     </div>
+    </CartProvider>
   );
 }

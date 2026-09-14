@@ -213,7 +213,7 @@ export function PromoShowcase({
                       <span className="text-xl font-bold block" style={{ color: COLORS.goldLight, fontFamily: FONT_DISPLAY }}>
                         {formatUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd)}
                       </span>
-                      <span className="text-xs line-through" style={{ color: "#C6CEDD" }}>
+                      <span className="text-xs line-through" style={{ color: "#F87171" }}>
                         {formatUsd(wasPriceUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd, v.id))}
                       </span>
                     </span>

@@ -206,7 +206,7 @@ export function InvoicePage({
       </div>
 
       {!lead ? (
-        <div className="invoice-no-print bg-white rounded-xl border p-4 sm:p-7" style={{ borderColor: MAROON }}>
+        <div className="invoice-no-print bg-white rounded-2xl border p-5 sm:p-7" style={{ borderColor: MAROON }}>
           <div className="text-base sm:text-xl font-bold mb-1" style={{ fontFamily: FONT_DISPLAY, color: MAROON }}>
             Send invoice to
           </div>
@@ -335,7 +335,7 @@ export function InvoicePage({
                 KRA duty, excise &amp; VAT, plus in-house clearing.
               </div>
             ) : (
-              <div className="bg-white rounded-xl border p-3.5 sm:p-5" style={{ borderColor: MAROON }}>
+              <div className="bg-white rounded-2xl border p-5" style={{ borderColor: MAROON }}>
                 <div className="text-xs sm:text-sm font-semibold mb-2" style={{ color: COLORS.navy }}>
                   Want the invoice that includes clearance?
                 </div>

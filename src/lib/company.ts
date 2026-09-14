@@ -7,7 +7,7 @@ export const COMPANY = {
   name: "Ferbil Interfreight Limited",
   poBox: "P.O Box 95034-00100",
   addressLines: ["Olemonana House, 2nd Floor", "Moi Avenue, Mombasa", "Mombasa, Kenya"],
-  phone: "+254 726 991 028",
+  phone: "+254 725 745 777",
   email: "info@ferbil.co.ke",
   web: "www.ferbil.co.ke",
 } as const;

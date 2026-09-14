@@ -8,10 +8,8 @@ import { whatsAppLink } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { Page } from "@/components/AutoBridgeApp";
 
-const GRADIENT = "linear-gradient(90deg, #F2762E 0%, #D6336C 50%, #3B1F63 100%)";
-// Orange-themed footer - white at full and reduced opacity reads cleanly on
-// the solid COLORS.gold background this now uses (the navy-tuned muted
-// grays it had before were sized for a dark navy footer, not orange).
+// Navy-themed footer (moved off the earlier orange) - white at full and
+// reduced opacity reads cleanly on this solid COLORS.navy background.
 const MUTED = "rgba(255,255,255,0.85)";
 const FAINT = "rgba(255,255,255,0.65)";
 
@@ -36,15 +34,21 @@ export function Footer({
   const year = new Date().getFullYear();
 
   return (
-    <footer className="text-white pb-16 md:pb-0" style={{ background: COLORS.gold }}>
+    <footer className="text-white pb-16 md:pb-0" style={{ background: COLORS.navy }}>
       {/* Mobile: one compact block - logo, a single row of links, phone &
          email - instead of the full 3-section desktop layout stacked tall. */}
       <div className="sm:hidden max-w-7xl mx-auto px-4 py-3.5">
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-7 h-7 rounded-md shrink-0" style={{ background: GRADIENT }} />
-          <span className="text-xs font-bold" style={{ fontFamily: FONT_DISPLAY }}>
-            {COMPANY.name}
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
+          <img src="/ferbil-logo.svg" alt="" className="w-8 h-8 shrink-0" />
+          <div className="leading-none">
+            <div className="text-xs font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY }}>
+              FERBIL
+            </div>
+            <div className="text-[7px] font-bold uppercase tracking-[0.15em] mt-0.5" style={{ color: "#F2A6C4" }}>
+              Car Imports
+            </div>
+          </div>
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] mb-1.5">
           <button onClick={() => setPage?.("home")} style={{ color: MUTED }}>
@@ -75,10 +79,16 @@ export function Footer({
         {/* Brand */}
         <div>
           <div className="flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 rounded-lg shrink-0" style={{ background: GRADIENT }} />
-            <span className="text-sm font-bold leading-tight" style={{ fontFamily: FONT_DISPLAY }}>
-              {COMPANY.name}
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
+            <img src="/ferbil-logo.svg" alt="" className="w-10 h-10 shrink-0" />
+            <div className="leading-none">
+              <div className="text-base font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY }}>
+                FERBIL
+              </div>
+              <div className="text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5" style={{ color: "#F2A6C4" }}>
+                Car Imports
+              </div>
+            </div>
           </div>
           <p className="text-xs leading-relaxed" style={{ color: MUTED }}>
             Kenya&apos;s vehicle import marketplace - real, import-eligible cars sourced from Japan and the UAE, landed

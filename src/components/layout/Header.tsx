@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bell, Heart } from "lucide-react";
+import { ArrowLeft, Bell, Heart, ShoppingCart } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import type { Page } from "@/components/AutoBridgeApp";
 
@@ -17,17 +17,25 @@ const GRADIENT = "linear-gradient(90deg, #F2762E 0%, #D6336C 50%, #3B1F63 100%)"
 export function Header({
   setPage,
   favoritesCount,
+  cartCount,
   onGoSearch,
   onGoFavorites,
   onGoQuote,
+  onGoCart,
   totalCount,
+  canGoBack,
+  onBack,
 }: {
   setPage: (p: Page) => void;
   favoritesCount: number;
+  cartCount: number;
   onGoSearch: () => void;
   onGoFavorites: () => void;
   onGoQuote: () => void;
+  onGoCart: () => void;
   totalCount: number;
+  canGoBack: boolean;
+  onBack: () => void;
 }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -52,18 +60,30 @@ export function Header({
     <header className="w-full">
       <div className="w-full overflow-hidden" style={{ padding: "3px 0", background: GRADIENT, boxShadow: "0 6px 20px rgba(59,31,99,0.28)" }}>
         <div className="h-11 sm:h-14 bg-white/95 backdrop-blur flex items-center justify-between px-3 sm:px-6">
-          <button onClick={() => setPage("home")} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
-            <img src="/ferbil-logo.svg" alt="" className="w-6 h-6 sm:w-8 sm:h-8" />
-            <div className="text-left leading-none">
-              <div className="text-sm sm:text-lg font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-                FERBIL
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {canGoBack && (
+              <button
+                onClick={onBack}
+                aria-label="Go back"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0"
+                style={{ background: COLORS.card, color: COLORS.navy }}
+              >
+                <ArrowLeft size={16} />
+              </button>
+            )}
+            <button onClick={() => setPage("home")} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
+              <img src="/ferbil-logo.svg" alt="" className="w-9 h-9 sm:w-11 sm:h-11" />
+              <div className="text-left leading-none">
+                <div className="text-sm sm:text-lg font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                  FERBIL
+                </div>
+                <div className="block text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] mt-0.5" style={{ color: "#D6336C" }}>
+                  Car Imports
+                </div>
               </div>
-              <div className="block text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] mt-0.5" style={{ color: COLORS.slate }}>
-                Car Imports
-              </div>
-            </div>
-          </button>
+            </button>
+          </div>
 
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <button onClick={onGoSearch} style={{ color: COLORS.ink }}>
@@ -85,6 +105,18 @@ export function Header({
                 Get started
               </button>
             </div>
+
+            <button onClick={onGoCart} aria-label="Cart" className="relative w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+              <ShoppingCart size={17} color={COLORS.navy} />
+              {cartCount > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white flex items-center justify-center"
+                  style={{ background: COLORS.burgundy }}
+                >
+                  {cartCount}
+                </span>
+              )}
+            </button>
 
             <div className="relative" ref={notifRef}>
               <button onClick={() => setNotifOpen((o) => !o)} aria-label="Notifications" className="w-8 h-8 rounded-full flex items-center justify-center">
