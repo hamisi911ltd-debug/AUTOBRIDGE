@@ -1,31 +1,26 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ferbil">
   <defs>
-    <linearGradient id="ferbilGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#F2762E"/>
+    <linearGradient id="stroke1" x1="60" y1="150" x2="470" y2="150" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2A3A8C"/>
       <stop offset="55%" stop-color="#D6336C"/>
-      <stop offset="100%" stop-color="#3B1F63"/>
+      <stop offset="100%" stop-color="#F2762E"/>
     </linearGradient>
-    <linearGradient id="ferbilSheen" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
-      <stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>
+    <linearGradient id="stroke2" x1="60" y1="245" x2="400" y2="245" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B1F63"/>
+      <stop offset="55%" stop-color="#D6336C"/>
+      <stop offset="100%" stop-color="#F2762E"/>
+    </linearGradient>
+    <linearGradient id="stroke3" x1="60" y1="330" x2="150" y2="470" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D6336C"/>
+      <stop offset="100%" stop-color="#2A3A8C"/>
     </linearGradient>
   </defs>
 
-  <rect width="512" height="512" rx="112" fill="url(#ferbilGradient)"/>
-  <rect width="512" height="512" rx="112" fill="url(#ferbilSheen)"/>
-
-  <text
-    x="256" y="278"
-    font-family="Georgia, 'Times New Roman', serif"
-    font-size="300"
-    font-weight="700"
-    fill="#ffffff"
-    text-anchor="middle"
-    dominant-baseline="central"
-  >F</text>
-
-  <!-- Thin accent line under the monogram, evoking a horizon/road - the
-       import route from port to road, kept simple so it still reads clean
-       at favicon size. Clear gap below the F's serif foot (~y=362). -->
-  <rect x="186" y="392" width="140" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.85"/>
+  <!-- Three sweeping ribbon strokes forming an "F" - top and middle bars
+       plus a downward stem, each a flag-like shape with an angled tail,
+       matching the site's own brand gradient (violet/blue -> magenta ->
+       orange) rather than a flat block. -->
+  <path d="M60 118 L440 118 Q472 118 458 146 L430 182 Q422 194 405 194 L60 194 Z" fill="url(#stroke1)"/>
+  <path d="M60 213 L372 213 Q404 213 388 241 L360 277 Q352 289 335 289 L60 289 Z" fill="url(#stroke2)"/>
+  <path d="M60 308 L155 308 Q187 308 172 336 L110 460 Q100 476 82 476 L60 476 Z" fill="url(#stroke3)"/>
 </svg>

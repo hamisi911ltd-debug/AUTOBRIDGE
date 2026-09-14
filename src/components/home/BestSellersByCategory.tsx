@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { COLORS, FONT_DISPLAY, POPULAR_MAKES } from "@/lib/constants";
 import type { PublicVehicle } from "@/types/vehicle";
-import { FerbilBadge } from "@/components/vehicles/FerbilBadge";
 
 const TILES_PER_CATEGORY = 10;
 const AUTO_ADVANCE_MS = 4000;
@@ -165,7 +164,6 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
                     {t.vehicle.year} &middot; {t.vehicle.sourceCountry}
                   </span>
                 </div>
-                <FerbilBadge />
               </div>
               {/* Rank number - hidden on mobile, tiles are too narrow there for it to read as anything but clutter */}
               <span

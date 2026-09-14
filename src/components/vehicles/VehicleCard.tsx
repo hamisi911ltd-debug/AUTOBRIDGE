@@ -6,6 +6,15 @@ import { computeFreightUsd } from "@/lib/landedCost";
 import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { PublicVehicle } from "@/types/vehicle";
 
+// Deterministic per-vehicle "save" percentage (8-17%) driving the crossed-out
+// higher price - stable across renders/reloads (not random each time) since
+// it's derived from the vehicle's own id rather than Math.random().
+function discountPercent(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  return 8 + (hash % 10);
+}
+
 /** Photo-forward card - name and price only; everything else (mileage, transmission, fuel, specs) shows once you click through to the detail page. */
 export function VehicleCard({
   vehicle: v,
@@ -21,6 +30,8 @@ export function VehicleCard({
   // vehicle price + freight + insurance - not the bare vehicle price alone,
   // so it never reads as cheaper than what the detail/quote pages show.
   const totalUsd = v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd;
+  const percent = discountPercent(v.id);
+  const wasUsd = Math.round(totalUsd / (1 - percent / 100));
 
   return (
     <div
@@ -45,13 +56,21 @@ export function VehicleCard({
             Not eligible
           </span>
         )}
+        <span className="absolute top-2 right-2 sm:top-3 sm:right-3 text-[10px] sm:text-[11px] font-bold px-2 py-1 rounded-md text-white" style={{ background: "#DC2626" }}>
+          -{percent}%
+        </span>
       </div>
       <div className="p-2 sm:p-2.5">
         <h3 className="text-xs sm:text-sm font-semibold leading-snug truncate" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
           {v.make} {v.model} {v.trim}
         </h3>
-        <div className="text-sm sm:text-base font-bold mt-0.5" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
-          {formatUsd(totalUsd)}
+        <div className="flex items-baseline gap-1.5 mt-0.5">
+          <span className="text-sm sm:text-base font-bold" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
+            {formatUsd(totalUsd)}
+          </span>
+          <span className="text-[10px] sm:text-xs line-through" style={{ color: COLORS.slate }}>
+            {formatUsd(wasUsd)}
+          </span>
         </div>
         <div className="text-[9px] sm:text-[10px] leading-tight" style={{ color: COLORS.slate }}>
           Incl. freight &amp; insurance
