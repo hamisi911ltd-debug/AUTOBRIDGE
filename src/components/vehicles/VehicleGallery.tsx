@@ -100,8 +100,8 @@ export function VehicleGallery({
           />
         ))}
         {(year || country) && (
-          <div className="absolute bottom-0 inset-x-0 h-6 sm:h-7 bg-white/95 flex items-center justify-center gap-1 z-10">
-            <span className="text-[11px] sm:text-xs font-bold" style={{ color: "#F2762E" }}>
+          <div className="absolute bottom-0 inset-x-0 h-6 sm:h-7 flex items-center justify-center gap-1 z-10" style={{ background: "#3B1F63" }}>
+            <span className="text-[11px] sm:text-xs font-bold text-white">
               {year}
               {year && country ? " · " : ""}
               {country}
