@@ -1,19 +1,10 @@
 "use client";
 
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
-import { formatUsd } from "@/lib/format";
+import { discountPercent, formatUsd, wasPriceUsd } from "@/lib/format";
 import { computeFreightUsd } from "@/lib/landedCost";
 import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { PublicVehicle } from "@/types/vehicle";
-
-// Deterministic per-vehicle "save" percentage (8-17%) driving the crossed-out
-// higher price - stable across renders/reloads (not random each time) since
-// it's derived from the vehicle's own id rather than Math.random().
-function discountPercent(id: string): number {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
-  return 8 + (hash % 10);
-}
 
 /** Photo-forward card - name and price only; everything else (mileage, transmission, fuel, specs) shows once you click through to the detail page. */
 export function VehicleCard({
@@ -31,7 +22,7 @@ export function VehicleCard({
   // so it never reads as cheaper than what the detail/quote pages show.
   const totalUsd = v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd;
   const percent = discountPercent(v.id);
-  const wasUsd = Math.round(totalUsd / (1 - percent / 100));
+  const wasUsd = wasPriceUsd(totalUsd, v.id);
 
   return (
     <div

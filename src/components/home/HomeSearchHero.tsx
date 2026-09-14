@@ -19,7 +19,7 @@ export function HomeSearchHero({ goSearch }: { goSearch: (patch: Partial<Filters
   }
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-5 sm:pt-7 pb-4 sm:pb-5">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4 pb-2.5 sm:pb-3">
       <form onSubmit={submitSearch} className="flex items-center gap-2 max-w-2xl mx-auto">
         <div
           className="flex-1 flex items-center gap-2 rounded-full border bg-white px-4 py-2.5 sm:py-3"
@@ -45,10 +45,10 @@ export function HomeSearchHero({ goSearch }: { goSearch: (patch: Partial<Filters
           type="button"
           onClick={() => goSearch({})}
           aria-label="Open filters"
-          className="shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full border flex items-center justify-center"
-          style={{ borderColor: COLORS.line, color: COLORS.navy }}
+          className="shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center"
+          style={{ background: COLORS.card, borderColor: COLORS.navy, color: COLORS.navy }}
         >
-          <SlidersHorizontal size={18} />
+          <SlidersHorizontal size={18} strokeWidth={2.5} />
         </button>
       </form>
     </section>

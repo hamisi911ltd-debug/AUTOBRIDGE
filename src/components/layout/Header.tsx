@@ -59,7 +59,7 @@ export function Header({
               <div className="text-sm sm:text-lg font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
                 FERBIL
               </div>
-              <div className="hidden sm:block text-[8px] font-bold uppercase tracking-[0.2em] mt-0.5" style={{ color: COLORS.slate }}>
+              <div className="block text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] mt-0.5" style={{ color: COLORS.slate }}>
                 Car Imports
               </div>
             </div>

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 import { COLORS, FONT_DISPLAY, POPULAR_MAKES } from "@/lib/constants";
-import { formatUsd } from "@/lib/format";
+import { discountPercent, formatUsd, wasPriceUsd } from "@/lib/format";
 import { computeFreightUsd } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 
@@ -193,6 +193,9 @@ export function PromoShowcase({
               >
                 {v.badge ?? "Hot pick"}
               </span>
+              <span className="absolute top-3 right-3 text-[11px] font-bold px-2.5 py-1 rounded-full text-white" style={{ background: "#DC2626" }}>
+                -{discountPercent(v.id)}%
+              </span>
 
               <div className="absolute inset-x-0 bottom-0 p-4">
                 <h2 className="text-lg sm:text-xl font-bold text-white drop-shadow-sm" style={{ fontFamily: FONT_DISPLAY }}>
@@ -206,8 +209,13 @@ export function PromoShowcase({
                 </p>
                 <div className="flex items-center justify-between mt-2">
                   <span>
-                    <span className="text-xl font-bold block" style={{ color: COLORS.goldLight, fontFamily: FONT_DISPLAY }}>
-                      {formatUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd)}
+                    <span className="flex items-baseline gap-2">
+                      <span className="text-xl font-bold block" style={{ color: COLORS.goldLight, fontFamily: FONT_DISPLAY }}>
+                        {formatUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd)}
+                      </span>
+                      <span className="text-xs line-through" style={{ color: "#C6CEDD" }}>
+                        {formatUsd(wasPriceUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd, v.id))}
+                      </span>
                     </span>
                     <span className="text-[10px]" style={{ color: "#C6CEDD" }}>
                       Incl. freight &amp; insurance
