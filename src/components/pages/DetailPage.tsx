@@ -524,37 +524,21 @@ export function DetailPage({
                  sticky column above (CostLadder + SpecTable + this CTA) is
                  usually shorter than the left column's photo+specs+enquiry
                  form, which was leaving a bare gap below it once scrolled
-                 that far. More inventory + a shipping visual, not padding. */}
+                 that far. Grows with flex-1 and shows as many cars as fit,
+                 rather than a fixed count, so the column stays full top to
+                 bottom instead of leaving a gap under a short list. */}
               {similar.length > 0 && (
-                <div className="rounded-2xl border p-3" style={{ borderColor: COLORS.line }}>
+                <div className="rounded-2xl border p-3 flex-1 flex flex-col min-h-0" style={{ borderColor: COLORS.line }}>
                   <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
                     More from our stock
                   </div>
                   <div className="grid grid-cols-2 gap-2.5">
-                    {similar.slice(0, 2).map((v) => (
+                    {similar.slice(0, 6).map((v) => (
                       <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
                     ))}
                   </div>
                 </div>
               )}
-
-              <div className="rounded-2xl overflow-hidden border" style={{ borderColor: COLORS.line }}>
-                {/* eslint-disable-next-line @next/next/no-img-element -- external Wikimedia CDN */}
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/BYD_Hefei%2C_Porto_di_Livorno%2C_2025.jpg/640px-BYD_Hefei%2C_Porto_di_Livorno%2C_2025.jpg"
-                  alt="RoRo car-carrier vessel"
-                  className="w-full h-32 object-cover"
-                />
-                <div className="p-3">
-                  <div className="text-xs font-semibold" style={{ color: COLORS.navy }}>
-                    Shipped by RoRo vessel
-                  </div>
-                  <div className="text-[11px] mt-0.5" style={{ color: COLORS.slate }}>
-                    Roll-on/roll-off carriers - the standard, secure way vehicles are shipped from Japan &amp; the
-                    UAE to Mombasa.
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

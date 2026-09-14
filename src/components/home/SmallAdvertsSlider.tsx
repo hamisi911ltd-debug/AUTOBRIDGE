@@ -21,7 +21,7 @@ const STEPS = [
     icon: Ship,
     label: "2. We ship it",
     text: "Once reserved, we handle payment to the exporter, export inspection and ocean freight to Mombasa.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/YANG_MING_Container_Ship_in_the_mediterranean_sea_towards_the_Suez_Canal.jpg/960px-YANG_MING_Container_Ship_in_the_mediterranean_sea_towards_the_Suez_Canal.jpg",
+    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/BYD_Hefei%2C_Porto_di_Livorno%2C_2025.jpg/960px-BYD_Hefei%2C_Porto_di_Livorno%2C_2025.jpg",
   },
   {
     icon: ShieldCheck,
