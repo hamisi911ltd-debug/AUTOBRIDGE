@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Printer, CheckCircle2 } from "lucide-react";
+import { Printer, CheckCircle2, Search } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { COMPANY, BANK_DETAILS } from "@/lib/company";
 import { computeFreightUsd } from "@/lib/landedCost";
@@ -65,6 +65,8 @@ export function InvoicePage({
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(preselectedId);
   const [page, setPage] = useState(1);
+  const [keyword, setKeyword] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [sending, setSending] = useState(false);
   // Gates the invoice document - set once the "Send invoice to" form is
   // submitted. Also supplies the "Bill to" name/contact on the document.
@@ -76,12 +78,22 @@ export function InvoicePage({
   const vehicle = vehicles.find((v) => v.id === selectedId) || null;
 
   if (!vehicle) {
-    const pageCount = Math.max(1, Math.ceil(vehicles.length / PAGE_SIZE));
-    const paged = vehicles.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const term = searchTerm.trim().toLowerCase();
+    const filtered = term
+      ? vehicles.filter((v) => `${v.make} ${v.model} ${v.trim ?? ""} ${v.year}`.toLowerCase().includes(term))
+      : vehicles;
+    const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
     function goToPage(p: number) {
       setPage(p);
       document.getElementById("invoice-catalogue")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function submitSearch(e: React.FormEvent) {
+      e.preventDefault();
+      setSearchTerm(keyword);
+      setPage(1);
     }
 
     return (
@@ -96,11 +108,41 @@ export function InvoicePage({
           </p>
         </div>
 
+        <form onSubmit={submitSearch} className="flex items-center gap-1.5 sm:gap-2 max-w-2xl mb-4 sm:mb-6">
+          <div className="flex-1 rounded-full p-[1.5px]" style={{ background: "linear-gradient(90deg, #D6336C 0%, #3B1F63 100%)" }}>
+            <div className="flex items-center gap-2 rounded-full bg-white pl-3 sm:pl-4 pr-1.5 sm:pr-4 py-1.5 sm:py-3">
+              <Search size={15} color={COLORS.slate} className="shrink-0 hidden sm:block" />
+              <input
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Search make or model"
+                className="flex-1 min-w-0 text-xs sm:text-sm outline-none bg-transparent"
+                style={{ color: COLORS.ink }}
+              />
+              <button type="submit" aria-label="Search" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center sm:hidden" style={{ color: COLORS.slate }}>
+                <Search size={15} />
+              </button>
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="hidden sm:block shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full text-sm font-semibold text-white"
+            style={{ background: COLORS.burgundy }}
+          >
+            Search
+          </button>
+        </form>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-5">
           {paged.map((v) => (
             <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
           ))}
         </div>
+        {paged.length === 0 && (
+          <p className="text-sm text-center py-10" style={{ color: COLORS.slate }}>
+            No cars match &ldquo;{searchTerm}&rdquo;.
+          </p>
+        )}
         <Pagination page={page} pageCount={pageCount} onPageChange={goToPage} />
       </div>
     );
