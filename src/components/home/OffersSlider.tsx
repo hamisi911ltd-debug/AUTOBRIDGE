@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Tag } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingCart, Tag } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { discountPercent, formatUsd, wasPriceUsd } from "@/lib/format";
 import { computeFreightUsd } from "@/lib/landedCost";
+import { useCart } from "@/lib/cartContext";
 import { VehicleImage } from "@/components/vehicles/VehicleImage";
 import type { PublicVehicle } from "@/types/vehicle";
 
@@ -50,6 +51,7 @@ function pickOffers(vehicles: PublicVehicle[], randomize: boolean): PublicVehicl
 }
 
 export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]; goDetail: (id: string) => void }) {
+  const { cart, toggleCart } = useCart();
   // Deterministic on the very first render (server and client must match to
   // avoid a hydration mismatch), then reshuffled once on the client right
   // after mount - that reshuffle is what makes each page load look
@@ -125,10 +127,10 @@ export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]
               return (
                 <div key={pageIdx} className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 shrink-0 w-full">
                   {offers.slice(pageIdx * CARDS_PER_VIEW, pageIdx * CARDS_PER_VIEW + CARDS_PER_VIEW).map((v) => (
-                    <button
+                    <div
                       key={v.id}
                       onClick={() => goDetail(v.id)}
-                      className="bg-white rounded-xl overflow-hidden text-left group border"
+                      className="bg-white rounded-xl overflow-hidden text-left group border cursor-pointer"
                       style={{ borderColor: COLORS.line }}
                     >
                       <div className="relative aspect-[4/3] overflow-hidden" style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}>
@@ -148,19 +150,32 @@ export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]
                         <div className="text-xs font-semibold truncate" style={{ color: COLORS.navy }}>
                           {v.make} {v.model} {v.trim}
                         </div>
-                        <div className="flex items-baseline gap-1.5 mt-0.5">
-                          <span className="text-sm font-bold" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
-                            {formatUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd)}
-                          </span>
-                          <span className="text-[10px] line-through" style={{ color: "#DC2626" }}>
-                            {formatUsd(wasPriceUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd, v.id))}
-                          </span>
+                        <div className="flex items-center justify-between gap-1.5 mt-0.5">
+                          <div className="flex items-baseline gap-1.5 min-w-0">
+                            <span className="text-sm font-bold truncate" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
+                              {formatUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd)}
+                            </span>
+                            <span className="text-[10px] line-through shrink-0" style={{ color: "#DC2626" }}>
+                              {formatUsd(wasPriceUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd, v.id))}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleCart(v.id);
+                            }}
+                            aria-label={cart.has(v.id) ? "Remove from cart" : "Add to cart"}
+                            className="shrink-0 flex items-center justify-center"
+                            style={{ color: COLORS.burgundy }}
+                          >
+                            <ShoppingCart size={13} fill={cart.has(v.id) ? "currentColor" : "none"} />
+                          </button>
                         </div>
                         <div className="text-[9px] leading-tight" style={{ color: COLORS.slate }}>
                           Incl. freight &amp; insurance
                         </div>
                       </div>
-                    </button>
+                    </div>
                   ))}
                 </div>
               );

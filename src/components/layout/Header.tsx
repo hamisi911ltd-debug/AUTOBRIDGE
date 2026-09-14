@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Bell, ShoppingCart } from "lucide-react";
+import { Bell, ShoppingCart } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import type { Page } from "@/components/AutoBridgeApp";
 
@@ -21,8 +21,6 @@ export function Header({
   onGoQuote,
   onGoCart,
   totalCount,
-  canGoBack,
-  onBack,
 }: {
   setPage: (p: Page) => void;
   cartCount: number;
@@ -30,8 +28,6 @@ export function Header({
   onGoQuote: () => void;
   onGoCart: () => void;
   totalCount: number;
-  canGoBack: boolean;
-  onBack: () => void;
 }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -57,16 +53,6 @@ export function Header({
       <div className="w-full overflow-hidden" style={{ padding: "3px 0", background: GRADIENT, boxShadow: "0 6px 20px rgba(59,31,99,0.28)" }}>
         <div className="h-11 sm:h-14 bg-white/95 backdrop-blur flex items-center justify-between px-3 sm:px-6">
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            {canGoBack && (
-              <button
-                onClick={onBack}
-                aria-label="Go back"
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0"
-                style={{ background: COLORS.card, color: COLORS.navy }}
-              >
-                <ArrowLeft size={16} />
-              </button>
-            )}
             <button onClick={() => setPage("home")} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
               <img src="/ferbil-logo.svg" alt="" className="w-9 h-9 sm:w-11 sm:h-11" />
@@ -131,13 +117,18 @@ export function Header({
             </div>
 
             <div className="flex items-center gap-1 pl-2 sm:pl-3 border-l" style={{ borderColor: COLORS.line }}>
-              <span className="relative flex h-1.5 w-1.5">
+              <span className="relative flex h-1.5 w-1.5 shrink-0">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: COLORS.gold }} />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: COLORS.gold }} />
               </span>
-              <span className="text-xs sm:text-sm font-bold animate-pulse" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-                {totalCount.toLocaleString()}+
-              </span>
+              <div className="leading-none">
+                <div className="text-xs sm:text-sm font-bold animate-pulse" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                  {totalCount.toLocaleString()}+
+                </div>
+                <div className="text-[7px] sm:text-[8px] font-semibold uppercase tracking-wide mt-0.5" style={{ color: COLORS.slate }}>
+                  Cars
+                </div>
+              </div>
             </div>
           </div>
         </div>

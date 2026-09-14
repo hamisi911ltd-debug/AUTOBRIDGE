@@ -541,7 +541,7 @@ export function DetailPage({
               <div className="rounded-2xl overflow-hidden border" style={{ borderColor: COLORS.line }}>
                 {/* eslint-disable-next-line @next/next/no-img-element -- external Wikimedia CDN */}
                 <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/MV_T%C3%B8nsberg_R01.jpg/640px-MV_T%C3%B8nsberg_R01.jpg"
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/BYD_Hefei%2C_Porto_di_Livorno%2C_2025.jpg/640px-BYD_Hefei%2C_Porto_di_Livorno%2C_2025.jpg"
                   alt="RoRo car-carrier vessel"
                   className="w-full h-32 object-cover"
                 />

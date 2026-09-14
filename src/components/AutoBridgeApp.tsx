@@ -196,8 +196,6 @@ export function AutoBridgeApp({
           onGoQuote={() => goQuote()}
           onGoCart={goCart}
           totalCount={totalCount}
-          canGoBack={canGoBack}
-          onBack={goBack}
         />
       </div>
       <div aria-hidden className="invisible">
@@ -208,8 +206,6 @@ export function AutoBridgeApp({
           onGoQuote={() => {}}
           onGoCart={() => {}}
           totalCount={totalCount}
-          canGoBack={false}
-          onBack={() => {}}
         />
       </div>
 
@@ -223,6 +219,8 @@ export function AutoBridgeApp({
             goDetail={goDetail}
             goSearch={goSearch}
             reviews={reviews}
+            canGoBack={canGoBack}
+            onBack={goBack}
           />
         )}
         {page === "search" && (

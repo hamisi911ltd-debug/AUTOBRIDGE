@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, ShoppingCart } from "lucide-react";
 import { COLORS, FONT_DISPLAY, POPULAR_MAKES } from "@/lib/constants";
 import { discountPercent, formatUsd, wasPriceUsd } from "@/lib/format";
 import { computeFreightUsd } from "@/lib/landedCost";
+import { useCart } from "@/lib/cartContext";
 import type { PublicVehicle } from "@/types/vehicle";
 
 const SLIDE_MS = 3500;
@@ -29,6 +30,7 @@ export function PromoShowcase({
   vehicles: PublicVehicle[];
   goDetail: (id: string) => void;
 }) {
+  const { cart, toggleCart } = useCart();
   const featured = useMemo(() => {
     // A featured "hot pick" poster reads as one specific car - never show a
     // stand-in photo borrowed from a different unit here, even though it's
@@ -216,6 +218,17 @@ export function PromoShowcase({
                       <span className="text-xs line-through" style={{ color: "#F87171" }}>
                         {formatUsd(wasPriceUsd(v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd, v.id))}
                       </span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleCart(v.id);
+                        }}
+                        aria-label={cart.has(v.id) ? "Remove from cart" : "Add to cart"}
+                        className="shrink-0 flex items-center justify-center"
+                        style={{ color: COLORS.goldLight }}
+                      >
+                        <ShoppingCart size={15} fill={cart.has(v.id) ? "currentColor" : "none"} />
+                      </button>
                     </span>
                     <span className="text-[10px]" style={{ color: "#C6CEDD" }}>
                       Incl. freight &amp; insurance
