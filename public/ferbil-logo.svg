@@ -1,0 +1,31 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Ferbil">
+  <defs>
+    <linearGradient id="ferbilGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F2762E"/>
+      <stop offset="55%" stop-color="#D6336C"/>
+      <stop offset="100%" stop-color="#3B1F63"/>
+    </linearGradient>
+    <linearGradient id="ferbilSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
+      <stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#ferbilGradient)"/>
+  <rect width="512" height="512" rx="112" fill="url(#ferbilSheen)"/>
+
+  <text
+    x="256" y="278"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="300"
+    font-weight="700"
+    fill="#ffffff"
+    text-anchor="middle"
+    dominant-baseline="central"
+  >F</text>
+
+  <!-- Thin accent line under the monogram, evoking a horizon/road - the
+       import route from port to road, kept simple so it still reads clean
+       at favicon size. Clear gap below the F's serif foot (~y=362). -->
+  <rect x="186" y="392" width="140" height="9" rx="4.5" fill="#ffffff" fill-opacity="0.85"/>
+</svg>

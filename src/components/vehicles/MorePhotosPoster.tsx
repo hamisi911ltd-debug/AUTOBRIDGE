@@ -6,6 +6,7 @@ import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { whatsAppLink, vehicleDetailBlock } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { PublicVehicle } from "@/types/vehicle";
+import { FerbilBadge } from "@/components/vehicles/FerbilBadge";
 
 const SHOW_AFTER_MS = 1100;
 
@@ -84,6 +85,7 @@ export function MorePhotosPoster({ vehicle }: { vehicle: PublicVehicle }) {
               {vehicle.year} &middot; {vehicle.sourceCountry}
             </span>
           </div>
+          <FerbilBadge />
         </div>
 
         {/* Small space at the bottom, just the car name, prompt and the two actions. */}

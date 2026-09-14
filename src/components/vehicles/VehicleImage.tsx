@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ImageOff } from "lucide-react";
 import { COLORS } from "@/lib/constants";
 import { thumbnailUrl } from "@/lib/thumbnail";
+import { FerbilBadge } from "@/components/vehicles/FerbilBadge";
 
 const BRAND_GRADIENT = "linear-gradient(135deg, #3B1F63 0%, #D6336C 55%, #F2762E 100%)";
 
@@ -145,6 +146,7 @@ export function VehicleImage({
                 </span>
               </div>
             )}
+            <FerbilBadge />
           </div>
         )}
       </div>
