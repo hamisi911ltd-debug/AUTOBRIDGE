@@ -139,7 +139,7 @@ export function VehicleImage({
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
             />
             {banner && (
-              <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] flex items-center justify-center gap-1" style={{ background: "#3B1F63" }}>
+              <div className="absolute bottom-0 inset-x-0 h-5 sm:h-[22px] flex items-center justify-center gap-1" style={{ background: "#3B1F63" }}>
                 <span className="text-[8px] sm:text-[9px] font-bold text-white">
                   {banner.year} &middot; {banner.country}
                 </span>

@@ -107,7 +107,7 @@ export function VehicleGallery({
           // and a fixed-px strip that was tall enough to cover the source
           // site's watermark band on mobile read as too thin to fully cover
           // it once the photo rendered near its full 420px desktop height.
-          <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-1 z-10" style={{ background: "#3B1F63", height: "7%" }}>
+          <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-1 z-10" style={{ background: "#3B1F63", height: "9%" }}>
             <span className="text-[11px] sm:text-xs font-bold text-white">
               {year}
               {year && country ? " · " : ""}

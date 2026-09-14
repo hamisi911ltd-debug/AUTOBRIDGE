@@ -80,7 +80,7 @@ export function MorePhotosPoster({ vehicle }: { vehicle: PublicVehicle }) {
           </button>
           {/* Same white strip used on every other card photo, over the
              exact spot the source site stamps its own watermark. */}
-          <div className="absolute bottom-0 inset-x-0 h-4 sm:h-[18px] flex items-center justify-center gap-1" style={{ background: "#3B1F63" }}>
+          <div className="absolute bottom-0 inset-x-0 h-5 sm:h-[22px] flex items-center justify-center gap-1" style={{ background: "#3B1F63" }}>
             <span className="text-[8px] sm:text-[9px] font-bold text-white">
               {vehicle.year} &middot; {vehicle.sourceCountry}
             </span>
