@@ -146,6 +146,7 @@ export function AutoBridgeApp({
           onGoSearch={() => goSearch({})}
           onGoFavorites={() => goSearch({ favoritesOnly: true })}
           onGoQuote={() => goQuote()}
+          totalCount={totalCount}
         />
       </div>
       <div aria-hidden className="invisible">
@@ -155,6 +156,7 @@ export function AutoBridgeApp({
           onGoSearch={() => {}}
           onGoFavorites={() => {}}
           onGoQuote={() => {}}
+          totalCount={totalCount}
         />
       </div>
 

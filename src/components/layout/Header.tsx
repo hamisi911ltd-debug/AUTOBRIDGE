@@ -20,12 +20,14 @@ export function Header({
   onGoSearch,
   onGoFavorites,
   onGoQuote,
+  totalCount,
 }: {
   setPage: (p: Page) => void;
   favoritesCount: number;
   onGoSearch: () => void;
   onGoFavorites: () => void;
   onGoQuote: () => void;
+  totalCount: number;
 }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -50,11 +52,31 @@ export function Header({
     <header className="w-full">
       <div className="w-full overflow-hidden" style={{ padding: "3px 0", background: GRADIENT, boxShadow: "0 6px 20px rgba(59,31,99,0.28)" }}>
         <div className="h-11 sm:h-14 bg-white/95 backdrop-blur flex items-center justify-between px-3 sm:px-6">
-          <button onClick={() => setPage("home")} className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-            <span className="text-sm sm:text-xl font-bold tracking-tight" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-              Kenya&apos;s Vehicle Import Marketplace
-            </span>
+          <button onClick={() => setPage("home")} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
+            <img src="/ferbil-logo.svg" alt="" className="w-6 h-6 sm:w-8 sm:h-8" />
+            <div className="text-left leading-none">
+              <div className="text-sm sm:text-lg font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                FERBIL
+              </div>
+              <div className="hidden sm:block text-[8px] uppercase tracking-[0.2em] mt-0.5" style={{ color: COLORS.slate }}>
+                Car Imports
+              </div>
+            </div>
           </button>
+
+          <div className="hidden lg:flex items-center gap-1.5 shrink-0">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: COLORS.gold }} />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: COLORS.gold }} />
+            </span>
+            <span className="text-sm font-bold animate-pulse" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+              {totalCount.toLocaleString()}+
+            </span>
+            <span className="text-xs" style={{ color: COLORS.slate }}>
+              cars in stock
+            </span>
+          </div>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <button onClick={onGoSearch} style={{ color: COLORS.ink }}>
               Search

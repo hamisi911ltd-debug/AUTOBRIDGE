@@ -1,32 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { LayoutGrid, Search, X } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { COLORS, FONT_DISPLAY, type Filters } from "@/lib/constants";
-import { IMPORT_ELIGIBLE_FROM_YEAR } from "@/lib/scrapers/normalize";
-
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: CURRENT_YEAR - IMPORT_ELIGIBLE_FROM_YEAR + 1 }, (_, i) => CURRENT_YEAR - i);
 
 /**
  * Replaces the old rotating image banner: the Ferbil wordmark, the total
  * catalogue size as a real, gently-animated number (advertises scale
- * honestly - no fabricated "1000s of deals" copy), and a single "Browse
- * catalogue" control - not a search bar sitting open by default, an icon
- * that drops down the actual search + year-range mechanism only once
- * tapped. Corners are deliberately subtle (rounded-xl, not rounded-full)
- * throughout, not the pill shape used elsewhere on the site.
+ * honestly - no fabricated "1000s of deals" copy), and a classic search bar
+ * + filters button.
  */
 export function HomeSearchHero({ totalCount, goSearch }: { totalCount: number; goSearch: (patch: Partial<Filters>) => void }) {
-  const [open, setOpen] = useState(false);
   const [keyword, setKeyword] = useState("");
-  const [yearMin, setYearMin] = useState(IMPORT_ELIGIBLE_FROM_YEAR);
-  const [yearMax, setYearMax] = useState(CURRENT_YEAR);
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
-    goSearch({ keyword: keyword.trim(), yearMin, yearMax });
-    setOpen(false);
+    goSearch({ keyword: keyword.trim() });
   }
 
   return (
@@ -59,82 +48,37 @@ export function HomeSearchHero({ totalCount, goSearch }: { totalCount: number; g
         </p>
       </div>
 
-      <div className="max-w-md mx-auto relative">
+      <form onSubmit={submitSearch} className="flex items-center gap-2 max-w-2xl mx-auto">
+        <div
+          className="flex-1 flex items-center gap-2 rounded-full border bg-white px-4 py-2.5 sm:py-3"
+          style={{ borderColor: COLORS.line }}
+        >
+          <Search size={17} color={COLORS.slate} className="shrink-0" />
+          <input
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="Search make or model, e.g. Toyota Land Cruiser"
+            className="flex-1 min-w-0 text-sm outline-none bg-transparent"
+            style={{ color: COLORS.ink }}
+          />
+        </div>
+        <button
+          type="submit"
+          className="shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full text-sm font-semibold text-white"
+          style={{ background: COLORS.burgundy }}
+        >
+          Search
+        </button>
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="w-full flex items-center justify-center gap-2 rounded-xl border bg-white px-4 py-2.5 sm:py-3 text-sm font-semibold"
+          onClick={() => goSearch({})}
+          aria-label="Open filters"
+          className="shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full border flex items-center justify-center"
           style={{ borderColor: COLORS.line, color: COLORS.navy }}
         >
-          {open ? <X size={17} /> : <LayoutGrid size={17} />}
-          Browse catalogue
+          <SlidersHorizontal size={18} />
         </button>
-
-        {open && (
-          <form
-            onSubmit={submitSearch}
-            className="absolute z-20 top-full mt-2 w-full bg-white rounded-xl border shadow-xl p-4 space-y-3"
-            style={{ borderColor: COLORS.line }}
-          >
-            <div className="flex items-center gap-2 rounded-lg border px-3 py-2" style={{ borderColor: COLORS.line }}>
-              <Search size={15} color={COLORS.slate} className="shrink-0" />
-              <input
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search make or model"
-                className="flex-1 min-w-0 text-sm outline-none bg-transparent"
-                style={{ color: COLORS.ink }}
-                autoFocus
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <label className="block">
-                <span className="text-[10px] font-semibold uppercase tracking-wide block mb-1" style={{ color: COLORS.slate }}>
-                  Year from
-                </span>
-                <select
-                  value={yearMin}
-                  onChange={(e) => setYearMin(Number(e.target.value))}
-                  className="w-full rounded-lg border px-2.5 py-2 text-sm outline-none"
-                  style={{ borderColor: COLORS.line, color: COLORS.ink }}
-                >
-                  {YEARS.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="block">
-                <span className="text-[10px] font-semibold uppercase tracking-wide block mb-1" style={{ color: COLORS.slate }}>
-                  Year to
-                </span>
-                <select
-                  value={yearMax}
-                  onChange={(e) => setYearMax(Number(e.target.value))}
-                  className="w-full rounded-lg border px-2.5 py-2 text-sm outline-none"
-                  style={{ borderColor: COLORS.line, color: COLORS.ink }}
-                >
-                  {YEARS.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white"
-              style={{ background: COLORS.burgundy }}
-            >
-              Search catalogue
-            </button>
-          </form>
-        )}
-      </div>
+      </form>
     </section>
   );
 }

@@ -101,7 +101,13 @@ export function VehicleGallery({
           />
         ))}
         {(year || country) && (
-          <div className="absolute bottom-0 inset-x-0 h-6 sm:h-7 flex items-center justify-center gap-1 z-10" style={{ background: "#3B1F63" }}>
+          // Percentage height (not a fixed px/rem value) so this strip scales
+          // with the box's actual rendered size - the box's own height
+          // varies with viewport width (aspect-[4/3] up to max-h-[420px]),
+          // and a fixed-px strip that was tall enough to cover the source
+          // site's watermark band on mobile read as too thin to fully cover
+          // it once the photo rendered near its full 420px desktop height.
+          <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-1 z-10" style={{ background: "#3B1F63", height: "7%" }}>
             <span className="text-[11px] sm:text-xs font-bold text-white">
               {year}
               {year && country ? " · " : ""}
