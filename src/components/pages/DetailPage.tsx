@@ -519,6 +519,42 @@ export function DetailPage({
                   <div className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>Request them below, takes 10 seconds</div>
                 </div>
               </button>
+
+              {/* Fills the column's remaining height on tall screens - the
+                 sticky column above (CostLadder + SpecTable + this CTA) is
+                 usually shorter than the left column's photo+specs+enquiry
+                 form, which was leaving a bare gap below it once scrolled
+                 that far. More inventory + a shipping visual, not padding. */}
+              {similar.length > 0 && (
+                <div className="rounded-2xl border p-3" style={{ borderColor: COLORS.line }}>
+                  <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                    More from our stock
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {similar.slice(0, 2).map((v) => (
+                      <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="rounded-2xl overflow-hidden border" style={{ borderColor: COLORS.line }}>
+                {/* eslint-disable-next-line @next/next/no-img-element -- external Wikimedia CDN */}
+                <img
+                  src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/MV_T%C3%B8nsberg_R01.jpg/640px-MV_T%C3%B8nsberg_R01.jpg"
+                  alt="RoRo car-carrier vessel"
+                  className="w-full h-32 object-cover"
+                />
+                <div className="p-3">
+                  <div className="text-xs font-semibold" style={{ color: COLORS.navy }}>
+                    Shipped by RoRo vessel
+                  </div>
+                  <div className="text-[11px] mt-0.5" style={{ color: COLORS.slate }}>
+                    Roll-on/roll-off carriers - the standard, secure way vehicles are shipped from Japan &amp; the
+                    UAE to Mombasa.
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
