@@ -31,10 +31,12 @@ import type { PublicVehicle } from "@/types/vehicle";
  * branded placeholder instead. Genuinely low-quality photos (under 500px)
  * are pruned from the catalogue directly rather than patched over here.
  */
-// Only the columns the code below actually reads - sourceSite, externalId,
-// sourceUrl, lastScrapedAt, updatedAt were being pulled and transferred out
-// of D1 on every request for no reason, adding real D1 read + serialization
-// cost that multiplies badly under concurrent traffic.
+// Only the columns the code below actually reads - externalId, sourceUrl,
+// lastScrapedAt, updatedAt were being pulled and transferred out of D1 on
+// every request for no reason, adding real D1 read + serialization cost
+// that multiplies badly under concurrent traffic. sourceSite is the one
+// exception, kept because the public UI needs it to size the watermark
+// strip taller for SBT Japan photos specifically.
 const VEHICLE_SELECT = {
   id: true,
   make: true,
@@ -50,6 +52,7 @@ const VEHICLE_SELECT = {
   seats: true,
   color: true,
   sourceCountry: true,
+  sourceSite: true,
   sourcePriceUsd: true,
   freightIncluded: true,
   imageUrl: true,
@@ -195,6 +198,7 @@ export async function getPublicVehicles(opts?: { limit?: number; diverse?: boole
       seats: v.seats,
       color: v.color,
       sourceCountry: v.sourceCountry,
+      sourceSite: v.sourceSite,
       sellingPriceUsd,
       insuranceUsd,
       freightIncluded: v.freightIncluded,

@@ -40,8 +40,10 @@ export function VehicleImage({
   /** Thin white strip along the bottom edge showing year + source country
    * in orange - used on primary browsing cards only (not tiny thumbnails),
    * doubling as cover for whatever source-site watermark sits right at
-   * that edge. */
-  banner?: { year: number; country: string };
+   * that edge. `tall` makes it noticeably taller for SBT Japan photos,
+   * whose watermark sits lower/larger than the strip's default height was
+   * built to cover. */
+  banner?: { year: number; country: string; tall?: boolean };
   /** Eager, high-priority load for the single most prominent image in a
    * view (first card in a grid, the big detail-page photo) - everything
    * else stays lazy by default. */
@@ -139,7 +141,10 @@ export function VehicleImage({
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
             />
             {banner && (
-              <div className="absolute bottom-0 inset-x-0 h-5 sm:h-[22px] flex items-center justify-center gap-1" style={{ background: "#3B1F63" }}>
+              <div
+                className={`absolute bottom-0 inset-x-0 flex items-center justify-center gap-1 ${banner.tall ? "h-8 sm:h-9" : "h-5 sm:h-[22px]"}`}
+                style={{ background: "#3B1F63" }}
+              >
                 <span className="text-[8px] sm:text-[9px] font-bold text-white">
                   {banner.year} &middot; {banner.country}
                 </span>

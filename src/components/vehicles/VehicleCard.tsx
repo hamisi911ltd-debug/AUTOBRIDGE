@@ -43,7 +43,7 @@ export function VehicleCard({
           fallbackSrcs={v.imageUrls.filter((u) => u !== v.imageUrl)}
           alt={`${v.year} ${v.make} ${v.model}`}
           iconSize={44}
-          banner={{ year: v.year, country: v.sourceCountry }}
+          banner={{ year: v.year, country: v.sourceCountry, tall: v.sourceSite === "sbtjapan" }}
           priority={priority}
         />
         {!v.eligible && (

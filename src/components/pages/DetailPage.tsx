@@ -242,6 +242,7 @@ export function DetailPage({
           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
           year={vehicle.year}
           country={vehicle.sourceCountry}
+          tall={vehicle.sourceSite === "sbtjapan"}
           overlay={
             <>
               {vehicle.badge && (
@@ -393,6 +394,7 @@ export function DetailPage({
             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
             year={vehicle.year}
             country={vehicle.sourceCountry}
+            tall={vehicle.sourceSite === "sbtjapan"}
             overlay={
               <>
                 {vehicle.badge && (

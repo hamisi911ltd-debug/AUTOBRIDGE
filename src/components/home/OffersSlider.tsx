@@ -140,7 +140,7 @@ export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]
                           alt={`${v.year} ${v.make} ${v.model}`}
                           iconSize={28}
                           imgClassName="transition-transform duration-300 group-hover:scale-105"
-                          banner={{ year: v.year, country: v.sourceCountry }}
+                          banner={{ year: v.year, country: v.sourceCountry, tall: v.sourceSite === "sbtjapan" }}
                         />
                         <span className="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-md text-white" style={{ background: "#DC2626" }}>
                           -{discountPercent(v.id)}%

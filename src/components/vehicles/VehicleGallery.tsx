@@ -25,6 +25,7 @@ export function VehicleGallery({
   overlay,
   year,
   country,
+  tall,
 }: {
   images: string[];
   alt: string;
@@ -33,6 +34,9 @@ export function VehicleGallery({
    * cover for the source site's watermark logo that tends to sit there. */
   year?: number;
   country?: string;
+  /** SBT Japan's watermark sits lower/larger than the strip's default
+   * percentage height was sized to cover. */
+  tall?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const [loadedIdx, setLoadedIdx] = useState<Set<number>>(() => new Set());
@@ -107,7 +111,7 @@ export function VehicleGallery({
           // and a fixed-px strip that was tall enough to cover the source
           // site's watermark band on mobile read as too thin to fully cover
           // it once the photo rendered near its full 420px desktop height.
-          <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-1 z-10" style={{ background: "#3B1F63", height: "9%" }}>
+          <div className="absolute bottom-0 inset-x-0 flex items-center justify-center gap-1 z-10" style={{ background: "#3B1F63", height: tall ? "13%" : "9%" }}>
             <span className="text-[11px] sm:text-xs font-bold text-white">
               {year}
               {year && country ? " · " : ""}

@@ -18,6 +18,12 @@ export type PublicVehicle = {
   seats: number;
   color: string;
   sourceCountry: string;
+  // Which scraper this vehicle came from ("beforward" / "sbtjapan" /
+  // "dubicars"), or null for a hand-entered listing. Public-facing use is
+  // narrow (currently: sizing the watermark-hiding strip taller on SBT
+  // Japan photos, whose watermark sits lower/larger than the others') -
+  // not a general "source" badge shown to shoppers.
+  sourceSite: string | null;
   sellingPriceUsd: number;
   // Insurance estimate for the freight+insurance line - computed server-side
   // from the real sourcePriceUsd before it's stripped, since it depends on
