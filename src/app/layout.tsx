@@ -42,11 +42,13 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
     locale: "en_KE",
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Ferbil - Kenya's Vehicle Import Marketplace" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
+    images: ["/og-image.jpg"],
   },
 };
 
