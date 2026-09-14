@@ -20,23 +20,30 @@ export function HomeSearchHero({ goSearch }: { goSearch: (patch: Partial<Filters
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4 pb-2.5 sm:pb-3">
-      <form onSubmit={submitSearch} className="flex items-center gap-2 max-w-2xl mx-auto">
+      <form onSubmit={submitSearch} className="flex items-center gap-1.5 sm:gap-2 max-w-2xl mx-auto">
         <div
-          className="flex-1 flex items-center gap-2 rounded-full border bg-white px-4 py-2.5 sm:py-3"
+          className="flex-1 flex items-center gap-2 rounded-full border bg-white pl-3 sm:pl-4 pr-1.5 sm:pr-4 py-1.5 sm:py-3"
           style={{ borderColor: COLORS.line }}
         >
-          <Search size={17} color={COLORS.slate} className="shrink-0" />
+          {/* Icon sits left on desktop (matches the Search text button
+             alongside it) but moves to the right on mobile, where it's the
+             only submit trigger - the separate "Search" button is dropped
+             there to keep the bar itself small. */}
+          <Search size={15} color={COLORS.slate} className="shrink-0 hidden sm:block" />
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Search make or model, e.g. Toyota Land Cruiser"
-            className="flex-1 min-w-0 text-sm outline-none bg-transparent"
+            placeholder="Search make or model"
+            className="flex-1 min-w-0 text-xs sm:text-sm outline-none bg-transparent"
             style={{ color: COLORS.ink }}
           />
+          <button type="submit" aria-label="Search" className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center sm:hidden" style={{ color: COLORS.slate }}>
+            <Search size={15} />
+          </button>
         </div>
         <button
           type="submit"
-          className="shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full text-sm font-semibold text-white"
+          className="hidden sm:block shrink-0 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full text-sm font-semibold text-white"
           style={{ background: COLORS.burgundy }}
         >
           Search
@@ -45,10 +52,10 @@ export function HomeSearchHero({ goSearch }: { goSearch: (patch: Partial<Filters
           type="button"
           onClick={() => goSearch({})}
           aria-label="Open filters"
-          className="shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center"
+          className="shrink-0 w-9 h-9 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center"
           style={{ background: COLORS.card, borderColor: COLORS.navy, color: COLORS.navy }}
         >
-          <SlidersHorizontal size={18} strokeWidth={2.5} />
+          <SlidersHorizontal size={16} strokeWidth={2.5} />
         </button>
       </form>
     </section>

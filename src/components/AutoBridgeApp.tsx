@@ -191,10 +191,8 @@ export function AutoBridgeApp({
       <div className="fixed top-0 inset-x-0 z-30">
         <Header
           setPage={setPage}
-          favoritesCount={favorites.size}
           cartCount={cart.size}
           onGoSearch={() => goSearch({})}
-          onGoFavorites={() => goSearch({ favoritesOnly: true })}
           onGoQuote={() => goQuote()}
           onGoCart={goCart}
           totalCount={totalCount}
@@ -205,10 +203,8 @@ export function AutoBridgeApp({
       <div aria-hidden className="invisible">
         <Header
           setPage={setPage}
-          favoritesCount={favorites.size}
           cartCount={cart.size}
           onGoSearch={() => {}}
-          onGoFavorites={() => {}}
           onGoQuote={() => {}}
           onGoCart={() => {}}
           totalCount={totalCount}

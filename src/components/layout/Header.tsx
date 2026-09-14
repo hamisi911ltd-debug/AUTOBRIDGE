@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Bell, Heart, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Bell, ShoppingCart } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import type { Page } from "@/components/AutoBridgeApp";
 
@@ -16,10 +16,8 @@ const GRADIENT = "linear-gradient(90deg, #F2762E 0%, #D6336C 50%, #3B1F63 100%)"
  */
 export function Header({
   setPage,
-  favoritesCount,
   cartCount,
   onGoSearch,
-  onGoFavorites,
   onGoQuote,
   onGoCart,
   totalCount,
@@ -27,10 +25,8 @@ export function Header({
   onBack,
 }: {
   setPage: (p: Page) => void;
-  favoritesCount: number;
   cartCount: number;
   onGoSearch: () => void;
-  onGoFavorites: () => void;
   onGoQuote: () => void;
   onGoCart: () => void;
   totalCount: number;
@@ -98,9 +94,6 @@ export function Header({
           </nav>
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <div className="hidden md:flex items-center gap-2">
-              <button onClick={onGoFavorites} className="inline-flex items-center gap-1.5 text-sm font-medium px-2.5 py-1.5 rounded-full" style={{ color: COLORS.ink }}>
-                <Heart size={15} color={COLORS.burgundy} /> {favoritesCount}
-              </button>
               <button onClick={onGoSearch} className="px-3.5 py-1.5 rounded-full text-sm font-semibold text-white" style={{ background: COLORS.burgundy }}>
                 Get started
               </button>
@@ -118,7 +111,10 @@ export function Header({
               )}
             </button>
 
-            <div className="relative" ref={notifRef}>
+            {/* Notification bell is desktop-only - on mobile this same slot
+               shows the live total-count instead (more useful there than an
+               always-empty notifications panel). */}
+            <div className="relative hidden sm:block" ref={notifRef}>
               <button onClick={() => setNotifOpen((o) => !o)} aria-label="Notifications" className="w-8 h-8 rounded-full flex items-center justify-center">
                 <Bell size={17} color={COLORS.navy} />
               </button>
@@ -134,7 +130,7 @@ export function Header({
               )}
             </div>
 
-            <div className="hidden sm:flex items-center gap-1 pl-2 sm:pl-3 border-l" style={{ borderColor: COLORS.line }}>
+            <div className="flex items-center gap-1 pl-2 sm:pl-3 border-l" style={{ borderColor: COLORS.line }}>
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: COLORS.gold }} />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: COLORS.gold }} />
