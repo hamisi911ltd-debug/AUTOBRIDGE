@@ -165,6 +165,18 @@ export function DetailPage({
   const wider = others.filter((v) => !(v.make === vehicle.make && v.model === vehicle.model) && (v.bodyType === vehicle.bodyType || v.make === vehicle.make));
   const similar = [...sameModel, ...wider].slice(0, 6); // divisible by both 2 (mobile) and 3 (desktop) - no dangling gap in either grid
 
+  // The sticky right column's "More from our stock" teaser draws from a
+  // wider pool than `similar` - it's explicitly "more stock", not "similar
+  // vehicles" (that's the separate, correctly-strict section below), so
+  // when a vehicle's make/body-type is thin in the catalogue (confirmed
+  // live: a Mitsubishi Mirage wagon had only 1 other genuine match) it pads
+  // out with any other eligible vehicle rather than being stuck at 1-2
+  // cards no matter how much vertical room the left column actually has.
+  const teaserPool =
+    similar.length >= 8
+      ? similar
+      : [...similar, ...others.filter((v) => !similar.some((s) => s.id === v.id))].slice(0, 12);
+
   // Desktop-only: how many "More from our stock" cards the sticky right
   // column shows, measured against the left column's own real content
   // height rather than a fixed guess - a fixed count either overshot it
@@ -178,12 +190,12 @@ export function DetailPage({
   const fixedRightRef = useRef<HTMLDivElement>(null);
   const teaserBoxRef = useRef<HTMLDivElement>(null);
   const teaserGridRef = useRef<HTMLDivElement>(null);
-  const [teaserCount, setTeaserCount] = useState(() => Math.min(2, similar.length));
+  const [teaserCount, setTeaserCount] = useState(() => Math.min(2, teaserPool.length));
 
   useLayoutEffect(() => {
     function recompute() {
       if (window.innerWidth < 1024) return; // this teaser is lg:+ only
-      if (!leftContentRef.current || !fixedRightRef.current || similar.length === 0) return;
+      if (!leftContentRef.current || !fixedRightRef.current || teaserPool.length === 0) return;
       const leftH = leftContentRef.current.offsetHeight;
       const fixedH = fixedRightRef.current.offsetHeight;
       const gapBetween = 12; // mt-3 between the fixed block and the teaser box
@@ -194,15 +206,20 @@ export function DetailPage({
       const cardH = cardEl ? cardEl.getBoundingClientRect().height : 220;
       const cardGap = 10; // gap-2.5
       const remaining = leftH - fixedH - gapBetween - chrome;
-      const rows = Math.max(0, Math.floor((remaining + cardGap) / (cardH + cardGap)));
-      const minCount = Math.min(2, similar.length);
-      const next = Math.max(minCount, Math.min(similar.length, rows * 2));
+      // +2 rows of headroom past the exact-fit count - real content (fonts,
+      // late-loading photos) shifts height by a few px after this first
+      // measurement, and undershooting by a row reads far worse (the empty
+      // space this exists to close) than a card poking slightly past the
+      // left column's edge.
+      const rows = Math.max(0, Math.floor((remaining + cardGap) / (cardH + cardGap))) + 1;
+      const minCount = Math.min(2, teaserPool.length);
+      const next = Math.max(minCount, Math.min(teaserPool.length, rows * 2));
       setTeaserCount((prev) => (prev === next ? prev : next));
     }
     recompute();
     window.addEventListener("resize", recompute);
     return () => window.removeEventListener("resize", recompute);
-  }, [similar.length, teaserCount]);
+  }, [teaserPool.length, teaserCount]);
 
   async function submitEnquiry(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -589,13 +606,13 @@ export function DetailPage({
                genuinely room, and stays small when there isn't, instead of
                a fixed count that was either too tall (pushing the gap onto
                the left column) or too short (leaving it here again). */}
-            {similar.length > 0 && (
+            {teaserPool.length > 0 && (
               <div ref={teaserBoxRef} className="hidden lg:block mt-3 rounded-2xl border p-3" style={{ borderColor: COLORS.line }}>
                 <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
                   More from our stock
                 </div>
                 <div ref={teaserGridRef} className="grid grid-cols-2 gap-2.5">
-                  {similar.slice(0, teaserCount).map((v) => (
+                  {teaserPool.slice(0, teaserCount).map((v) => (
                     <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
                   ))}
                 </div>
