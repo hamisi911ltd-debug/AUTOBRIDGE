@@ -241,12 +241,13 @@ export function AutoBridgeApp({
             goDetail={goDetail}
             setPage={setPage}
             goQuote={() => goQuote(selectedVehicle.id)}
+            onBack={goBack}
           />
         )}
         {page === "quote" && (
           <InvoicePage vehicles={vehicles} landedMap={landedMap} preselectedId={quoteVehicleId} goDetail={goDetail} onBack={goBack} />
         )}
-        {page === "cart" && <CartPage vehicles={vehicles} landedMap={landedMap} goDetail={goDetail} goQuote={goQuote} goSearch={goSearch} />}
+        {page === "cart" && <CartPage vehicles={vehicles} landedMap={landedMap} goDetail={goDetail} goQuote={goQuote} goSearch={goSearch} onBack={goBack} />}
       </main>
 
       <Footer setPage={setPage} onGoSearch={() => goSearch({})} onGoQuote={() => goQuote()} />

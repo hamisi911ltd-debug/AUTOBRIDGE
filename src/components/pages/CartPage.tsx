@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Trash2 } from "lucide-react";
 import { COLORS, FONT_DISPLAY, type Filters } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
 import { computeFreightUsd, type LandedCost } from "@/lib/landedCost";
@@ -22,12 +22,14 @@ export function CartPage({
   goDetail,
   goQuote,
   goSearch,
+  onBack,
 }: {
   vehicles: PublicVehicle[];
   landedMap: Record<string, LandedCost>;
   goDetail: (id: string) => void;
   goQuote: (id?: string) => void;
   goSearch: (patch: Partial<Filters>) => void;
+  onBack: () => void;
 }) {
   const { cart, toggleCart } = useCart();
   const items = vehicles.filter((v) => cart.has(v.id));
@@ -52,6 +54,14 @@ export function CartPage({
   if (items.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
+        <button
+          onClick={onBack}
+          aria-label="Go back"
+          className="mb-6 inline-flex w-8 h-8 rounded-full items-center justify-center"
+          style={{ background: COLORS.card, color: COLORS.navy }}
+        >
+          <ArrowLeft size={15} />
+        </button>
         <ShoppingCart size={40} className="mx-auto mb-3" color={COLORS.slate} />
         <h1 className="text-xl sm:text-2xl font-semibold mb-2" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
           Your cart is empty
@@ -69,6 +79,14 @@ export function CartPage({
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 pb-10">
       <div className="mb-5">
+        <button
+          onClick={onBack}
+          aria-label="Go back"
+          className="mb-3 w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ background: COLORS.card, color: COLORS.navy }}
+        >
+          <ArrowLeft size={15} />
+        </button>
         <div className="w-10 h-1 rounded-full mb-2" style={{ background: COLORS.gold }} />
         <h1 className="text-2xl sm:text-3xl font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
           Your cart ({items.length})

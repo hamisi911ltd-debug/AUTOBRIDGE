@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { Camera, Check, Heart, MapPin, Printer, X } from "lucide-react";
+import { ArrowLeft, Camera, Check, Heart, MapPin, Printer, X } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
 import { whatsAppLink, vehicleDetailBlock } from "@/lib/whatsapp";
@@ -122,10 +122,12 @@ export function DetailPage({
   goDetail,
   setPage,
   goQuote,
+  onBack,
 }: {
   vehicle: PublicVehicle;
   landed: LandedCost;
   favorites: Set<string>;
+  onBack: () => void;
   toggleFavorite: (id: string) => void;
   vehicles: PublicVehicle[];
   goDetail: (id: string) => void;
@@ -257,7 +259,15 @@ export function DetailPage({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
       <MorePhotosPoster key={vehicle.id} vehicle={vehicle} />
-      <div className="flex items-center gap-1.5 text-xs mb-5 flex-wrap" style={{ color: COLORS.slate }}>
+      <div className="flex items-center gap-2.5 text-xs mb-5 flex-wrap" style={{ color: COLORS.slate }}>
+        <button
+          onClick={onBack}
+          aria-label="Go back"
+          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center"
+          style={{ background: COLORS.card, color: COLORS.navy }}
+        >
+          <ArrowLeft size={15} />
+        </button>
         <button onClick={() => setPage("home")} className="hover:underline">
           Home
         </button>
