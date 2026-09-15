@@ -6,6 +6,7 @@ import { discountPercent, formatUsd, wasPriceUsd } from "@/lib/format";
 import { computeFreightUsd } from "@/lib/landedCost";
 import { useCart } from "@/lib/cartContext";
 import { VehicleImage } from "@/components/vehicles/VehicleImage";
+import { FerbilBadge } from "@/components/vehicles/FerbilBadge";
 import type { PublicVehicle } from "@/types/vehicle";
 
 /** Photo-forward card - name and price only; everything else (mileage, transmission, fuel, specs) shows once you click through to the detail page. */
@@ -46,7 +47,9 @@ export function VehicleCard({
           banner={{ year: v.year, country: v.sourceCountry, tall: v.sourceSite === "sbtjapan" }}
           priority={priority}
         />
-        {!v.eligible && (
+        {v.eligible ? (
+          <FerbilBadge />
+        ) : (
           <span className="absolute top-3 left-3 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">
             Not eligible
           </span>

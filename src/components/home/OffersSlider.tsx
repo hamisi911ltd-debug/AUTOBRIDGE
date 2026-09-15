@@ -7,6 +7,7 @@ import { discountPercent, formatUsd, wasPriceUsd } from "@/lib/format";
 import { computeFreightUsd } from "@/lib/landedCost";
 import { useCart } from "@/lib/cartContext";
 import { VehicleImage } from "@/components/vehicles/VehicleImage";
+import { FerbilBadge } from "@/components/vehicles/FerbilBadge";
 import type { PublicVehicle } from "@/types/vehicle";
 
 const SLIDE_MS = 4000;
@@ -142,6 +143,7 @@ export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]
                           imgClassName="transition-transform duration-300 group-hover:scale-105"
                           banner={{ year: v.year, country: v.sourceCountry, tall: v.sourceSite === "sbtjapan" }}
                         />
+                        <FerbilBadge size="sm" />
                         <span className="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded-md text-white" style={{ background: "#DC2626" }}>
                           -{discountPercent(v.id)}%
                         </span>
