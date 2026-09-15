@@ -137,6 +137,7 @@ export function DetailPage({
 }) {
   const [reserved, setReserved] = useState(false);
   const [sending, setSending] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const desktopMessageRef = useRef<HTMLTextAreaElement | null>(null);
   const mobileMessageRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -145,8 +146,15 @@ export function DetailPage({
   // which the site no longer shows).
   const cifUsd = vehicle.sellingPriceUsd + landed.freight + landed.insurance;
 
-  function onShare() {
-    shareVehicle(vehicle, cifUsd);
+  async function onShare() {
+    // The native share sheet already gives its own feedback (it's a
+    // system UI) - only the clipboard-copy fallback is silent otherwise,
+    // so that's the one result worth a toast here.
+    const result = await shareVehicle(vehicle, cifUsd);
+    if (result === "copied") {
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2500);
+    }
   }
 
   /**
@@ -280,6 +288,14 @@ export function DetailPage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {linkCopied && (
+        <div
+          className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-sm font-semibold text-white shadow-lg"
+          style={{ background: COLORS.navy }}
+        >
+          Link copied - paste it anywhere to share
+        </div>
+      )}
       <MorePhotosPoster key={vehicle.id} vehicle={vehicle} />
       <div className="flex items-center gap-2.5 text-xs mb-5 flex-wrap" style={{ color: COLORS.slate }}>
         <button

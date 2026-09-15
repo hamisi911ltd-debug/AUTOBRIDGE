@@ -28,9 +28,13 @@ export function shareUrlFor(id: string, origin: string): string {
 /**
  * Web Share API where it exists (mobile browsers, and most desktop
  * browsers now) - the OS-native share sheet, letting someone pick
- * WhatsApp/SMS/Messages/etc. themselves. Falls back to a WhatsApp
- * deep-link where it doesn't, since that's already this business's own
- * primary channel, rather than a bare clipboard copy with no next step.
+ * WhatsApp/SMS/Messages/anybody themselves. Where it doesn't exist, this
+ * falls back to copying the text+link to the clipboard - NOT a WhatsApp
+ * deep-link to this business's own number (that's `whatsAppLink` from
+ * lib/whatsapp, correctly used for enquiries *to* the admin, but wrong
+ * here: sharing a car with a friend must never pre-fill a chat straight
+ * to the dealership instead of letting the person choose who to send it
+ * to). A plain clipboard copy works everywhere, for any recipient.
  *
  * Tries sharing the actual photo as a file first (Web Share API Level 2) -
  * the recipient then sees exactly this car's own plain photo as an
@@ -41,7 +45,7 @@ export function shareUrlFor(id: string, origin: string): string {
  * out of our hands. Text+link sharing (still carrying /car/[id] for a
  * click-through) is the fallback where file-sharing isn't supported.
  */
-export async function shareVehicle(v: PublicVehicle, totalUsd: number): Promise<"shared" | "cancelled" | "fallback"> {
+export async function shareVehicle(v: PublicVehicle, totalUsd: number): Promise<"shared" | "cancelled" | "copied" | "failed"> {
   const origin = window.location.origin;
   const url = shareUrlFor(v.id, origin);
   const text = shareTextFor(v, totalUsd);
@@ -76,7 +80,10 @@ export async function shareVehicle(v: PublicVehicle, totalUsd: number): Promise<
     }
   }
 
-  const { whatsAppLink } = await import("@/lib/whatsapp");
-  window.open(whatsAppLink(`${text}\n${url}`), "_blank", "noopener,noreferrer");
-  return "fallback";
+  try {
+    await navigator.clipboard.writeText(`${text}\n${url}`);
+    return "copied";
+  } catch {
+    return "failed";
+  }
 }
