@@ -522,20 +522,20 @@ export function DetailPage({
                 </div>
               </button>
 
-              {/* Fills the column's remaining height on tall screens - the
-                 sticky column above (CostLadder + SpecTable + this CTA) is
-                 usually shorter than the left column's photo+specs+enquiry
-                 form, which was leaving a bare gap below it once scrolled
-                 that far. Grows with flex-1 and shows as many cars as fit,
-                 rather than a fixed count, so the column stays full top to
-                 bottom instead of leaving a gap under a short list. */}
+              {/* A CSS grid row is always exactly as tall as its tallest
+                 column - a fixed count here (not "as many as fit") keeps
+                 this column's natural height in the same ballpark as the
+                 left column's photo+specs+enquiry form across vehicles,
+                 rather than overshooting it and pushing the *left* column's
+                 own gap into existence instead (confirmed live: 6 cards was
+                 consistently taller than a short enquiry form). */}
               {similar.length > 0 && (
-                <div className="rounded-2xl border p-3 flex-1 flex flex-col min-h-0" style={{ borderColor: COLORS.line }}>
+                <div className="rounded-2xl border p-3" style={{ borderColor: COLORS.line }}>
                   <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
                     More from our stock
                   </div>
                   <div className="grid grid-cols-2 gap-2.5">
-                    {similar.slice(0, 6).map((v) => (
+                    {similar.slice(0, 4).map((v) => (
                       <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
                     ))}
                   </div>
