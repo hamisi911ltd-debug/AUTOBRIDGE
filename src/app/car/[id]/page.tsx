@@ -15,11 +15,6 @@ export const dynamic = "force-dynamic";
 // browsing data, not a second, differently-shaped payload.
 const VEHICLE_LIMIT = 150;
 
-function absoluteImage(url: string | null): string {
-  if (!url) return "/og-image.jpg";
-  return url.startsWith("http") ? url : `${SITE_URL}${url}`;
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const vehicle = await getPublicVehicleById(id);
@@ -29,7 +24,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const totalUsd = vehicle.sellingPriceUsd + landed.freight + landed.insurance;
   const title = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""} - ${formatUsd(totalUsd)}`;
   const description = `${formatUsd(totalUsd)} incl. freight & insurance to Mombasa - ${vehicle.mileageKm.toLocaleString()} km, ${vehicle.transmission}, ${vehicle.fuel}, sourced from ${vehicle.sourceCountry}. Ferbil Car Imports.`;
-  const image = absoluteImage(vehicle.imageUrl);
+  // Proxied through our own domain rather than linked straight at the
+  // source site's CDN - several of them serve a plain <img> fine but
+  // reject link-preview crawlers specifically (see the route's own
+  // comment), which was leaving shared links with no image at all.
+  const image = vehicle.imageUrl ? `${SITE_URL}/api/og-image/${vehicle.id}` : `${SITE_URL}/og-image.jpg`;
 
   return {
     title,
