@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Printer, CheckCircle2, Search } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle2, Search } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { COMPANY, BANK_DETAILS } from "@/lib/company";
 import { computeFreightUsd } from "@/lib/landedCost";
@@ -57,11 +57,13 @@ export function InvoicePage({
   landedMap,
   preselectedId,
   goDetail,
+  onBack,
 }: {
   vehicles: PublicVehicle[];
   landedMap: Record<string, LandedCost>;
   preselectedId: string | null;
   goDetail: (id: string) => void;
+  onBack: () => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(preselectedId);
   const [page, setPage] = useState(1);
@@ -109,6 +111,15 @@ export function InvoicePage({
         </div>
 
         <form onSubmit={submitSearch} className="flex items-center gap-1.5 sm:gap-2 max-w-2xl mb-4 sm:mb-6">
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Go back"
+            className="shrink-0 w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center"
+            style={{ background: COLORS.card, color: COLORS.navy }}
+          >
+            <ArrowLeft size={16} />
+          </button>
           <div className="flex-1 rounded-full p-[1.5px]" style={{ background: "linear-gradient(90deg, #D6336C 0%, #3B1F63 100%)" }}>
             <div className="flex items-center gap-2 rounded-full bg-white pl-3 sm:pl-4 pr-1.5 sm:pr-4 py-1.5 sm:py-3">
               <Search size={15} color={COLORS.slate} className="shrink-0 hidden sm:block" />

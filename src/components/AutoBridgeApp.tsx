@@ -194,8 +194,6 @@ export function AutoBridgeApp({
           onGoQuote={() => goQuote()}
           onGoCart={goCart}
           totalCount={totalCount}
-          page={page}
-          onBack={goBack}
         />
       </div>
       <div aria-hidden className="invisible">
@@ -206,8 +204,6 @@ export function AutoBridgeApp({
           onGoQuote={() => {}}
           onGoCart={() => {}}
           totalCount={totalCount}
-          page={page}
-          onBack={() => {}}
         />
       </div>
 
@@ -232,6 +228,7 @@ export function AutoBridgeApp({
             favorites={favorites}
             goDetail={goDetail}
             isLoadingFullCatalogue={fullCatalogueLoading && !fullCatalogueLoaded}
+            onBack={goBack}
           />
         )}
         {page === "detail" && selectedVehicle && (
@@ -247,7 +244,7 @@ export function AutoBridgeApp({
           />
         )}
         {page === "quote" && (
-          <InvoicePage vehicles={vehicles} landedMap={landedMap} preselectedId={quoteVehicleId} goDetail={goDetail} />
+          <InvoicePage vehicles={vehicles} landedMap={landedMap} preselectedId={quoteVehicleId} goDetail={goDetail} onBack={goBack} />
         )}
         {page === "cart" && <CartPage vehicles={vehicles} landedMap={landedMap} goDetail={goDetail} goQuote={goQuote} goSearch={goSearch} />}
       </main>

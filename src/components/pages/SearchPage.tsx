@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, Bell, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Search, SlidersHorizontal, Bell, CheckCircle2 } from "lucide-react";
 import { COLORS, FONT_DISPLAY, type Filters } from "@/lib/constants";
 import { matchesFilters, sortVehicles } from "@/lib/search";
 import type { LandedCost } from "@/lib/landedCost";
@@ -118,6 +118,7 @@ export function SearchPage({
   favorites,
   goDetail,
   isLoadingFullCatalogue,
+  onBack,
 }: {
   vehicles: PublicVehicle[];
   landedMap: Record<string, LandedCost>;
@@ -126,6 +127,7 @@ export function SearchPage({
   favorites: Set<string>;
   goDetail: (id: string) => void;
   isLoadingFullCatalogue?: boolean;
+  onBack: () => void;
 }) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -204,6 +206,14 @@ export function SearchPage({
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={onBack}
+            aria-label="Go back"
+            className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+            style={{ background: COLORS.card, color: COLORS.navy }}
+          >
+            <ArrowLeft size={16} />
+          </button>
           <div className="relative">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: COLORS.slate }} />
             <input

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Bell, ShoppingCart } from "lucide-react";
+import { Bell, ShoppingCart } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import type { Page } from "@/components/AutoBridgeApp";
 
@@ -21,8 +21,6 @@ export function Header({
   onGoQuote,
   onGoCart,
   totalCount,
-  page,
-  onBack,
 }: {
   setPage: (p: Page) => void;
   cartCount: number;
@@ -30,10 +28,6 @@ export function Header({
   onGoQuote: () => void;
   onGoCart: () => void;
   totalCount: number;
-  /** Shows the back button whenever this isn't "home" - home is the site's
-   * root, the only page a back button never needs to appear on. */
-  page: Page;
-  onBack: () => void;
 }) {
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -59,16 +53,6 @@ export function Header({
       <div className="w-full overflow-hidden" style={{ padding: "3px 0", background: GRADIENT, boxShadow: "0 6px 20px rgba(59,31,99,0.28)" }}>
         <div className="h-11 sm:h-14 bg-white/95 backdrop-blur flex items-center justify-between px-3 sm:px-6">
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            {page !== "home" && (
-              <button
-                onClick={onBack}
-                aria-label="Go back"
-                className="shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center"
-                style={{ background: COLORS.card, color: COLORS.navy }}
-              >
-                <ArrowLeft size={16} />
-              </button>
-            )}
             <button onClick={() => setPage("home")} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
               <img src="/ferbil-logo.svg" alt="" className="w-9 h-9 sm:w-11 sm:h-11" />
