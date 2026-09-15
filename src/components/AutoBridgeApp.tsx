@@ -156,17 +156,15 @@ export function AutoBridgeApp({
       prevPageRef.current = page;
     }
   }, [page]);
-  const [canGoBack, setCanGoBack] = useState(false);
-  useEffect(() => {
-    setCanGoBack(pageHistoryRef.current.length > 0);
-  }, [page]);
 
+  // Shown (in the Header) any time `page !== "home"`, not gated on whether
+  // there's an actual history entry - home is the site's root, so "not home"
+  // always has somewhere sensible to go back to, falling back to home
+  // itself when the stack is empty (e.g. this page was reached directly).
   function goBack() {
-    const prev = pageHistoryRef.current.pop();
-    if (!prev) return;
+    const prev = pageHistoryRef.current.pop() ?? "home";
     prevPageRef.current = prev;
     setPage(prev);
-    setCanGoBack(pageHistoryRef.current.length > 0);
   }
 
   const selectedVehicle = vehicles.find((v) => v.id === selectedId) || null;
@@ -196,6 +194,8 @@ export function AutoBridgeApp({
           onGoQuote={() => goQuote()}
           onGoCart={goCart}
           totalCount={totalCount}
+          page={page}
+          onBack={goBack}
         />
       </div>
       <div aria-hidden className="invisible">
@@ -206,6 +206,8 @@ export function AutoBridgeApp({
           onGoQuote={() => {}}
           onGoCart={() => {}}
           totalCount={totalCount}
+          page={page}
+          onBack={() => {}}
         />
       </div>
 
@@ -219,8 +221,6 @@ export function AutoBridgeApp({
             goDetail={goDetail}
             goSearch={goSearch}
             reviews={reviews}
-            canGoBack={canGoBack}
-            onBack={goBack}
           />
         )}
         {page === "search" && (

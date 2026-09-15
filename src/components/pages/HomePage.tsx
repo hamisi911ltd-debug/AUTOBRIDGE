@@ -20,8 +20,6 @@ export function HomePage({
   goDetail,
   goSearch,
   reviews,
-  canGoBack,
-  onBack,
 }: {
   vehicles: PublicVehicle[];
   landedMap: Record<string, LandedCost>;
@@ -30,8 +28,6 @@ export function HomePage({
   goDetail: (id: string) => void;
   goSearch: (patch: Partial<Filters>) => void;
   reviews: PublicReview[];
-  canGoBack: boolean;
-  onBack: () => void;
 }) {
   // "Featured" needs a real, sharp photo to actually feature - a badge alone
   // isn't enough (hand-entered listings carry badges but no photo), so this
@@ -44,7 +40,7 @@ export function HomePage({
 
   return (
     <div>
-      <HomeSearchHero goSearch={goSearch} canGoBack={canGoBack} onBack={onBack} />
+      <HomeSearchHero goSearch={goSearch} />
       <OffersSlider vehicles={vehicles} goDetail={goDetail} />
       <CatalogueSection vehicles={vehicles} landedMap={landedMap} filters={filters} favorites={favorites} goDetail={goDetail} />
       <BestSellersByCategory vehicles={vehicles} goDetail={goDetail} />

@@ -1,25 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowLeft, Search, SlidersHorizontal } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { COLORS, type Filters } from "@/lib/constants";
 
 /**
  * Replaces the old rotating image banner: just a classic search bar +
  * filters button. The Ferbil wordmark and the live total-count stat live in
  * the Header instead (shown on every page, not just here), so they're not
- * duplicated on the homepage specifically. Back navigation (when there's
- * somewhere to go back to) sits right before the bar, not in the Header -
- * it's a search-context action, not a site-wide one.
+ * duplicated on the homepage specifically. Back navigation lives in the
+ * Header too now, shown site-wide whenever the current page isn't home -
+ * home is the one page it never needs to appear on, since it's the root.
  */
 export function HomeSearchHero({
   goSearch,
-  canGoBack,
-  onBack,
 }: {
   goSearch: (patch: Partial<Filters>) => void;
-  canGoBack: boolean;
-  onBack: () => void;
 }) {
   const [keyword, setKeyword] = useState("");
 
@@ -31,17 +27,6 @@ export function HomeSearchHero({
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-3 sm:pt-4 pb-2.5 sm:pb-3">
       <form onSubmit={submitSearch} className="flex items-center gap-1.5 sm:gap-2 max-w-2xl mx-auto">
-        {canGoBack && (
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Go back"
-            className="shrink-0 w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center"
-            style={{ background: COLORS.card, color: COLORS.navy }}
-          >
-            <ArrowLeft size={16} />
-          </button>
-        )}
         {/* Gradient "border" via padding trick - a real CSS border can't take
            a gradient on a fully-rounded shape, so this is a 1.5px gradient
            layer behind a white inset. */}
