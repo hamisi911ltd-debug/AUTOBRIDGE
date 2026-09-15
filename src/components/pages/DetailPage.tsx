@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Camera, Check, Heart, MapPin, X } from "lucide-react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { Camera, Check, Heart, MapPin, Printer, X } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
 import { whatsAppLink, vehicleDetailBlock } from "@/lib/whatsapp";
@@ -162,6 +162,45 @@ export function DetailPage({
   const sameModel = others.filter((v) => v.make === vehicle.make && v.model === vehicle.model);
   const wider = others.filter((v) => !(v.make === vehicle.make && v.model === vehicle.model) && (v.bodyType === vehicle.bodyType || v.make === vehicle.make));
   const similar = [...sameModel, ...wider].slice(0, 6); // divisible by both 2 (mobile) and 3 (desktop) - no dangling gap in either grid
+
+  // Desktop-only: how many "More from our stock" cards the sticky right
+  // column shows, measured against the left column's own real content
+  // height rather than a fixed guess - a fixed count either overshot it
+  // (pushing the gap onto the left column instead) or undershot it
+  // (leaving the original gap on the right), since the left column's
+  // height genuinely varies per vehicle (spec-table row count, badge
+  // presence). Refs below are on plain, unstretched content wrappers
+  // specifically so their offsetHeight reflects true content size, not
+  // the CSS-grid-stretched height of their ancestor grid cell.
+  const leftContentRef = useRef<HTMLDivElement>(null);
+  const fixedRightRef = useRef<HTMLDivElement>(null);
+  const teaserBoxRef = useRef<HTMLDivElement>(null);
+  const teaserGridRef = useRef<HTMLDivElement>(null);
+  const [teaserCount, setTeaserCount] = useState(() => Math.min(2, similar.length));
+
+  useLayoutEffect(() => {
+    function recompute() {
+      if (window.innerWidth < 1024) return; // this teaser is lg:+ only
+      if (!leftContentRef.current || !fixedRightRef.current || similar.length === 0) return;
+      const leftH = leftContentRef.current.offsetHeight;
+      const fixedH = fixedRightRef.current.offsetHeight;
+      const gapBetween = 12; // mt-3 between the fixed block and the teaser box
+      const gridEl = teaserGridRef.current;
+      const boxEl = teaserBoxRef.current;
+      const chrome = boxEl && gridEl ? boxEl.offsetHeight - gridEl.offsetHeight : 46; // box padding + title, whatever the current row count
+      const cardEl = gridEl?.children[0] as HTMLElement | undefined;
+      const cardH = cardEl ? cardEl.getBoundingClientRect().height : 220;
+      const cardGap = 10; // gap-2.5
+      const remaining = leftH - fixedH - gapBetween - chrome;
+      const rows = Math.max(0, Math.floor((remaining + cardGap) / (cardH + cardGap)));
+      const minCount = Math.min(2, similar.length);
+      const next = Math.max(minCount, Math.min(similar.length, rows * 2));
+      setTeaserCount((prev) => (prev === next ? prev : next));
+    }
+    recompute();
+    window.addEventListener("resize", recompute);
+    return () => window.removeEventListener("resize", recompute);
+  }, [similar.length, teaserCount]);
 
   async function submitEnquiry(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -365,8 +404,13 @@ export function DetailPage({
               <button type="submit" disabled={sending} className="py-2.5 rounded-full text-sm font-semibold text-white disabled:opacity-60" style={{ background: COLORS.burgundy }}>
                 {sending ? "Sending…" : "Send enquiry"}
               </button>
-              <button type="button" onClick={goQuote} className="text-xs font-semibold text-center" style={{ color: COLORS.burgundy }}>
-                Or get a printable invoice &rarr;
+              <button
+                type="button"
+                onClick={goQuote}
+                className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold"
+                style={{ background: COLORS.card, color: COLORS.burgundy }}
+              >
+                <Printer size={14} /> Or get a printable invoice &rarr;
               </button>
             </form>
           )}
@@ -389,6 +433,7 @@ export function DetailPage({
       {/* ── Desktop (lg and up): the original full two-column layout. ── */}
       <div className="hidden lg:grid lg:grid-cols-[1.3fr_1fr] gap-8">
         <div className="min-w-0">
+        <div ref={leftContentRef}>
           <VehicleGallery
             images={vehicle.imageUrls.length > 0 ? vehicle.imageUrls : vehicle.imageUrl ? [vehicle.imageUrl] : []}
             alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
@@ -492,27 +537,32 @@ export function DetailPage({
                 <button type="submit" disabled={sending} className="sm:col-span-2 py-2.5 rounded-full text-sm font-semibold text-white disabled:opacity-60" style={{ background: COLORS.burgundy }}>
                   {sending ? "Sending…" : "Send enquiry"}
                 </button>
-                <button type="button" onClick={goQuote} className="sm:col-span-2 text-xs font-semibold text-center" style={{ color: COLORS.burgundy }}>
-                  Or get a printable invoice &rarr;
+                <button
+                  type="button"
+                  onClick={goQuote}
+                  className="sm:col-span-2 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold"
+                  style={{ background: COLORS.card, color: COLORS.burgundy }}
+                >
+                  <Printer size={14} /> Or get a printable invoice &rarr;
                 </button>
               </form>
             )}
           </div>
-
+        </div>
         </div>
 
         <div className="lg:h-full min-w-0">
           <div className="lg:sticky lg:h-full lg:flex lg:flex-col min-w-0" style={{ top: "1.5rem" }}>
-            <CostLadder totalUsd={cifUsd} />
+            <div ref={fixedRightRef}>
+              <CostLadder totalUsd={cifUsd} />
 
-            <div className="mt-4">
-              <SpecTable vehicle={vehicle} />
-            </div>
+              <div className="mt-4">
+                <SpecTable vehicle={vehicle} />
+              </div>
 
-            <div className="hidden lg:flex flex-col gap-3">
               <button
                 onClick={() => requestMoreInfo(desktopMessageRef)}
-                className="rounded-2xl p-4 text-left text-white flex items-center gap-3"
+                className="hidden lg:flex mt-3 rounded-2xl p-4 text-left text-white items-center gap-3 w-full"
                 style={{ background: "linear-gradient(135deg, #3B1F63 0%, #D6336C 100%)" }}
               >
                 <Camera size={22} />
@@ -521,27 +571,26 @@ export function DetailPage({
                   <div className="text-xs" style={{ color: "rgba(255,255,255,0.85)" }}>Request them below, takes 10 seconds</div>
                 </div>
               </button>
-
-              {/* A CSS grid row is always exactly as tall as its tallest
-                 column - a fixed count here (not "as many as fit") keeps
-                 this column's natural height in the same ballpark as the
-                 left column's photo+specs+enquiry form across vehicles,
-                 rather than overshooting it and pushing the *left* column's
-                 own gap into existence instead (confirmed live: 6 cards was
-                 consistently taller than a short enquiry form). */}
-              {similar.length > 0 && (
-                <div className="rounded-2xl border p-3" style={{ borderColor: COLORS.line }}>
-                  <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-                    More from our stock
-                  </div>
-                  <div className="grid grid-cols-2 gap-2.5">
-                    {similar.slice(0, 4).map((v) => (
-                      <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* How many cards show here is measured against the left
+               column's real content height (see the layout effect above),
+               not a fixed guess - it grows to close the gap when there's
+               genuinely room, and stays small when there isn't, instead of
+               a fixed count that was either too tall (pushing the gap onto
+               the left column) or too short (leaving it here again). */}
+            {similar.length > 0 && (
+              <div ref={teaserBoxRef} className="hidden lg:block mt-3 rounded-2xl border p-3" style={{ borderColor: COLORS.line }}>
+                <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                  More from our stock
+                </div>
+                <div ref={teaserGridRef} className="grid grid-cols-2 gap-2.5">
+                  {similar.slice(0, teaserCount).map((v) => (
+                    <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -16,7 +16,7 @@ const inter = Inter({
 });
 
 const SITE_URL = "https://autobridge-kenya-web.glotech.workers.dev";
-const SITE_NAME = "Vehicle Import Marketplace";
+const SITE_NAME = "Ferbil Car Imports";
 const SITE_DESCRIPTION =
   "Browse real, import-eligible vehicles from Japan and the UAE with total price (vehicle plus freight & insurance) shown upfront on every listing. Kenya's vehicle import marketplace.";
 
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
     locale: "en_KE",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Ferbil - Kenya's Vehicle Import Marketplace" }],
+    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Ferbil Car Imports - Kenya's Vehicle Import Marketplace" }],
   },
   twitter: {
     card: "summary_large_image",
