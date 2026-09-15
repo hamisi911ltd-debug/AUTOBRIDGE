@@ -15,7 +15,7 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const SITE_URL = "https://autobridge-kenya-web.glotech.workers.dev";
+export const SITE_URL = "https://autobridge-kenya-web.glotech.workers.dev";
 const SITE_NAME = "Ferbil Car Imports";
 const SITE_DESCRIPTION =
   "Browse real, import-eligible vehicles from Japan and the UAE with total price (vehicle plus freight & insurance) shown upfront on every listing. Kenya's vehicle import marketplace.";

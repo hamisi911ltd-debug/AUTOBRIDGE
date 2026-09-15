@@ -160,6 +160,60 @@ async function fetchDiverseVehicles(limit: number): Promise<VehicleRow[]> {
   return out.slice(0, limit);
 }
 
+function toPublicVehicle(v: VehicleRow, rules: Awaited<ReturnType<typeof prisma.pricingRule.findMany>>): PublicVehicle {
+  const { sellingPriceUsd } = computeSellingPriceUsd(v, rules);
+  const insuranceUsd = computeInsuranceUsd(v.sourcePriceUsd);
+  const imageUrl = v.imageUrl;
+  let imageUrls = v.imageUrls ? (JSON.parse(v.imageUrls) as string[]) : [];
+
+  if (imageUrl && !imageUrls.includes(imageUrl)) imageUrls = [imageUrl, ...imageUrls];
+
+  return {
+    id: v.id,
+    make: v.make,
+    model: v.model,
+    trim: v.trim,
+    year: v.year,
+    mileageKm: v.mileageKm,
+    fuel: v.fuel,
+    transmission: v.transmission,
+    engineCc: v.engineCc,
+    bodyType: v.bodyType,
+    drive: v.drive,
+    seats: v.seats,
+    color: v.color,
+    sourceCountry: v.sourceCountry,
+    sourceSite: v.sourceSite,
+    sellingPriceUsd,
+    insuranceUsd,
+    freightIncluded: v.freightIncluded,
+    imageUrl,
+    imageUrls,
+    // A real multi-photo gallery is the strongest signal that this is a
+    // genuine large photo, not a capped listing thumbnail.
+    hqImage: imageUrls.length > 1,
+    isRepresentativePhoto: false,
+    condition: v.condition,
+    badge: v.badge,
+    lifestyle: JSON.parse(v.lifestyle) as string[],
+    eligible: v.eligible,
+    ineligibleReason: v.ineligibleReason,
+    refNo: v.refNo,
+    chassisNo: v.chassisNo,
+    modelCode: v.modelCode,
+    engineCode: v.engineCode,
+    steering: v.steering,
+    location: v.location,
+    versionClass: v.versionClass,
+    doors: v.doors,
+    dimensions: v.dimensions,
+    weightKg: v.weightKg,
+    registrationYearMonth: v.registrationYearMonth,
+    manufactureYearMonth: v.manufactureYearMonth,
+    features: v.features ? (JSON.parse(v.features) as string[]) : [],
+  };
+}
+
 export async function getPublicVehicles(opts?: { limit?: number; diverse?: boolean }): Promise<PublicVehicle[]> {
   const [rawVehicles, rules] = await Promise.all([
     opts?.diverse && opts.limit
@@ -174,58 +228,20 @@ export async function getPublicVehicles(opts?: { limit?: number; diverse?: boole
   ]);
 
   const vehicles = groupIdenticalUnits(rawVehicles);
+  return vehicles.map((v) => toPublicVehicle(v, rules));
+}
 
-  return vehicles.map((v) => {
-    const { sellingPriceUsd } = computeSellingPriceUsd(v, rules);
-    const insuranceUsd = computeInsuranceUsd(v.sourcePriceUsd);
-    const imageUrl = v.imageUrl;
-    let imageUrls = v.imageUrls ? (JSON.parse(v.imageUrls) as string[]) : [];
-
-    if (imageUrl && !imageUrls.includes(imageUrl)) imageUrls = [imageUrl, ...imageUrls];
-
-    return {
-      id: v.id,
-      make: v.make,
-      model: v.model,
-      trim: v.trim,
-      year: v.year,
-      mileageKm: v.mileageKm,
-      fuel: v.fuel,
-      transmission: v.transmission,
-      engineCc: v.engineCc,
-      bodyType: v.bodyType,
-      drive: v.drive,
-      seats: v.seats,
-      color: v.color,
-      sourceCountry: v.sourceCountry,
-      sourceSite: v.sourceSite,
-      sellingPriceUsd,
-      insuranceUsd,
-      freightIncluded: v.freightIncluded,
-      imageUrl,
-      imageUrls,
-      // A real multi-photo gallery is the strongest signal that this is a
-      // genuine large photo, not a capped listing thumbnail.
-      hqImage: imageUrls.length > 1,
-      isRepresentativePhoto: false,
-      condition: v.condition,
-      badge: v.badge,
-      lifestyle: JSON.parse(v.lifestyle) as string[],
-      eligible: v.eligible,
-      ineligibleReason: v.ineligibleReason,
-      refNo: v.refNo,
-      chassisNo: v.chassisNo,
-      modelCode: v.modelCode,
-      engineCode: v.engineCode,
-      steering: v.steering,
-      location: v.location,
-      versionClass: v.versionClass,
-      doors: v.doors,
-      dimensions: v.dimensions,
-      weightKg: v.weightKg,
-      registrationYearMonth: v.registrationYearMonth,
-      manufactureYearMonth: v.manufactureYearMonth,
-      features: v.features ? (JSON.parse(v.features) as string[]) : [],
-    };
-  });
+/**
+ * Single-vehicle lookup for share links (`/car/[id]`) - a plain
+ * indexed-by-id read plus the small pricingRule table, nowhere near the
+ * cost of the bounded homepage list, so a shared link doesn't add
+ * meaningfully to D1's daily read quota.
+ */
+export async function getPublicVehicleById(id: string): Promise<PublicVehicle | null> {
+  const [row, rules] = await Promise.all([
+    prisma.vehicle.findFirst({ where: { id, eligible: true, imageUrl: { not: null } }, select: VEHICLE_SELECT }),
+    prisma.pricingRule.findMany({ where: { active: true } }),
+  ]);
+  if (!row) return null;
+  return toPublicVehicle(row, rules);
 }

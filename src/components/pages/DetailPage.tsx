@@ -1,10 +1,11 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { ArrowLeft, Camera, Check, Heart, MapPin, Printer, X } from "lucide-react";
+import { ArrowLeft, Camera, Check, Heart, MapPin, Printer, Share2, X } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
 import { whatsAppLink, vehicleDetailBlock } from "@/lib/whatsapp";
+import { shareVehicle } from "@/lib/share";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import type { Page } from "@/components/AutoBridgeApp";
@@ -143,6 +144,10 @@ export function DetailPage({
   // landed.insurance are already USD; landed.total is the KES conversion,
   // which the site no longer shows).
   const cifUsd = vehicle.sellingPriceUsd + landed.freight + landed.insurance;
+
+  function onShare() {
+    shareVehicle(vehicle, cifUsd);
+  }
 
   /**
    * The fastest path to "I want more photos/details" - rather than a
@@ -331,6 +336,9 @@ export function DetailPage({
             {vehicle.year} {vehicle.make} {vehicle.model} {vehicle.trim}
           </h1>
           <div className="flex gap-1.5 shrink-0">
+            <button onClick={onShare} aria-label="Share this car" className="w-8 h-8 rounded-full border flex items-center justify-center" style={{ borderColor: COLORS.line }}>
+              <Share2 size={14} color={COLORS.navy} />
+            </button>
             <button onClick={() => toggleFavorite(vehicle.id)} className="w-8 h-8 rounded-full border flex items-center justify-center" style={{ borderColor: COLORS.line }}>
               <Heart size={14} fill={favorites.has(vehicle.id) ? COLORS.burgundy : "none"} color={COLORS.burgundy} />
             </button>
@@ -499,6 +507,9 @@ export function DetailPage({
               </p>
             </div>
             <div className="flex gap-2">
+              <button onClick={onShare} aria-label="Share this car" className="w-10 h-10 rounded-full border flex items-center justify-center" style={{ borderColor: COLORS.line }}>
+                <Share2 size={16} color={COLORS.navy} />
+              </button>
               <button onClick={() => toggleFavorite(vehicle.id)} className="w-10 h-10 rounded-full border flex items-center justify-center" style={{ borderColor: COLORS.line }}>
                 <Heart size={17} fill={favorites.has(vehicle.id) ? COLORS.burgundy : "none"} color={COLORS.burgundy} />
               </button>

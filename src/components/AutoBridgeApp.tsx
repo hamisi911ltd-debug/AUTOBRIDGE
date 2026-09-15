@@ -28,16 +28,21 @@ export function AutoBridgeApp({
   initialVehicles,
   reviews,
   totalCount,
+  initialVehicleId,
 }: {
   initialVehicles: PublicVehicle[];
   reviews: PublicReview[];
   totalCount: number;
+  /** Set by /car/[id] (share links) to land straight on that vehicle's
+   * detail page instead of home - "back" still works normally since the
+   * page-history stack below sees this as a real navigation from home. */
+  initialVehicleId?: string | null;
 }) {
-  const [page, setPage] = useState<Page>("home");
+  const [page, setPage] = useState<Page>(() => (initialVehicleId ? "detail" : "home"));
   // Kept only to derive landed.freight / landed.insurance (both USD, so the
   // rate is irrelevant); the site shows USD, no KES conversion anymore.
   const fx = 1;
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(() => initialVehicleId ?? null);
   const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
   const [cart, setCart] = useState<Set<string>>(() => new Set());
   const [quoteVehicleId, setQuoteVehicleId] = useState<string | null>(null);
