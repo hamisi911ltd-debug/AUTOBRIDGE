@@ -18,6 +18,15 @@ const REQUEST_DELAY_MS = 400;
 const FLUSH_EVERY = 100;
 const FETCH_TIMEOUT_MS = 10_000;
 const DRY_RUN = process.argv[2] !== "--write";
+// What a real visitor's browser sends as Referer when this image loads as
+// an embedded <img> on the live site (browsers default to sending the
+// origin, not the full URL, cross-origin) - the first check below mimics
+// that exactly, since a source CDN's hotlink protection can allow a bare
+// direct fetch (no referer, which is all the previous version of this
+// script ever sent) while still blocking the exact request our own pages
+// make. That mismatch is why an earlier dry run reported 0 dead vehicles
+// here while broken images were still visible live.
+const SITE_URL = "https://autobridge-kenya-web.glotech.workers.dev/";
 
 type Row = { id: string; imageUrl: string; imageUrls: string | null };
 
@@ -47,19 +56,21 @@ async function fetchVehicleRows(): Promise<Row[]> {
 
 type CheckResult = "live" | "dead" | "rate-limited" | "error";
 
-async function checkUrl(url: string): Promise<CheckResult> {
+async function checkUrl(url: string, extraHeaders: Record<string, string> = {}): Promise<CheckResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    let res = await fetch(url, { method: "HEAD", signal: controller.signal });
+    let res = await fetch(url, { method: "HEAD", headers: extraHeaders, signal: controller.signal });
     // Some CDNs don't implement HEAD properly (405/501) - fall back to a
     // ranged GET, which still avoids downloading the whole image.
     if (!res.ok && (res.status === 405 || res.status === 501)) {
-      res = await fetch(url, { method: "GET", headers: { Range: "bytes=0-1024" }, signal: controller.signal });
+      res = await fetch(url, { method: "GET", headers: { ...extraHeaders, Range: "bytes=0-1024" }, signal: controller.signal });
     }
     if (res.ok || res.status === 206) return "live";
-    // 429/403/503 mean the source is throttling us, not that the photo is
-    // gone - never treat those as "dead". Only a genuine 404/410 counts.
+    // 429/503 mean the source is throttling us, not that the photo is
+    // gone - never treat those as "dead" on their own. A 403 is ambiguous
+    // the same way *unless* it's specifically tied to our own Referer -
+    // see checkUrlForEmbed, which is what actually decides that.
     if (res.status === 429 || res.status === 403 || res.status === 503) return "rate-limited";
     if (res.status === 404 || res.status === 410) return "dead";
     return "error";
@@ -68,6 +79,27 @@ async function checkUrl(url: string): Promise<CheckResult> {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/**
+ * Checks a URL the way it actually gets used on the live site (Referer =
+ * our own origin, since that's what a real visitor's browser sends
+ * loading it as an embedded <img>) - and only if THAT fails does it retry
+ * with no Referer at all, purely to tell apart two very different causes
+ * behind a 403/429/503: genuine transient throttling (fails both ways,
+ * left untouched, same as before) versus a source CDN's hotlink
+ * protection blocking cross-origin embedding specifically (succeeds with
+ * no Referer, fails only with ours) - the latter can never work on this
+ * site no matter how many times it's retried, so it's treated as dead.
+ */
+async function checkUrlForEmbed(url: string): Promise<CheckResult> {
+  const asEmbedded = await checkUrl(url, { Referer: SITE_URL });
+  if (asEmbedded !== "rate-limited") return asEmbedded;
+
+  await sleep(REQUEST_DELAY_MS);
+  const direct = await checkUrl(url);
+  if (direct === "live") return "dead"; // works direct, blocked only for us - permanent, not transient
+  return asEmbedded;
 }
 
 /** First image (cover, then gallery) that actually resolves. `null` only
@@ -79,7 +111,7 @@ async function findDeadOrNull(row: Row): Promise<"live" | "dead" | "unknown"> {
   const candidates = [row.imageUrl, ...gallery.filter((u) => u !== row.imageUrl)];
   let sawAmbiguous = false;
   for (const url of candidates) {
-    const result = await checkUrl(url);
+    const result = await checkUrlForEmbed(url);
     if (result === "live") return "live";
     if (result !== "dead") sawAmbiguous = true;
     await sleep(REQUEST_DELAY_MS);
