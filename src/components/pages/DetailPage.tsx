@@ -432,8 +432,22 @@ export function DetailPage({
             Enquire about this vehicle
           </h3>
           {reserved ? (
-            <div className="text-sm flex items-center gap-2" style={{ color: "#166534" }}>
-              <Check size={16} /> Enquiry received, our team will confirm availability within 24 hours.
+            <div>
+              <div className="text-sm flex items-center gap-2" style={{ color: "#166534" }}>
+                <Check size={16} /> Enquiry received, our team will confirm availability within 24 hours.
+              </div>
+              {teaserPool.length > 0 && (
+                <div className="mt-5">
+                  <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                    While you wait, browse more of our stock
+                  </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {teaserPool.slice(0, 4).map((v) => (
+                      <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <form onSubmit={submitEnquiry} className="grid gap-3">
@@ -568,8 +582,22 @@ export function DetailPage({
               Enquire about this vehicle
             </h3>
             {reserved ? (
-              <div className="text-sm flex items-center gap-2" style={{ color: "#166534" }}>
-                <Check size={16} /> Enquiry received, our team will confirm availability within 24 hours.
+              <div>
+                <div className="text-sm flex items-center gap-2" style={{ color: "#166534" }}>
+                  <Check size={16} /> Enquiry received, our team will confirm availability within 24 hours.
+                </div>
+                {teaserPool.length > 0 && (
+                  <div className="mt-5">
+                    <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                      While you wait, browse more of our stock
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                      {teaserPool.slice(0, 6).map((v) => (
+                        <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <form onSubmit={submitEnquiry} className="grid sm:grid-cols-2 gap-3">
