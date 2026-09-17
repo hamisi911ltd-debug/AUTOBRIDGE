@@ -18,6 +18,16 @@ const REQUEST_DELAY_MS = 400;
 const FLUSH_EVERY = 100;
 const FETCH_TIMEOUT_MS = 10_000;
 const DRY_RUN = process.argv[2] !== "--write";
+// Real dead rate has consistently been under 1% of the catalogue across
+// every run so far. A rate anywhere near this high is far more likely to
+// mean a source CDN has started throttling/blocking this run's own
+// requests (exactly what happened once before, wrongly clearing ~1,100
+// live vehicles) than that 1-in-6+ listings genuinely delisted since the
+// last check - so this aborts the whole run rather than trusting the
+// result, checked only after a minimum sample so early noise can't trip
+// it by chance.
+const DEAD_RATE_CIRCUIT_BREAKER = 0.15;
+const MIN_CHECKED_BEFORE_BREAKER = 60;
 // What a real visitor's browser sends as Referer when this image loads as
 // an embedded <img> on the live site (browsers default to sending the
 // origin, not the full URL, cross-origin) - the first check below mimics
@@ -60,13 +70,31 @@ async function checkUrl(url: string, extraHeaders: Record<string, string> = {}):
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
+    // HEAD first, GET only as a fallback - tried switching this to an
+    // always-GET check (closer to what a real <img> tag does) and it
+    // backfired badly: BeForward's CDN treats a burst of GETs far more
+    // aggressively than HEADs, and started returning 404-shaped responses
+    // for live photos purely from request volume - the exact false-
+    // positive failure mode the concurrency/delay settings above exist to
+    // avoid (confirmed by hand: images this reported "dead" loaded fine
+    // seconds later from a single, unburst direct request). HEAD is the
+    // safer default here; GET only kicks in when a CDN doesn't support HEAD.
     let res = await fetch(url, { method: "HEAD", headers: extraHeaders, signal: controller.signal });
-    // Some CDNs don't implement HEAD properly (405/501) - fall back to a
-    // ranged GET, which still avoids downloading the whole image.
     if (!res.ok && (res.status === 405 || res.status === 501)) {
       res = await fetch(url, { method: "GET", headers: { ...extraHeaders, Range: "bytes=0-1024" }, signal: controller.signal });
     }
-    if (res.ok || res.status === 206) return "live";
+    if (res.ok || res.status === 206) {
+      // A 200/206 isn't proof of an actual photo - a delisted unit can
+      // redirect to a category/landing page that itself answers 200 with
+      // an HTML body, which a plain status check would wrongly call
+      // "live" while a real <img> tag fails to decode it and shows the
+      // broken-image icon. Only flag it when the header is both present
+      // AND clearly non-image - many CDNs omit Content-Type on HEAD
+      // entirely, and absence is not evidence of a problem.
+      const contentType = res.headers.get("content-type");
+      if (contentType && !contentType.startsWith("image/")) return "dead";
+      return "live";
+    }
     // 429/503 mean the source is throttling us, not that the photo is
     // gone - never treat those as "dead" on their own. A 403 is ambiguous
     // the same way *unless* it's specifically tied to our own Referer -
@@ -155,15 +183,30 @@ async function main() {
   let done = 0;
   let idx = 0;
   let flushing: Promise<void> = Promise.resolve();
+  let tripped = false;
 
   async function worker() {
-    while (idx < rows.length) {
+    while (idx < rows.length && !tripped) {
       const row = rows[idx++];
       try {
         const result = await findDeadOrNull(row);
+        // Checked before this result is trusted enough to act on - a
+        // storm of false "dead" results (source CDN throttling this run)
+        // must never reach the flush below, not even the batch already
+        // in flight when it's detected.
+        if (!tripped && done >= MIN_CHECKED_BEFORE_BREAKER && deadIds.length / done > DEAD_RATE_CIRCUIT_BREAKER) {
+          tripped = true;
+          console.error(
+            `\nABORTING: ${deadIds.length}/${done} checked came back dead (>${Math.round(DEAD_RATE_CIRCUIT_BREAKER * 100)}%) - ` +
+              `this is far above the normal <1% rate and much more likely to mean a source CDN is throttling/blocking this ` +
+              `run's own requests than that this many listings genuinely delisted since the last check. Nothing was written. ` +
+              `Verify a few of the reported-dead URLs by hand (a single direct fetch, not from this script) before re-running.`
+          );
+          break;
+        }
         if (result === "dead") {
           deadIds.push(row.id);
-          if (!DRY_RUN) {
+          if (!DRY_RUN && !tripped) {
             pendingDead.push(row.id);
             if (pendingDead.length >= FLUSH_EVERY) {
               const batch = pendingDead;
@@ -186,6 +229,11 @@ async function main() {
   }
 
   await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+
+  if (tripped) {
+    console.log(`\nStopped early at ${done}/${rows.length} checked. ${!DRY_RUN ? `${totalCleared} rows were cleared before the abort (from batches already flushed) - review those specifically.` : "Nothing was written (dry run)."}`);
+    return;
+  }
 
   if (!DRY_RUN) {
     await flushing;
