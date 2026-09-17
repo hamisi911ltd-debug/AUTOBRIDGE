@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, ShoppingCart } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
+import { BRAND } from "@/lib/brand";
 import type { Page } from "@/components/AutoBridgeApp";
 
 const GRADIENT = "linear-gradient(90deg, #F2762E 0%, #D6336C 50%, #3B1F63 100%)";
@@ -55,13 +56,13 @@ export function Header({
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <button onClick={() => setPage("home")} className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
-              <img src="/ferbil-logo.svg" alt="" className="w-9 h-9 sm:w-11 sm:h-11" />
+              <img src={BRAND.logoSrc} alt="" className="w-9 h-9 sm:w-11 sm:h-11" />
               <div className="text-left leading-none">
                 <div className="text-sm sm:text-lg font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-                  FERBIL
+                  {BRAND.shortName}
                 </div>
                 <div className="block text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] mt-0.5" style={{ color: "#D6336C" }}>
-                  Car Imports
+                  {BRAND.tagline}
                 </div>
               </div>
             </button>

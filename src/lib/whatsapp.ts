@@ -1,7 +1,8 @@
 import { formatUsd } from "@/lib/format";
 import type { PublicVehicle } from "@/types/vehicle";
 
-export const WHATSAPP_NUMBER = "254725745777";
+export { WHATSAPP_NUMBER } from "@/lib/brand";
+import { WHATSAPP_NUMBER } from "@/lib/brand";
 
 export function whatsAppLink(message: string): string {
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;

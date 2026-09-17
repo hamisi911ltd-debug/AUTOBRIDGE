@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import { VersionWatcher } from "@/components/layout/VersionWatcher";
+import { BRAND } from "@/lib/brand";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -15,26 +16,25 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-export const SITE_URL = "https://autobridge-kenya-web.glotech.workers.dev";
-const SITE_NAME = "Ferbil Car Imports";
-const SITE_DESCRIPTION =
-  "Browse real, import-eligible vehicles from Japan and the UAE with total price (vehicle plus freight & insurance) shown upfront on every listing. Kenya's vehicle import marketplace.";
+// Each deployment's own URL - must be set at build time (see lib/brand.ts)
+// for a template deployment, since it's baked into metadataBase/OG/canonical
+// tags, not something resolvable at request time in a static export of them.
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://autobridge-kenya-web.glotech.workers.dev";
+const SITE_NAME = BRAND.siteName;
+const OG_IMAGE = BRAND.isTemplate ? "/og-image-template.jpg" : "/og-image.jpg";
+const SITE_DESCRIPTION = BRAND.isTemplate
+  ? "A ready-to-brand vehicle import marketplace template - total landed price shown upfront on every listing."
+  : "Browse real, import-eligible vehicles from Japan and the UAE with total price (vehicle plus freight & insurance) shown upfront on every listing. Kenya's vehicle import marketplace.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: SITE_NAME, template: `%s | ${SITE_NAME}` },
   description: SITE_DESCRIPTION,
-  keywords: [
-    "import cars Kenya",
-    "buy car Kenya",
-    "Japan used cars Kenya",
-    "UAE used cars Kenya",
-    "car import marketplace Kenya",
-    "Toyota import Kenya",
-    "vehicle import Kenya",
-  ],
+  keywords: BRAND.isTemplate
+    ? ["vehicle import marketplace template", "car dealership website template"]
+    : ["import cars Kenya", "buy car Kenya", "Japan used cars Kenya", "UAE used cars Kenya", "car import marketplace Kenya", "Toyota import Kenya", "vehicle import Kenya"],
   alternates: { canonical: "/" },
-  robots: { index: true, follow: true },
+  robots: BRAND.isTemplate ? { index: false, follow: false } : { index: true, follow: true },
   openGraph: {
     type: "website",
     url: SITE_URL,
@@ -42,13 +42,13 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
     locale: "en_KE",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Ferbil Car Imports - Kenya's Vehicle Import Marketplace" }],
+    images: [{ url: OG_IMAGE, width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
-    images: ["/og-image.jpg"],
+    images: [OG_IMAGE],
   },
 };
 

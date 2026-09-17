@@ -1,0 +1,56 @@
+{
+  // White-label template deployment - same codebase and data as
+  // autobridge-kenya-web (wrangler.jsonc), just a different Worker name
+  // and NEXT_PUBLIC_BRAND_MODE=template baked in at build time (see
+  // src/lib/brand.ts). Build and deploy this one with:
+  //   NEXT_PUBLIC_BRAND_MODE=template NEXT_PUBLIC_SITE_URL=https://vehicle-marketplace-template.<subdomain>.workers.dev \
+  //     npx opennextjs-cloudflare build -c wrangler.template.jsonc
+  //   npx opennextjs-cloudflare deploy -c wrangler.template.jsonc
+  // Then rebuild wrangler.jsonc's own (Ferbil) output again before
+  // deploying there next, since both share the same .open-next/ build
+  // output directory.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "main": ".open-next/worker.js",
+  "name": "vehicle-marketplace-template",
+  "compatibility_date": "2026-08-09",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "vehicle-marketplace-template"
+    }
+  ],
+  "r2_buckets": [
+    {
+      // Same cache bucket as the Ferbil deployment - every route that
+      // reads real vehicle/company data is force-dynamic (opted out of
+      // this cache entirely, see src/app/page.tsx and car/[id]/page.tsx),
+      // so there's nothing branding-specific for the two deployments to
+      // collide on here; not worth a second bucket just for this.
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "autobridge-kenya-web-cache"
+    },
+    {
+      // Same vehicle-photo bucket as the Ferbil deployment - shared data,
+      // per the "same real inventory" choice for this template.
+      "binding": "VEHICLE_IMAGES",
+      "bucket_name": "autobridge-kenya-images"
+    }
+  ],
+  "d1_databases": [
+    {
+      // Same database as the Ferbil deployment - shared inventory/pricing/
+      // reviews/admin users. An edit in one admin panel affects both.
+      "binding": "DB",
+      "database_name": "autobridge-kenya-db",
+      "database_id": "f395552b-0aaf-4aed-9cf6-2e8cb7c3e8ab"
+    }
+  ],
+  "images": {
+    "binding": "IMAGES"
+  }
+}

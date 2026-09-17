@@ -4,6 +4,7 @@ import Link from "next/link";
 import { MapPin, Phone, Mail } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { COMPANY } from "@/lib/company";
+import { BRAND } from "@/lib/brand";
 import { whatsAppLink } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { Page } from "@/components/AutoBridgeApp";
@@ -40,13 +41,13 @@ export function Footer({
       <div className="sm:hidden max-w-7xl mx-auto px-4 py-3.5">
         <div className="flex items-center gap-2 mb-2">
           {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
-          <img src="/ferbil-logo.svg" alt="" className="w-8 h-8 shrink-0" />
+          <img src={BRAND.logoSrc} alt="" className="w-8 h-8 shrink-0" />
           <div className="leading-none">
             <div className="text-xs font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY }}>
-              FERBIL
+              {BRAND.shortName}
             </div>
             <div className="text-[7px] font-bold uppercase tracking-[0.15em] mt-0.5" style={{ color: "#F2A6C4" }}>
-              Car Imports
+              {BRAND.tagline}
             </div>
           </div>
         </div>
@@ -80,19 +81,20 @@ export function Footer({
         <div>
           <div className="flex items-center gap-2.5 mb-2">
             {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
-            <img src="/ferbil-logo.svg" alt="" className="w-10 h-10 shrink-0" />
+            <img src={BRAND.logoSrc} alt="" className="w-10 h-10 shrink-0" />
             <div className="leading-none">
               <div className="text-base font-bold tracking-wide" style={{ fontFamily: FONT_DISPLAY }}>
-                FERBIL
+                {BRAND.shortName}
               </div>
               <div className="text-[9px] font-bold uppercase tracking-[0.2em] mt-0.5" style={{ color: "#F2A6C4" }}>
-                Car Imports
+                {BRAND.tagline}
               </div>
             </div>
           </div>
           <p className="text-xs leading-relaxed" style={{ color: MUTED }}>
-            Kenya&apos;s vehicle import marketplace - real, import-eligible cars sourced from Japan and the UAE, landed
-            and cleared in-house.
+            {BRAND.isTemplate
+              ? "A ready-to-brand vehicle import marketplace template - swap in your own name, logo and contact details."
+              : "Kenya's vehicle import marketplace - real, import-eligible cars sourced from Japan and the UAE, landed and cleared in-house."}
           </p>
           <a
             href={whatsAppLink("Hi, I'd like help finding a car.")}

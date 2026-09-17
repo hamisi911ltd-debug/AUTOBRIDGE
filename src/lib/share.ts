@@ -1,4 +1,5 @@
 import { formatUsd } from "@/lib/format";
+import { BRAND } from "@/lib/brand";
 import type { PublicVehicle } from "@/types/vehicle";
 
 /**
@@ -11,7 +12,7 @@ export function shareTextFor(v: PublicVehicle, totalUsd: number): string {
     `${v.year} ${v.make} ${v.model}${v.trim ? " " + v.trim : ""}`,
     `${formatUsd(totalUsd)} incl. freight & insurance to Mombasa`,
     `${v.mileageKm.toLocaleString()} km · ${v.transmission} · ${v.fuel} · from ${v.sourceCountry}`,
-    "Ferbil Car Imports",
+    BRAND.siteName,
   ].join("\n");
 }
 

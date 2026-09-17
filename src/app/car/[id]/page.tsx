@@ -7,6 +7,7 @@ import { computeLandedCost } from "@/lib/landedCost";
 import { formatUsd } from "@/lib/format";
 import { AutoBridgeApp } from "@/components/AutoBridgeApp";
 import { SITE_URL } from "@/app/layout";
+import { BRAND } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const landed = computeLandedCost(vehicle, 1);
   const totalUsd = vehicle.sellingPriceUsd + landed.freight + landed.insurance;
   const title = `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""} - ${formatUsd(totalUsd)}`;
-  const description = `${formatUsd(totalUsd)} incl. freight & insurance to Mombasa - ${vehicle.mileageKm.toLocaleString()} km, ${vehicle.transmission}, ${vehicle.fuel}, sourced from ${vehicle.sourceCountry}. Ferbil Car Imports.`;
+  const description = `${formatUsd(totalUsd)} incl. freight & insurance to Mombasa - ${vehicle.mileageKm.toLocaleString()} km, ${vehicle.transmission}, ${vehicle.fuel}, sourced from ${vehicle.sourceCountry}. ${BRAND.siteName}.`;
   // Proxied through our own domain rather than linked straight at the
   // source site's CDN - several of them serve a plain <img> fine but
   // reject link-preview crawlers specifically (see the route's own
   // comment), which was leaving shared links with no image at all.
-  const image = vehicle.imageUrl ? `${SITE_URL}/api/og-image/${vehicle.id}` : `${SITE_URL}/og-image.jpg`;
+  const image = vehicle.imageUrl ? `${SITE_URL}/api/og-image/${vehicle.id}` : `${SITE_URL}${BRAND.isTemplate ? "/og-image-template.jpg" : "/og-image.jpg"}`;
 
   return {
     title,
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     openGraph: {
       type: "website",
       url: `${SITE_URL}/car/${vehicle.id}`,
-      siteName: "Ferbil Car Imports",
+      siteName: BRAND.siteName,
       title,
       description,
       images: [{ url: image, width: 1200, height: 900, alt: title }],
