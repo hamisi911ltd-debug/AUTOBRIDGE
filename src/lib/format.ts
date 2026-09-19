@@ -10,6 +10,9 @@ const SOURCE_SITE_LABELS: Record<string, string> = {
   beforward: "BE FORWARD",
   sbtjapan: "SBT Japan",
   autocom: "AUTOCOM",
+  nikkyo: "Nikkyo",
+  jpctrade: "JPC Trade",
+  dubicars: "Dubicars",
 };
 
 export function sourceSiteLabel(sourceSite: string | null): string {
