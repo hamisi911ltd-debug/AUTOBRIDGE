@@ -2,7 +2,15 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { SITE_URL } from "@/app/layout";
 
-export const dynamic = "force-dynamic";
+// Not force-dynamic - a raw D1 query for ~4,700 rows takes ~6.5s
+// regardless of indexing (confirmed by timing the same SELECT directly
+// against D1, bypassing the app entirely - it's D1's own transfer cost
+// for a result set this size, not something query-side to optimize
+// further). That's slow enough to risk a crawler's own fetch timing out,
+// so this needs to be cached rather than recomputed on every hit -
+// inventory doesn't change fast enough to need a fresher sitemap than
+// this anyway.
+export const revalidate = 3600;
 
 /**
  * Every eligible, photographed vehicle now has a real, indexable page
