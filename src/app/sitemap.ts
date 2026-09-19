@@ -2,15 +2,18 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { SITE_URL } from "@/app/layout";
 
-// Confirmed by timing the same SELECT directly against D1 (bypassing the
-// app entirely): reading back ~4,700 rows costs several real seconds no
-// matter the query shape - D1's own transfer cost for a result set this
-// size, not something indexing or query-side changes move. revalidate
-// caches the *response*, though this project's R2-backed cache has been
-// unreliable for that in practice (see src/app/page.tsx's own history)
-// so it's kept here as a no-harm attempt, not the actual fix - the select
-// below (id only, no updatedAt) is what actually cuts the payload.
-export const revalidate = 3600;
+// Tried revalidate here to cache the ~6.5s-to-generate response (D1's own
+// transfer cost for ~4,700 rows, confirmed by timing the raw SELECT
+// directly - not fixable by query changes). It didn't just fail to help,
+// it actively corrupted the output under this project's R2-backed cache:
+// concurrent cold requests produced a sitemap with 11,402 <url> entries
+// against a database that only has 4,724 matching rows - almost
+// certainly parallel cache-regeneration writes racing/appending instead
+// of one cleanly overwriting the other (this project's ISR cache has a
+// documented history of exactly this kind of unreliability, see
+// src/app/page.tsx). Slow-but-correct beats fast-but-corrupted for a
+// sitemap Google is reading structurally, so back to force-dynamic.
+export const dynamic = "force-dynamic";
 
 /**
  * Every eligible, photographed vehicle now has a real, indexable page
