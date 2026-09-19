@@ -13,6 +13,7 @@ const SOURCE_SITE_LABELS: Record<string, string> = {
   nikkyo: "Nikkyo",
   jpctrade: "JPC Trade",
   dubicars: "Dubicars",
+  mykautotrader: "MYK Auto Trader",
 };
 
 export function sourceSiteLabel(sourceSite: string | null): string {

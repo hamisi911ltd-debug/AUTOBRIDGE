@@ -1,5 +1,5 @@
 export type ScrapedVehicle = {
-  sourceSite: "beforward" | "sbtjapan" | "dubicars" | "autocom" | "jpctrade" | "nikkyo";
+  sourceSite: "beforward" | "sbtjapan" | "dubicars" | "autocom" | "jpctrade" | "nikkyo" | "mykautotrader";
   externalId: string;
   make: string;
   model: string;
