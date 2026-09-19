@@ -33,6 +33,14 @@ const FLUSH_EVERY = 25;
 // reached - one empty page alone isn't trusted, in case of a transient
 // blip on that one request.
 const EMPTY_PAGE_STOP = 2;
+// Confirmed live: past roughly page 5 without a make filter, Nikkyo starts
+// serving the exact same handful of listings on every subsequent page
+// (a session-state quirk on their end, not a pagination-formula bug -
+// shallow pages return genuinely distinct results). Tracking every
+// externalId seen this run and stopping once a full page is 100% repeats
+// (not just "no new stock today") avoids grinding through MAX_PAGES for
+// nothing once that kicks in.
+const DUPLICATE_PAGE_STOP = 2;
 
 async function main() {
   const startCount = await countVehicles();
@@ -42,6 +50,8 @@ async function main() {
   let addedThisRun = 0;
   let liveCount = startCount;
   let consecutiveEmpty = 0;
+  let consecutiveDuplicatePages = 0;
+  const seenIds = new Set<string>();
 
   async function flush(reason: string) {
     if (pending.length === 0) return;
@@ -77,9 +87,23 @@ async function main() {
       continue;
     }
     consecutiveEmpty = 0;
-    console.log(`  page ${page}: ${listed.length} eligible`);
 
-    for (const v of listed) {
+    const freshOnPage = listed.filter((v) => !seenIds.has(v.externalId));
+    if (freshOnPage.length === 0) {
+      consecutiveDuplicatePages++;
+      console.log(`  page ${page}: ${listed.length} listings, all already seen this run (${consecutiveDuplicatePages}/${DUPLICATE_PAGE_STOP})`);
+      if (consecutiveDuplicatePages >= DUPLICATE_PAGE_STOP) {
+        console.log(`Stopping at page ${page} - Nikkyo is repeating the same listings past this point (a known session-state quirk, not the end of real stock). Try a later run to pick up further in.`);
+        break;
+      }
+      await sleep(REQUEST_DELAY_MS);
+      continue;
+    }
+    consecutiveDuplicatePages = 0;
+    for (const v of listed) seenIds.add(v.externalId);
+    console.log(`  page ${page}: ${listed.length} eligible (${freshOnPage.length} new)`);
+
+    for (const v of freshOnPage) {
       const width = await measureImageWidthPx(v.imageUrl);
       if (width !== null && width < MIN_SHARP_WIDTH_PX) continue; // too small to look sharp on a card
 
