@@ -125,20 +125,36 @@ export function sleep(ms: number): Promise<void> {
  * goal instead of grinding through a fixed page budget.
  */
 export async function countVehicles(): Promise<number> {
-  // Run as one shell string (not execFile args): under shell:true a
-  // multi-word `--command` value gets split into "unknown arguments", and
-  // the `--file=` path returns run stats instead of the row on --remote.
-  const { stdout } = await execAsync(
-    `npx wrangler d1 execute ${DATABASE} --remote --json --command "SELECT COUNT(*) AS c FROM Vehicle"`,
-    { timeout: 120_000, maxBuffer: 1024 * 1024 * 20 },
-  );
-  // wrangler may print progress lines before the JSON array: [{ results: [{ c: 1234 }], ... }]
-  const start = stdout.indexOf("[");
-  const parsed = JSON.parse(start >= 0 ? stdout.slice(start) : stdout);
-  const rows = parsed?.[0]?.results;
-  const c = Array.isArray(rows) ? rows[0]?.c : undefined;
-  if (typeof c !== "number") throw new Error(`countVehicles: unexpected wrangler output: ${stdout.slice(0, 400)}`);
-  return c;
+  // Retried the same as flushToD1/queryRows below - confirmed live: a
+  // transient OAuth-token-refresh hiccup here (not an auth *failure*,
+  // wrangler whoami succeeded right after) killed an entire scrape run
+  // before its very first line of output, since this is always the first
+  // thing every script's main() calls.
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      // Run as one shell string (not execFile args): under shell:true a
+      // multi-word `--command` value gets split into "unknown arguments",
+      // and the `--file=` path returns run stats instead of the row on
+      // --remote.
+      const { stdout } = await execAsync(
+        `npx wrangler d1 execute ${DATABASE} --remote --json --command "SELECT COUNT(*) AS c FROM Vehicle"`,
+        { timeout: 120_000, maxBuffer: 1024 * 1024 * 20 },
+      );
+      // wrangler may print progress lines before the JSON array: [{ results: [{ c: 1234 }], ... }]
+      const start = stdout.indexOf("[");
+      const parsed = JSON.parse(start >= 0 ? stdout.slice(start) : stdout);
+      const rows = parsed?.[0]?.results;
+      const c = Array.isArray(rows) ? rows[0]?.c : undefined;
+      if (typeof c !== "number") throw new Error(`countVehicles: unexpected wrangler output: ${stdout.slice(0, 400)}`);
+      return c;
+    } catch (err) {
+      lastErr = err;
+      console.error(`[countVehicles] attempt ${attempt}/4 failed, retrying in ${5 * attempt}s...`, err instanceof Error ? err.message : err);
+      await sleep(5000 * attempt);
+    }
+  }
+  throw lastErr;
 }
 
 /**
