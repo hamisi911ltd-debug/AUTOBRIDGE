@@ -172,10 +172,17 @@ export function PromoShowcase({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {current.map((v) => (
-            <button
+            <a
               key={v.id}
-              onClick={() => goDetail(v.id)}
-              className="group relative h-56 sm:h-80 lg:h-96 rounded-2xl overflow-hidden text-left shadow-xl ring-1 ring-white/10"
+              href={`/car/${v.id}`}
+              onClick={(e) => {
+                // Real href so Google can discover /car/[id] by crawling
+                // this, and ctrl/cmd/middle-click still opens a new tab.
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+                e.preventDefault();
+                goDetail(v.id);
+              }}
+              className="group relative h-56 sm:h-80 lg:h-96 rounded-2xl overflow-hidden text-left shadow-xl ring-1 ring-white/10 block"
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- external R2 CDN */}
               <img
@@ -220,6 +227,10 @@ export function PromoShowcase({
                       </span>
                       <button
                         onClick={(e) => {
+                          // Both needed now that the card is a real <a> -
+                          // stopPropagation alone doesn't block the
+                          // anchor's native navigation.
+                          e.preventDefault();
                           e.stopPropagation();
                           toggleCart(v.id);
                         }}
@@ -242,7 +253,7 @@ export function PromoShowcase({
                   </span>
                 </div>
               </div>
-            </button>
+            </a>
           ))}
         </div>
       </div>

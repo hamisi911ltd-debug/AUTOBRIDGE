@@ -145,9 +145,16 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
          reverts to the original fixed width since there's more room. */}
       <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0" style={{ scrollbarWidth: "thin" }}>
         {tiles.map((t, i) => (
-          <button
+          <a
             key={t.key}
-            onClick={() => goDetail(t.vehicle.id)}
+            href={`/car/${t.vehicle.id}`}
+            onClick={(e) => {
+              // Real href so Google can discover /car/[id] by crawling
+              // this, and ctrl/cmd/middle-click still opens a new tab.
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+              e.preventDefault();
+              goDetail(t.vehicle.id);
+            }}
             className="group text-left rounded-2xl border overflow-hidden bg-white flex-none basis-[calc((100%-0.75rem)/2)] sm:flex-1 sm:basis-44 sm:min-w-[160px]"
             style={{ borderColor: COLORS.line }}
           >
@@ -184,7 +191,7 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
                 {t.count} in stock
               </div>
             </div>
-          </button>
+          </a>
         ))}
       </div>
     </section>
