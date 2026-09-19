@@ -29,6 +29,7 @@ export function AutoBridgeApp({
   reviews,
   totalCount,
   initialVehicleId,
+  initialSearchQuery,
 }: {
   initialVehicles: PublicVehicle[];
   reviews: PublicReview[];
@@ -37,8 +38,12 @@ export function AutoBridgeApp({
    * detail page instead of home - "back" still works normally since the
    * page-history stack below sees this as a real navigation from home. */
   initialVehicleId?: string | null;
+  /** Set by ?q= on the homepage (see src/app/page.tsx) - what makes the
+   * WebSite/SearchAction structured data in layout.tsx an actually-
+   * functional sitelinks search box target, not just a schema claim. */
+  initialSearchQuery?: string | null;
 }) {
-  const [page, setPage] = useState<Page>(() => (initialVehicleId ? "detail" : "home"));
+  const [page, setPage] = useState<Page>(() => (initialVehicleId ? "detail" : initialSearchQuery ? "search" : "home"));
   // Kept only to derive landed.freight / landed.insurance (both USD, so the
   // rate is irrelevant); the site shows USD, no KES conversion anymore.
   const fx = 1;
@@ -46,7 +51,7 @@ export function AutoBridgeApp({
   const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
   const [cart, setCart] = useState<Set<string>>(() => new Set());
   const [quoteVehicleId, setQuoteVehicleId] = useState<string | null>(null);
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<Filters>(() => (initialSearchQuery ? { ...DEFAULT_FILTERS, keyword: initialSearchQuery } : DEFAULT_FILTERS));
 
   // The home page only gets a recent-first slice of the catalogue (see
   // src/app/page.tsx) so the initial payload stays small. Search needs the

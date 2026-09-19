@@ -31,16 +31,21 @@ export const dynamic = "force-dynamic";
 // availability wins over that.
 const HOME_VEHICLE_LIMIT = 150;
 
-export default async function Page() {
+export default async function Page({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   // diverse: true fetches evenly across every make instead of strictly
   // newest-first - otherwise whichever make a scrape happened to finish on
   // most recently silently crowds out every other brand within this bounded
   // pool (confirmed live: a growth crawl ending on Jaguar/Hyundai left the
   // homepage showing almost nothing else).
-  const [vehicles, reviews, stats] = await Promise.all([
+  const [{ q }, vehicles, reviews, stats] = await Promise.all([
+    searchParams,
     getPublicVehicles({ limit: HOME_VEHICLE_LIMIT, diverse: true }),
     getPublishedReviews(),
     getCatalogueStats(),
   ]);
-  return <AutoBridgeApp initialVehicles={vehicles} reviews={reviews} totalCount={stats.total} />;
+  // ?q= makes the homepage's own SearchAction structured data (layout.tsx)
+  // an actually-functional sitelinks search box target, not just a schema
+  // claim - landing here with one jumps straight into a real search
+  // instead of requiring a click through the home page first.
+  return <AutoBridgeApp initialVehicles={vehicles} reviews={reviews} totalCount={stats.total} initialSearchQuery={q || null} />;
 }

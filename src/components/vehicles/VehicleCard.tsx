@@ -30,8 +30,19 @@ export function VehicleCard({
   const inCart = cart.has(v.id);
 
   return (
-    <div
-      onClick={onView}
+    <a
+      href={`/car/${v.id}`}
+      onClick={(e) => {
+        // A real href (not just an onClick div) so Google can discover and
+        // follow this to /car/[id] - a real, server-rendered, indexable
+        // page per vehicle - and so ctrl/cmd/middle-click still opens a
+        // normal new tab. A plain left-click still swaps the SPA's view
+        // state instantly instead of a full page reload, which is what
+        // onView() already does everywhere this card is used.
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+        e.preventDefault();
+        onView();
+      }}
       className="bg-white rounded-2xl overflow-hidden border flex flex-col cursor-pointer"
       style={{ borderColor: COLORS.line }}
     >
@@ -73,6 +84,12 @@ export function VehicleCard({
           </div>
           <button
             onClick={(e) => {
+              // Both needed now that the card is a real <a>: stopPropagation
+              // alone doesn't block the anchor's native default action
+              // (browser navigation only gets prevented by preventDefault,
+              // wherever it's called), so without this the cart click would
+              // still follow the href to a full page load.
+              e.preventDefault();
               e.stopPropagation();
               toggleCart(v.id);
             }}
@@ -87,6 +104,6 @@ export function VehicleCard({
           Incl. freight &amp; insurance
         </div>
       </div>
-    </div>
+    </a>
   );
 }

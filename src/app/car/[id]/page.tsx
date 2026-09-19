@@ -69,5 +69,39 @@ export default async function CarSharePage({ params }: { params: Promise<{ id: s
   // dropping any duplicate) guarantees it's there regardless.
   const initialVehicles = [vehicle, ...vehicles.filter((v) => v.id !== vehicle.id)];
 
-  return <AutoBridgeApp initialVehicles={initialVehicles} reviews={reviews} totalCount={stats.total} initialVehicleId={vehicle.id} />;
+  const landed = computeLandedCost(vehicle, 1);
+  const totalUsd = vehicle.sellingPriceUsd + landed.freight + landed.insurance;
+  // schema.org Vehicle (a Product subtype) - what makes Google eligible to
+  // show a price/availability rich result for this specific listing in
+  // search, not just a plain blue link.
+  const vehicleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Vehicle",
+    name: `${vehicle.year} ${vehicle.make} ${vehicle.model}${vehicle.trim ? " " + vehicle.trim : ""}`,
+    image: vehicle.imageUrl ? `${SITE_URL}/api/og-image/${vehicle.id}` : undefined,
+    description: `${vehicle.mileageKm.toLocaleString()} km, ${vehicle.transmission}, ${vehicle.fuel}, sourced from ${vehicle.sourceCountry}.`,
+    brand: { "@type": "Brand", name: vehicle.make },
+    model: vehicle.model,
+    vehicleModelDate: String(vehicle.year),
+    mileageFromOdometer: { "@type": "QuantitativeValue", value: vehicle.mileageKm, unitCode: "KMT" },
+    vehicleTransmission: vehicle.transmission,
+    fuelType: vehicle.fuel,
+    vehicleEngine: vehicle.engineCc ? { "@type": "EngineSpecification", engineDisplacement: { "@type": "QuantitativeValue", value: vehicle.engineCc, unitCode: "CMQ" } } : undefined,
+    color: vehicle.color || undefined,
+    offers: {
+      "@type": "Offer",
+      url: `${SITE_URL}/car/${vehicle.id}`,
+      priceCurrency: "USD",
+      price: Math.round(totalUsd),
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/UsedCondition",
+    },
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(vehicleSchema) }} />
+      <AutoBridgeApp initialVehicles={initialVehicles} reviews={reviews} totalCount={stats.total} initialVehicleId={vehicle.id} />
+    </>
+  );
 }

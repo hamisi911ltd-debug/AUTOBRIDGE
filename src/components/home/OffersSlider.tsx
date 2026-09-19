@@ -128,9 +128,18 @@ export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]
               return (
                 <div key={pageIdx} className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 shrink-0 w-full">
                   {offers.slice(pageIdx * CARDS_PER_VIEW, pageIdx * CARDS_PER_VIEW + CARDS_PER_VIEW).map((v) => (
-                    <div
+                    <a
                       key={v.id}
-                      onClick={() => goDetail(v.id)}
+                      href={`/car/${v.id}`}
+                      onClick={(e) => {
+                        // Real href so Google can discover /car/[id] by
+                        // crawling this, and ctrl/cmd/middle-click still
+                        // opens a normal new tab. Plain left-click still
+                        // swaps the SPA's view state instantly.
+                        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+                        e.preventDefault();
+                        goDetail(v.id);
+                      }}
                       className="bg-white rounded-xl overflow-hidden text-left group border cursor-pointer"
                       style={{ borderColor: COLORS.line }}
                     >
@@ -163,6 +172,10 @@ export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]
                           </div>
                           <button
                             onClick={(e) => {
+                              // Both needed now that the card is a real <a>
+                              // - stopPropagation alone doesn't block the
+                              // anchor's native navigation.
+                              e.preventDefault();
                               e.stopPropagation();
                               toggleCart(v.id);
                             }}
@@ -177,7 +190,7 @@ export function OffersSlider({ vehicles, goDetail }: { vehicles: PublicVehicle[]
                           Incl. freight &amp; insurance
                         </div>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               );

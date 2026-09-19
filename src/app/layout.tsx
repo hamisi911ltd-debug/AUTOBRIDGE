@@ -1,20 +1,7 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import { VersionWatcher } from "@/components/layout/VersionWatcher";
-import { BRAND } from "@/lib/brand";
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
+import { BRAND, COMPANY } from "@/lib/brand";
 
 // Each deployment's own URL - must be set at build time (see lib/brand.ts)
 // for a template deployment, since it's baked into metadataBase/OG/canonical
@@ -24,7 +11,7 @@ const SITE_NAME = BRAND.siteName;
 const OG_IMAGE = BRAND.isTemplate ? "/og-image-template.jpg" : "/og-image.jpg";
 const SITE_DESCRIPTION = BRAND.isTemplate
   ? "A ready-to-brand vehicle import marketplace template - total landed price shown upfront on every listing."
-  : "Browse real, import-eligible vehicles from Japan and the UAE with total price (vehicle plus freight & insurance) shown upfront on every listing. Kenya's vehicle import marketplace.";
+  : "Ferbil Car Imports - Kenya's trusted vehicle import marketplace. Real, import-eligible cars sourced from Japan, the UK, the UAE and beyond, with the total landed price (vehicle plus freight & insurance) shown upfront on every listing, no hidden costs.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -32,7 +19,22 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   keywords: BRAND.isTemplate
     ? ["vehicle import marketplace template", "car dealership website template"]
-    : ["import cars Kenya", "buy car Kenya", "Japan used cars Kenya", "UAE used cars Kenya", "car import marketplace Kenya", "Toyota import Kenya", "vehicle import Kenya"],
+    : [
+        "Ferbil",
+        "Ferbil Car Imports",
+        "Ferbil Kenya",
+        "Ferbil Interfreight",
+        "import cars Kenya",
+        "buy car Kenya",
+        "Japan used cars Kenya",
+        "UK used cars Kenya",
+        "UAE used cars Kenya",
+        "car import marketplace Kenya",
+        "best car importer Kenya",
+        "Toyota import Kenya",
+        "vehicle import Kenya",
+        "landed cost car Kenya",
+      ],
   alternates: { canonical: "/" },
   robots: BRAND.isTemplate ? { index: false, follow: false } : { index: true, follow: true },
   openGraph: {
@@ -52,14 +54,36 @@ export const metadata: Metadata = {
   },
 };
 
-const structuredData = {
+// AutoDealer (what actually earns a dealer-style listing in Google, with
+// phone/rating eligibility) plus WebSite+SearchAction - the one piece of
+// sitelink-adjacent behavior a site can actually opt into (the "sitelinks
+// search box" under the main result). Which, if any, sitelinks Google
+// shows beneath the main result is otherwise entirely its own algorithmic
+// call based on site structure and authority, not something any one piece
+// of markup can force - real, consistently-linked pages (nav, footer,
+// /car/[id] on every listing) are what earns that over time.
+const dealerSchema = {
   "@context": "https://schema.org",
   "@type": "AutoDealer",
   name: SITE_NAME,
   url: SITE_URL,
   description: SITE_DESCRIPTION,
+  telephone: BRAND.isTemplate ? undefined : COMPANY.phone,
+  email: BRAND.isTemplate ? undefined : COMPANY.email,
   areaServed: { "@type": "Country", name: "Kenya" },
   address: { "@type": "PostalAddress", addressCountry: "KE" },
+};
+
+const webSiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  url: SITE_URL,
+  potentialAction: {
+    "@type": "SearchAction",
+    target: { "@type": "EntryPoint", urlTemplate: `${SITE_URL}/?q={search_term_string}` },
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export default function RootLayout({
@@ -68,9 +92,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${inter.variable} h-full antialiased`}>
+    <html lang="en" className="h-full antialiased">
       <head>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap"
+        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(dealerSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }} />
       </head>
       <body className="min-h-full flex flex-col">
         <VersionWatcher />

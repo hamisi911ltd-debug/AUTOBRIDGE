@@ -3,6 +3,13 @@
 :root {
   --background: #f7f7f5;
   --foreground: #14213d;
+  /* Loaded via a plain Google Fonts <link> in layout.tsx's <head>, not
+     next/font/google - that self-hosts the woff2 files and generates a CSS
+     chunk that OpenNext's Cloudflare bundler's esbuild step can't process
+     ("No loader is configured for '.woff2' files'), which was failing
+     every build. A standard CDN <link> sidesteps that entirely. */
+  --font-fraunces: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-inter: "Inter", -apple-system, "Segoe UI", sans-serif;
 }
 
 @theme inline {
