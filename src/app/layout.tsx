@@ -6,7 +6,13 @@ import { BRAND, COMPANY } from "@/lib/brand";
 // Each deployment's own URL - must be set at build time (see lib/brand.ts)
 // for a template deployment, since it's baked into metadataBase/OG/canonical
 // tags, not something resolvable at request time in a static export of them.
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://autobridge-kenya-web.glotech.workers.dev";
+// Defaults to the real custom domain (not the workers.dev address) since
+// that's what's actually connected in Cloudflare and what Search Console
+// verifies - a sitemap whose listed URLs point to a different host than
+// the one it's served from is rejected outright ("Invalid sitemap
+// address"), which is exactly what shipped here before this default was
+// wrong.
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ferbilcarimports.com";
 const SITE_NAME = BRAND.siteName;
 const OG_IMAGE = BRAND.isTemplate ? "/og-image-template.jpg" : "/og-image.jpg";
 const SITE_DESCRIPTION = BRAND.isTemplate

@@ -1,10 +1,9 @@
 import type { MetadataRoute } from "next";
-
-const SITE_URL = "https://autobridge-kenya-web.glotech.workers.dev";
+import { SITE_URL } from "@/app/layout";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/login"] },
+    rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/login", "/api"] },
     sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

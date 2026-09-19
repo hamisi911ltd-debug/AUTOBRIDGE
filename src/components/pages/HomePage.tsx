@@ -11,6 +11,7 @@ import { BestSellersByCategory } from "@/components/home/BestSellersByCategory";
 import { SmallAdvertsSlider } from "@/components/home/SmallAdvertsSlider";
 import { CustomerReviews } from "@/components/home/CustomerReviews";
 import { VehicleGridSection } from "@/components/vehicles/VehicleGridSection";
+import { AboutSection } from "@/components/home/AboutSection";
 
 export function HomePage({
   vehicles,
@@ -47,6 +48,7 @@ export function HomePage({
       <VehicleGridSection title="Featured this week" vehicles={featured} goDetail={goDetail} onViewAll={() => goSearch({})} />
       <CustomerReviews reviews={reviews} />
       <SmallAdvertsSlider />
+      <AboutSection />
     </div>
   );
 }
