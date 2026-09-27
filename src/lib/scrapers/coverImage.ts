@@ -137,11 +137,35 @@ function extractMombasaTotalUsd(html: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+// Image hosts that refuse requests without their own site as the referrer
+// (hotlink protection) - confirmed live: 403 without, 200 with.
+const REFERER_BY_HOST: Record<string, string> = {
+  "assets.autocj.co.jp": "https://autocj.co.jp/",
+};
+
+/** Headers for fetching a vehicle photo: our user agent, plus a referrer for hosts that require one. */
+export function imageRequestHeaders(imageUrl: string): Record<string, string> {
+  const headers: Record<string, string> = { "User-Agent": USER_AGENT };
+  try {
+    const referer = REFERER_BY_HOST[new URL(imageUrl).hostname];
+    if (referer) headers.Referer = referer;
+  } catch {
+    // relative or malformed URL - plain headers
+  }
+  return headers;
+}
+
 /** Ranged fetch + JPEG SOF-marker parse - the real dimensions are always within the first few KB. */
 export async function measureImageWidthPx(imageUrl: string | null): Promise<number | null> {
   if (!imageUrl) return null;
   try {
-    const res = await fetch(imageUrl, { headers: { "User-Agent": USER_AGENT, Range: "bytes=0-65535" } });
+    // Some photo hosts throttle quick back-to-back requests (JPC Trade
+    // answers 429) - a short wait usually clears it.
+    let res = await fetch(imageUrl, { headers: { ...imageRequestHeaders(imageUrl), Range: "bytes=0-65535" } });
+    for (let attempt = 1; res.status === 429 && attempt <= 2; attempt++) {
+      await new Promise((r) => setTimeout(r, 2000 * attempt));
+      res = await fetch(imageUrl, { headers: { ...imageRequestHeaders(imageUrl), Range: "bytes=0-65535" } });
+    }
     if (!res.ok && res.status !== 206) {
       console.error(`[measureImageWidthPx] fetch ${res.status} for ${imageUrl}`);
       return null;

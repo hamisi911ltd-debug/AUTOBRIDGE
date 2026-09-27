@@ -105,7 +105,7 @@ async function main() {
     if (pending.length === 0) return;
     const batch = pending;
     pending = [];
-    await flushToD1(batch);
+    await flushToD1(batch, { mode: "upsert" }); // deliberately rewrites existing rows
     filled += batch.length;
     console.log(`  flushed ${batch.length} (${filled} filled so far)`);
   }

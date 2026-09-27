@@ -46,10 +46,16 @@ export const BEFORWARD_MAKES: { id: number; make: string }[] = [
   // silently reintroducing it.
 ];
 
+// mfg_year_from is BE FORWARD's own "manufactured from" facet. Without it,
+// a newest-first stocklist page is ~85% cars older than Kenya's import cut-off
+// (measured live: 3 usable rows out of 28 on Toyota page 1), all fetched and
+// parsed only to be thrown away. Filtering at the source brings that to
+// ~25 usable rows per page. parsePage still re-checks the year, since the
+// listing title shows the registration year, which can differ.
 function urlFor(makeId: number, page: number, modelId?: number): string {
   const base = modelId
-    ? `https://www.beforward.jp/stocklist/make=${makeId}/model=${modelId}`
-    : `https://www.beforward.jp/stocklist/make=${makeId}`;
+    ? `https://www.beforward.jp/stocklist/make=${makeId}/model=${modelId}/mfg_year_from=${IMPORT_ELIGIBLE_FROM_YEAR}`
+    : `https://www.beforward.jp/stocklist/make=${makeId}/mfg_year_from=${IMPORT_ELIGIBLE_FROM_YEAR}`;
   return page <= 1 ? `${base}/sortkey=n` : `${base}/page=${page}/sortkey=n`;
 }
 
@@ -160,20 +166,50 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
 }
 
 /**
+ * Fetches and parses one stocklist page for one configured make, without the
+ * per-vehicle detail-page enrichment. Callers that need to split a page's
+ * enrichment across several requests (the admin panel, the cron route) use
+ * this plus enrichBeforwardVehicle on a slice of the result.
+ */
+export async function listBeforwardPage(makeIndex: number, page: number): Promise<ScrapedVehicle[] | "rate-limited"> {
+  const entry = BEFORWARD_MAKES[makeIndex];
+  if (!entry) return [];
+  try {
+    const html = await fetchPage(urlFor(entry.id, page));
+    return parsePage(html, entry.make);
+  } catch (err) {
+    if (err instanceof RateLimitedError) return "rate-limited";
+    throw err;
+  }
+}
+
+// Detail-page fetches per page run in small waves rather than all ~25 at
+// once - a full-page Promise.all is what tripped BE FORWARD's rate limiter
+// in earlier bulk runs.
+const ENRICH_CONCURRENCY = 5;
+
+export async function enrichBeforwardVehicles(vehicles: ScrapedVehicle[]): Promise<void> {
+  for (let i = 0; i < vehicles.length; i += ENRICH_CONCURRENCY) {
+    await Promise.all(vehicles.slice(i, i + ENRICH_CONCURRENCY).map(upgradeCoverImage));
+  }
+}
+
+/**
  * Scrapes a single page for a single configured make from beforward.jp's
- * public stocklist. No auth, no API - this is a plain HTML scrape. Kept to
- * one (make, page) per call so each call's parsing work stays small: on
- * Cloudflare Workers this runs as one HTTP request per unit (see
- * runScrapeUnit), which keeps every invocation well under the platform's
- * per-request CPU budget instead of parsing dozens of pages in one shot.
+ * public stocklist, including detail-page enrichment for every vehicle.
+ * Used by the local bulk scripts; the Workers-deployed paths go through
+ * runScrapeUnit, which enriches a page in smaller slices.
  */
 export async function scrapeBeforwardUnit(makeIndex: number, page: number): Promise<ScrapedVehicle[]> {
   const entry = BEFORWARD_MAKES[makeIndex];
   if (!entry) return [];
   try {
-    const html = await fetchPage(urlFor(entry.id, page));
-    const vehicles = parsePage(html, entry.make);
-    await Promise.all(vehicles.map(upgradeCoverImage));
+    const vehicles = await listBeforwardPage(makeIndex, page);
+    if (vehicles === "rate-limited") {
+      console.error(`[beforward] rate-limited make=${entry.make} page=${page}`);
+      return [];
+    }
+    await enrichBeforwardVehicles(vehicles);
     return vehicles;
   } catch (err) {
     console.error(`[beforward] failed make=${entry.make} page=${page}:`, err);

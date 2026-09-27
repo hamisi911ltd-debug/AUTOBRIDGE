@@ -78,7 +78,9 @@ export async function scrapeJpcListPage(
 ): Promise<{ id: string; url: string }[] | "rate-limited"> {
   const cId = JPC_COUNTRIES[country];
   if (!cId) return [];
-  const url = `${BASE}/stock_list.php?country=${encodeURIComponent(country)}&c_id=${cId}&page=${page}`;
+  // year_from is the site's own year facet - without it the list is mostly
+  // cars far older than the import cut-off.
+  const url = `${BASE}/stock_list.php?country=${encodeURIComponent(country)}&c_id=${cId}&year_from=${IMPORT_ELIGIBLE_FROM_YEAR}&page=${page}`;
 
   let html: string;
   try {

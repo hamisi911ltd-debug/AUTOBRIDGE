@@ -6,12 +6,15 @@ export function formatUsd(n: number): string {
   return "$" + Math.round(n).toLocaleString("en-US");
 }
 
-const SOURCE_SITE_LABELS: Record<string, string> = {
+export const SOURCE_SITE_LABELS: Record<string, string> = {
+  goonet: "Goo-net Exchange",
+  autocraft: "Autocraft Japan",
   beforward: "BE FORWARD",
   sbtjapan: "SBT Japan",
   autocom: "AUTOCOM",
   nikkyo: "Nikkyo",
   jpctrade: "JPC Trade",
+  delights: "Delights",
   dubicars: "Dubicars",
   mykautotrader: "MYK Auto Trader",
 };

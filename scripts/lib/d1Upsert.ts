@@ -28,8 +28,15 @@ function sqlVal(v: string | number | boolean | null): string {
   return `'${sqlEscape(v)}'`;
 }
 
-/** Batches PendingRows into one INSERT..ON CONFLICT DO UPDATE per row and runs them via `wrangler d1 execute --file`, same upsert-by-externalId semantics as runScrape.ts's Prisma path. */
-export async function flushToD1(pending: PendingRow[]): Promise<void> {
+/**
+ * Batches PendingRows into one INSERT per row and runs them via
+ * `wrangler d1 execute --file`. Insert-only by default, matching
+ * runScrape.ts: a car already on the site (same externalId) is left exactly
+ * as it is. Maintenance scripts that exist to rewrite rows (spec backfill,
+ * snapshot restore) pass { mode: "upsert" } explicitly.
+ */
+export async function flushToD1(pending: PendingRow[], opts: { mode?: "insert-only" | "upsert" } = {}): Promise<void> {
+  const mode = opts.mode ?? "insert-only";
   if (pending.length === 0) return;
   const scratchDir = await mkdtemp(path.join(tmpdir(), "d1-upsert-sql-"));
   const now = sqlNow();
@@ -83,7 +90,8 @@ export async function flushToD1(pending: PendingRow[]): Promise<void> {
     const updateSet = updateCols
       .map((c) => (specSet.has(c) ? `${c}=COALESCE(excluded.${c}, ${c})` : `${c}=excluded.${c}`))
       .join(", ");
-    return `INSERT INTO Vehicle (${cols.join(", ")}) VALUES (${vals.join(", ")}) ON CONFLICT(externalId) DO UPDATE SET ${updateSet};`;
+    const onConflict = mode === "upsert" ? `DO UPDATE SET ${updateSet}` : "DO NOTHING";
+    return `INSERT INTO Vehicle (${cols.join(", ")}) VALUES (${vals.join(", ")}) ON CONFLICT(externalId) ${onConflict};`;
   });
 
   const file = path.join(scratchDir, "chunk.sql");

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { runScrapeUnit, SCRAPE_MAKE_COUNTS, type ScrapeSite, type UnitScrapeSummary } from "@/lib/scrapers/runScrape";
+import { isScrapeSite, runScrapeUnit, SCRAPE_SITES, type ScrapeSite, type UnitScrapeSummary } from "@/lib/scrapers/runScrape";
 import { migrateImageBatch, type ImageMigrationResult } from "@/lib/imageMigration";
 import type { MarkupType, Role, ScopeType } from "@/generated/prisma/enums";
 
@@ -139,23 +139,29 @@ export async function deleteVehicle(formData: FormData) {
   redirect("/admin/vehicles");
 }
 
-/** Lets the client enumerate every (site, makeIndex) unit to scrape without hardcoding the make counts. */
-export async function getScrapeManifest(): Promise<Record<ScrapeSite, number>> {
+export type ScrapeManifest = { site: ScrapeSite; label: string; groupKind: "make" | "year" | "all"; groups: string[] }[];
+
+/** Lets the client enumerate every (site, group) unit to scrape without hardcoding the lists. */
+export async function getScrapeManifest(): Promise<ScrapeManifest> {
   await requireAdmin();
-  return SCRAPE_MAKE_COUNTS;
+  return (Object.keys(SCRAPE_SITES) as ScrapeSite[]).map((site) => ({
+    site,
+    label: SCRAPE_SITES[site].label,
+    groupKind: SCRAPE_SITES[site].groupKind,
+    groups: SCRAPE_SITES[site].groups,
+  }));
 }
 
 /**
- * Manual "run it now" trigger for the same nightly scrape the cron route
- * runs - lets the admin refresh inventory on demand instead of waiting for
- * the schedule. Scrapes exactly one (site, make) page per call; the button
- * that calls this loops over every unit itself, calling this action once per
- * unit so each individual invocation's parsing work stays under Cloudflare
- * Workers' free-tier 10ms-CPU-per-request budget.
+ * Manual "run it now" trigger for the same scrape the cron route runs.
+ * Handles one slice of one (site, group, page) listing page per call; the
+ * admin panel loops over groups, pages and offsets itself so each individual
+ * request stays within Cloudflare Workers' per-request limits.
  */
-export async function runScrapeUnitNow(site: ScrapeSite, makeIndex: number): Promise<UnitScrapeSummary> {
+export async function runScrapeUnitNow(site: ScrapeSite, makeIndex: number, page = 1, offset = 0): Promise<UnitScrapeSummary> {
   await requireAdmin();
-  return runScrapeUnit(site, makeIndex, 1);
+  if (!isScrapeSite(site)) throw new Error(`Unknown site ${site}`);
+  return runScrapeUnit(site, makeIndex, Math.max(1, Math.floor(page)), Math.max(0, Math.floor(offset)));
 }
 
 /** Call after the last unit in a scrape run finishes, to refresh cached pages with the new data. */

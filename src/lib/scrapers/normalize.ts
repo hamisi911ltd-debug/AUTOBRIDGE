@@ -64,8 +64,10 @@ export function normalizeFuel(raw: string): string {
 }
 
 export function normalizeTransmission(raw: string): string {
-  const s = raw.toLowerCase();
-  if (s.startsWith("m")) return "Manual";
+  const s = raw.toLowerCase().trim();
+  // "MT", "Manual", "M/T", and gear-count forms like "5MT" / "6 MT" - but
+  // not "AMT" (an automated manual, sold and driven as an automatic).
+  if (s.startsWith("m") || /(^|[^a-z])\d*\s*m\/?t(?![a-z])/.test(s)) return "Manual";
   return "Automatic";
 }
 

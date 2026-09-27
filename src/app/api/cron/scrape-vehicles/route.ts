@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runScrapeUnit, SCRAPE_MAKE_COUNTS, type ScrapeSite } from "@/lib/scrapers/runScrape";
+import { isScrapeSite, runScrapeUnit, SCRAPE_MAKE_COUNTS, SCRAPE_SITES } from "@/lib/scrapers/runScrape";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
  * this app's own request cycle. Protected by a shared secret since it's an
  * unauthenticated route that kicks off outbound scraping.
  *
- * Scrapes exactly one (site, make) page per call - see runScrapeUnit for why:
+ * Scrapes one slice of one (site, make) page per call - see runScrapeUnit for why:
  * Cloudflare Workers' free-tier CPU budget is 10ms per request, so the
  * looping happens in the caller, not here.
  */
@@ -42,18 +42,18 @@ export async function POST(req: Request) {
   const site = searchParams.get("site");
   const makeIndex = parseInt(searchParams.get("makeIndex") ?? "", 10);
   const page = parseInt(searchParams.get("page") ?? "1", 10);
-  // Refreshes price/country/spec accuracy on vehicles already in the
-  // catalogue without letting it grow - a newly-discovered listing is
-  // skipped rather than created.
-  const refreshOnly = searchParams.get("refreshOnly") === "true";
+  // One slice of the page per call (see runScrapeUnit) - callers follow the
+  // response's hasMore/nextOffset to walk the rest of the page.
+  const offset = Math.max(0, parseInt(searchParams.get("offset") ?? "0", 10) || 0);
 
-  if (site !== "beforward" && site !== "sbtjapan" && site !== "dubicars") {
-    return NextResponse.json({ error: "invalid or missing 'site' (expected beforward|sbtjapan|dubicars)" }, { status: 400 });
+  if (!isScrapeSite(site)) {
+    return NextResponse.json({ error: `invalid or missing 'site' (expected ${Object.keys(SCRAPE_SITES).join("|")})` }, { status: 400 });
   }
   if (Number.isNaN(makeIndex)) {
     return NextResponse.json({ error: "invalid or missing 'makeIndex'" }, { status: 400 });
   }
 
-  const summary = await runScrapeUnit(site as ScrapeSite, makeIndex, page, refreshOnly);
+  // Create-only: cars already on the site are skipped, never updated.
+  const summary = await runScrapeUnit(site, makeIndex, Math.max(1, page || 1), offset);
   return NextResponse.json(summary);
 }

@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { prisma } from "@/lib/prisma";
+import { imageRequestHeaders } from "@/lib/scrapers/coverImage";
 
 // Small on purpose - Cloudflare Workers' free-tier CPU budget is 10ms per
 // request (same constraint documented on the scraper), so the looping
@@ -66,7 +67,7 @@ export async function migrateImageBatch(): Promise<ImageMigrationResult> {
           newUrls.push(src);
           continue;
         }
-        const res = await fetch(src);
+        const res = await fetch(src, { headers: imageRequestHeaders(src) });
         if (!res.ok) continue;
         const contentType = res.headers.get("content-type") || "image/jpeg";
         const ext = contentType.includes("png") ? "png" : "jpg";

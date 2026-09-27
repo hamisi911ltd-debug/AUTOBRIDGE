@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { ArrowLeft, Camera, Check, Heart, MapPin, Printer, Share2, X } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd } from "@/lib/format";
+import { computeFreightUsd } from "@/lib/landedCost";
 import { whatsAppLink, vehicleDetailBlock } from "@/lib/whatsapp";
 import { shareVehicle } from "@/lib/share";
 import type { LandedCost } from "@/lib/landedCost";
@@ -52,6 +53,53 @@ function hasFeature(features: string[], standard: string): boolean {
  * with none captured, "unsure" is left blank rather than shown as a wall
  * of red crosses that would read as "confirmed missing."
  */
+// Layout constants for the desktop column-balancing fill (see the layout
+// effect in DetailPage). They mirror the Tailwind classes used below, so
+// keep them in sync if those classes change.
+const TEASER_BOX_MT = 12; // mt-3 above the "More from our stock" box
+const TEASER_BOX_CHROME = 52; // p-3 + 1px border top and bottom + title line and its mb-2.5
+const TEASER_BOX_PAD_X = 26; // p-3 + 1px border, left and right
+const ENQUIRY_MB = 24; // mb-6 under the enquiry box
+const CARD_GAP = 10; // gap-2.5
+const CARD_TEXT_H = 80; // VehicleCard's text block under the photo, plus its border (fallback before one renders)
+const COMPACT_ROW_H = 72; // h-[72px] on CompactVehicleRow
+const COMPACT_GAP = 8; // gap-2
+
+/** One-line vehicle link used to fill space too short for a full VehicleCard. */
+function CompactVehicleRow({ vehicle: v, onView }: { vehicle: PublicVehicle; onView: () => void }) {
+  const totalUsd = v.sellingPriceUsd + computeFreightUsd(v.sourceCountry, v.freightIncluded) + v.insuranceUsd;
+  return (
+    <a
+      href={`/car/${v.id}`}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+        e.preventDefault();
+        onView();
+      }}
+      className="flex items-center gap-3 h-[72px] rounded-xl border bg-white overflow-hidden pr-3"
+      style={{ borderColor: COLORS.line }}
+    >
+      <div className="relative h-full w-24 shrink-0" style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}>
+        {v.imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
+          <img src={v.imageUrl} alt={`${v.year} ${v.make} ${v.model}`} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
+        )}
+      </div>
+      <div className="min-w-0">
+        <div className="text-xs font-semibold truncate" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+          {v.year} {v.make} {v.model} {v.trim}
+        </div>
+        <div className="text-sm font-bold" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
+          {formatUsd(totalUsd)}
+        </div>
+        <div className="text-[11px] truncate" style={{ color: COLORS.slate }}>
+          {v.mileageKm.toLocaleString()} km · {v.sourceCountry}
+        </div>
+      </div>
+    </a>
+  );
+}
+
 function SpecTable({ vehicle }: { vehicle: PublicVehicle }) {
   const rows: [string, string | number | null][] = [
     ["Ref. No.", vehicle.refNo],
@@ -185,54 +233,91 @@ export function DetailPage({
   // live: a Mitsubishi Mirage wagon had only 1 other genuine match) it pads
   // out with any other eligible vehicle rather than being stuck at 1-2
   // cards no matter how much vertical room the left column actually has.
-  const teaserPool =
-    similar.length >= 8
-      ? similar
-      : [...similar, ...others.filter((v) => !similar.some((s) => s.id === v.id))].slice(0, 12);
+  // Pool is deliberately deep: on a vehicle with a long left column (big
+  // photo gallery, long spec table) the right column needs many cards to
+  // reach the bottom, and a shallow pool left the rest of it empty.
+  const teaserPool = [...similar, ...others.filter((v) => !similar.some((s) => s.id === v.id))].slice(0, 60);
 
-  // Desktop-only: how many "More from our stock" cards the sticky right
-  // column shows, measured against the left column's own real content
-  // height rather than a fixed guess - a fixed count either overshot it
-  // (pushing the gap onto the left column instead) or undershot it
-  // (leaving the original gap on the right), since the left column's
-  // height genuinely varies per vehicle (spec-table row count, badge
-  // presence). Refs below are on plain, unstretched content wrappers
-  // specifically so their offsetHeight reflects true content size, not
-  // the CSS-grid-stretched height of their ancestor grid cell.
+  // Desktop only: keeps both columns the same height with no empty space
+  // under either one. The right column's "More from our stock" box gets as
+  // many full card rows as fit beside the left column, then compact
+  // one-line rows fill whatever is left over. If the right column's fixed
+  // block is itself taller than the left column, compact rows are added
+  // under the enquiry form instead. Re-measured with a ResizeObserver, not
+  // just once: the left column keeps growing after first paint (photos
+  // loading, the enquiry form swapping to its thank-you state), and a
+  // one-time measurement is what left the gaps.
+  // Refs sit on plain, unstretched wrappers so offsetHeight is true content
+  // height, not the CSS-grid-stretched height of the grid cell.
   const leftContentRef = useRef<HTMLDivElement>(null);
   const fixedRightRef = useRef<HTMLDivElement>(null);
-  const teaserBoxRef = useRef<HTMLDivElement>(null);
   const teaserGridRef = useRef<HTMLDivElement>(null);
-  const [teaserCount, setTeaserCount] = useState(() => Math.min(2, teaserPool.length));
+  const [fill, setFill] = useState({ cardRows: 0, compact: 0, leftCompact: 0 });
 
+  // Re-run once the card grid first mounts, so the observer can watch it.
+  const hasTeaserCards = fill.cardRows > 0;
   useLayoutEffect(() => {
+    const leftEl = leftContentRef.current;
+    const fixedEl = fixedRightRef.current;
+    if (!leftEl || !fixedEl) return;
+
     function recompute() {
-      if (window.innerWidth < 1024) return; // this teaser is lg:+ only
-      if (!leftContentRef.current || !fixedRightRef.current || teaserPool.length === 0) return;
-      const leftH = leftContentRef.current.offsetHeight;
-      const fixedH = fixedRightRef.current.offsetHeight;
-      const gapBetween = 12; // mt-3 between the fixed block and the teaser box
-      const gridEl = teaserGridRef.current;
-      const boxEl = teaserBoxRef.current;
-      const chrome = boxEl && gridEl ? boxEl.offsetHeight - gridEl.offsetHeight : 46; // box padding + title, whatever the current row count
-      const cardEl = gridEl?.children[0] as HTMLElement | undefined;
-      const cardH = cardEl ? cardEl.getBoundingClientRect().height : 220;
-      const cardGap = 10; // gap-2.5
-      const remaining = leftH - fixedH - gapBetween - chrome;
-      // +2 rows of headroom past the exact-fit count - real content (fonts,
-      // late-loading photos) shifts height by a few px after this first
-      // measurement, and undershooting by a row reads far worse (the empty
-      // space this exists to close) than a card poking slightly past the
-      // left column's edge.
-      const rows = Math.max(0, Math.floor((remaining + cardGap) / (cardH + cardGap))) + 1;
-      const minCount = Math.min(2, teaserPool.length);
-      const next = Math.max(minCount, Math.min(teaserPool.length, rows * 2));
-      setTeaserCount((prev) => (prev === next ? prev : next));
+      if (!leftEl || !fixedEl) return;
+      if (window.innerWidth < 1024 || teaserPool.length === 0) {
+        setFill((prev) => (prev.cardRows || prev.compact || prev.leftCompact ? { cardRows: 0, compact: 0, leftCompact: 0 } : prev));
+        return;
+      }
+      const leftH = leftEl.offsetHeight;
+      const fixedH = fixedEl.offsetHeight;
+      const colW = fixedEl.offsetWidth;
+
+      // A rendered card's real height wins; before any card exists, estimate
+      // it from the column width (VehicleCard is a 4:3 photo plus a
+      // fixed-height text block).
+      const renderedCard = teaserGridRef.current?.children[0] as HTMLElement | undefined;
+      const cardW = (colW - TEASER_BOX_PAD_X - CARD_GAP) / 2;
+      const cardH = renderedCard ? renderedCard.getBoundingClientRect().height : cardW * 0.75 + CARD_TEXT_H;
+
+      const avail = leftH - fixedH - TEASER_BOX_MT - TEASER_BOX_CHROME;
+      let cardRows = 0;
+      let compact = 0;
+      if (avail >= COMPACT_ROW_H) {
+        cardRows = Math.max(0, Math.floor((avail + CARD_GAP) / (cardH + CARD_GAP)));
+        cardRows = Math.min(cardRows, Math.floor(teaserPool.length / 2));
+        const usedByCards = cardRows > 0 ? cardRows * (cardH + CARD_GAP) : 0; // includes the gap above the compact list
+        compact = Math.max(0, Math.floor((avail - usedByCards + COMPACT_GAP) / (COMPACT_ROW_H + COMPACT_GAP)));
+        compact = Math.min(compact, teaserPool.length - cardRows * 2);
+      }
+
+      // Left column shorter than the right column's fixed block alone:
+      // fill under the enquiry form with two columns of compact rows.
+      let leftCompact = 0;
+      const leftGap = fixedH - leftH - ENQUIRY_MB - TEASER_BOX_CHROME;
+      if (cardRows === 0 && compact === 0 && leftGap >= COMPACT_ROW_H) {
+        const rows = Math.floor((leftGap + COMPACT_GAP) / (COMPACT_ROW_H + COMPACT_GAP));
+        leftCompact = Math.min(rows * 2, teaserPool.length);
+      }
+
+      setFill((prev) =>
+        prev.cardRows === cardRows && prev.compact === compact && prev.leftCompact === leftCompact ? prev : { cardRows, compact, leftCompact }
+      );
     }
+
     recompute();
+    const observer = new ResizeObserver(recompute);
+    observer.observe(leftEl);
+    observer.observe(fixedEl);
+    if (teaserGridRef.current) observer.observe(teaserGridRef.current);
     window.addEventListener("resize", recompute);
-    return () => window.removeEventListener("resize", recompute);
-  }, [teaserPool.length, teaserCount]);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", recompute);
+    };
+  }, [teaserPool.length, hasTeaserCards]);
+
+  const teaserCards = teaserPool.slice(0, fill.cardRows * 2);
+  const teaserCompact = teaserPool.slice(fill.cardRows * 2, fill.cardRows * 2 + fill.compact);
+  const leftFiller = teaserPool.slice(0, fill.leftCompact);
 
   async function submitEnquiry(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -631,6 +716,18 @@ export function DetailPage({
             )}
           </div>
         </div>
+          {leftFiller.length > 0 && (
+            <div className="rounded-2xl border p-3" style={{ borderColor: COLORS.line }}>
+              <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+                More from our stock
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {leftFiller.map((v) => (
+                  <CompactVehicleRow key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="lg:h-full min-w-0">
@@ -655,22 +752,25 @@ export function DetailPage({
               </button>
             </div>
 
-            {/* How many cards show here is measured against the left
-               column's real content height (see the layout effect above),
-               not a fixed guess - it grows to close the gap when there's
-               genuinely room, and stays small when there isn't, instead of
-               a fixed count that was either too tall (pushing the gap onto
-               the left column) or too short (leaving it here again). */}
-            {teaserPool.length > 0 && (
-              <div ref={teaserBoxRef} className="hidden lg:block mt-3 rounded-2xl border p-3" style={{ borderColor: COLORS.line }}>
+            {(teaserCards.length > 0 || teaserCompact.length > 0) && (
+              <div className="mt-3 rounded-2xl border p-3" style={{ borderColor: COLORS.line }}>
                 <div className="text-xs font-semibold mb-2.5" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
                   More from our stock
                 </div>
-                <div ref={teaserGridRef} className="grid grid-cols-2 gap-2.5">
-                  {teaserPool.slice(0, teaserCount).map((v) => (
-                    <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
-                  ))}
-                </div>
+                {teaserCards.length > 0 && (
+                  <div ref={teaserGridRef} className="grid grid-cols-2 gap-2.5">
+                    {teaserCards.map((v) => (
+                      <VehicleCard key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
+                    ))}
+                  </div>
+                )}
+                {teaserCompact.length > 0 && (
+                  <div className={`grid gap-2 ${teaserCards.length > 0 ? "mt-2.5" : ""}`}>
+                    {teaserCompact.map((v) => (
+                      <CompactVehicleRow key={v.id} vehicle={v} onView={() => goDetail(v.id)} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

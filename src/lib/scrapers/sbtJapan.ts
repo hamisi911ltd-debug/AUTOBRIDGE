@@ -16,95 +16,90 @@ const USER_AGENT =
   "Mozilla/5.0 (compatible; AutoBridgeKenyaBot/1.0; nightly inventory sync)";
 
 /** make_id values on sbtjapan.com, confirmed against the live site's search results. */
-export const SBT_MAKES: { id: number; make: string }[] = [
-  { id: 2, make: "Toyota" },
-  { id: 3, make: "Nissan" },
-  { id: 4, make: "Honda" },
-  { id: 5, make: "Mazda" },
-  { id: 6, make: "Mitsubishi" },
-  { id: 7, make: "Subaru" },
-  { id: 9, make: "Suzuki" },
-  { id: 12, make: "Isuzu" },
-  { id: 8, make: "Daihatsu" },
-  { id: 69, make: "Hino" },
-  { id: 13, make: "Lexus" },
-  { id: 72, make: "Mercedes-Benz" },
-  { id: 45, make: "BMW" },
-  { id: 53, make: "Volkswagen" },
-  { id: 44, make: "Audi" },
-  { id: 41, make: "Peugeot" },
-  { id: 21, make: "Ford" },
-  { id: 67, make: "Volvo" },
-  { id: 33, make: "Land Rover" },
-  { id: 32, make: "Jaguar" },
-  { id: 65, make: "Hyundai" },
+export const SBT_MAKES: { id: number; slug: string; make: string }[] = [
+  { id: 2, slug: "toyota", make: "Toyota" },
+  { id: 3, slug: "nissan", make: "Nissan" },
+  { id: 4, slug: "honda", make: "Honda" },
+  { id: 5, slug: "mazda", make: "Mazda" },
+  { id: 6, slug: "mitsubishi", make: "Mitsubishi" },
+  { id: 7, slug: "subaru", make: "Subaru" },
+  { id: 9, slug: "suzuki", make: "Suzuki" },
+  { id: 12, slug: "isuzu", make: "Isuzu" },
+  { id: 8, slug: "daihatsu", make: "Daihatsu" },
+  { id: 69, slug: "hino", make: "Hino" },
+  { id: 13, slug: "lexus", make: "Lexus" },
+  { id: 72, slug: "mercedes", make: "Mercedes-Benz" },
+  { id: 45, slug: "bmw", make: "BMW" },
+  { id: 53, slug: "volkswagen", make: "Volkswagen" },
+  { id: 44, slug: "audi", make: "Audi" },
+  { id: 41, slug: "peugeot", make: "Peugeot" },
+  { id: 21, slug: "ford", make: "Ford" },
+  { id: 67, slug: "volvo", make: "Volvo" },
+  { id: 33, slug: "land-rover", make: "Land Rover" },
+  { id: 32, slug: "jaguar", make: "Jaguar" },
+  { id: 65, slug: "hyundai", make: "Hyundai" },
   // Kia deliberately excluded - removed from inventory at the user's
   // request (over-represented relative to Kenya's actual popular-import
   // mix); keeping it out of the make list stops future scrapes from
   // silently reintroducing it.
 ];
 
-function urlFor(makeId: number, page: number): string {
-  return `https://www.sbtjapan.com/used-cars/search?make_id=${makeId}&page=${page}`;
-}
-
-function parseSetCookie(setCookie: string): string {
-  return setCookie
-    .split(/,(?=[^;]+=[^;]+)/) // split multiple Set-Cookie values, not the ; inside one
-    .map((c) => c.split(";")[0].trim())
-    .join("; ");
-}
-
-/**
- * sbtjapan.com issues a self-redirecting 302 on the first hit of a session
- * (it's setting a cookie). The cookie isn't tied to make/page, so one scrape
- * run establishes it once and reuses it for every subsequent request -
- * halves the outbound request count versus re-doing the redirect dance per
- * page, which matters for platforms (Cloudflare Pages Functions on the free
- * tier) that cap subrequests per invocation.
- */
-async function establishSession(): Promise<string | null> {
-  const res = await fetch(urlFor(SBT_MAKES[0].id, 1), {
-    headers: { "User-Agent": USER_AGENT },
-    redirect: "manual",
-  });
-  const setCookie = res.headers.get("set-cookie");
-  if (!(res.status >= 300 && res.status < 400) || !setCookie) return null;
-  return parseSetCookie(setCookie);
+// SBT moved from /used-cars/search?make_id=N to per-make paths
+// (/used-cars/toyota). The old URL now only redirects there, and loses any
+// filter on the way. year__from is SBT's own year facet, so the page only
+// lists cars that can actually be imported (parsePage still re-checks).
+function urlFor(slug: string, page: number): string {
+  return `https://www.sbtjapan.com/used-cars/${slug}?year__from=${IMPORT_ELIGIBLE_FROM_YEAR}&page=${page}`;
 }
 
 export class RateLimitedError extends Error {}
 
 // See the matching constant in beforward.ts - 429 alone missed real
 // throttling incidents, where the edge returned other codes an ELB/WAF
-// hands back under load; retry all of them rather than treating "not
-// literally 429" as a genuine parse-failure/empty result.
+// hands back under load.
 const RETRYABLE_STATUSES = new Set([429, 403, 502, 503, 504]);
+const MAX_REDIRECTS = 8;
 
-async function fetchWithSession(url: string, cookie: string | null): Promise<string> {
+function setCookies(headers: Headers): string[] {
+  const h = headers as Headers & { getSetCookie?: () => string[] };
+  if (typeof h.getSetCookie === "function") return h.getSetCookie();
+  const raw = headers.get("set-cookie");
+  return raw ? raw.split(/,(?=[^;]+=[^;]+)/) : [];
+}
+
+/**
+ * sbtjapan.com answers a cookie-less first hit with a chain of 302s that
+ * each set session cookies (sbt_ec, PHPSESSID, Cloudflare's __cf_bm) before
+ * serving the page. fetch() can't carry cookies across redirects on its
+ * own, which is what left the old code looping until it gave up. This
+ * follows the chain by hand with a small cookie jar.
+ */
+async function fetchSbt(url: string): Promise<string> {
   return withRetry(async () => {
-    const res = await fetch(url, {
-      headers: { "User-Agent": USER_AGENT, ...(cookie ? { Cookie: cookie } : {}) },
-      redirect: "manual",
-    });
-
-    if (RETRYABLE_STATUSES.has(res.status)) throw new RateLimitedError(`SBT Japan rate-limited (${res.status}) ${url}`);
-
-    // The session cookie can expire mid-run; if we get redirected again,
-    // re-establish it once and retry this single request.
-    if (res.status >= 300 && res.status < 400) {
-      const setCookie = res.headers.get("set-cookie");
-      if (setCookie) {
-        const fresh = parseSetCookie(setCookie);
-        const retry = await fetch(url, { headers: { "User-Agent": USER_AGENT, Cookie: fresh } });
-        if (RETRYABLE_STATUSES.has(retry.status)) throw new RateLimitedError(`SBT Japan rate-limited (${retry.status}) ${url}`);
-        if (!retry.ok) throw new Error(`SBT Japan request failed: ${retry.status} ${url}`);
-        return retry.text();
+    const jar = new Map<string, string>();
+    let current = url;
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+      const cookie = [...jar].map(([k, v]) => `${k}=${v}`).join("; ");
+      const res = await fetch(current, {
+        headers: { "User-Agent": USER_AGENT, ...(cookie ? { Cookie: cookie } : {}) },
+        redirect: "manual",
+      });
+      for (const c of setCookies(res.headers)) {
+        const [pair] = c.split(";");
+        const eq = pair.indexOf("=");
+        if (eq > 0) jar.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
       }
+      if (RETRYABLE_STATUSES.has(res.status)) throw new RateLimitedError(`SBT Japan rate-limited (${res.status}) ${url}`);
+      if (res.status >= 300 && res.status < 400) {
+        const location = res.headers.get("location");
+        if (!location) throw new Error(`SBT Japan redirect without location ${current}`);
+        current = new URL(location, current).toString();
+        continue;
+      }
+      if (!res.ok) throw new Error(`SBT Japan request failed: ${res.status} ${url}`);
+      return res.text();
     }
-
-    if (!res.ok) throw new Error(`SBT Japan request failed: ${res.status} ${url}`);
-    return res.text();
+    throw new Error(`SBT Japan too many redirects ${url}`);
   });
 }
 
@@ -212,18 +207,14 @@ function parsePage(html: string, make: string): ScrapedVehicle[] {
 }
 
 /**
- * Scrapes a single page for a single configured make. Re-establishes the
- * session cookie on every call rather than sharing it across a whole run -
- * one extra request per unit, but it's I/O wait, not CPU, so it doesn't
- * threaten the per-request CPU budget the way parsing many pages in one
- * invocation would (see runScrapeUnit).
+ * Scrapes a single page for a single configured make, starting a fresh
+ * cookie session each call (see fetchSbt).
  */
 export async function scrapeSbtJapanUnit(makeIndex: number, page: number): Promise<ScrapedVehicle[] | "rate-limited"> {
   const entry = SBT_MAKES[makeIndex];
   if (!entry) return [];
   try {
-    const cookie = await establishSession();
-    const html = await fetchWithSession(urlFor(entry.id, page), cookie);
+    const html = await fetchSbt(urlFor(entry.slug, page));
     return parsePage(html, entry.make);
     // Deliberately not upgrading via fetchCoverImage here, unlike beforward:
     // SBT's listing thumbnail already reliably serves a real ?imwidth=1200

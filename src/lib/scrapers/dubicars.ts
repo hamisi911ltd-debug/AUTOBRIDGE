@@ -166,44 +166,47 @@ function extractDetailUrls(listHtml: string): string[] {
 }
 
 /**
- * Scrapes one page (~30 listings) of Dubicars' UAE export-cars category:
- * fetches the search-results page for its list of detail-page URLs (the
- * visible card grid itself is client-rendered, but this JSON-LD block is
- * server-rendered), then fetches each detail page - which *is* fully
- * server-rendered with a schema.org Car/Product block carrying price,
- * specs and a real photo - one at a time.
+ * Fetches one Dubicars search-results page and returns its detail-page URLs
+ * (the visible card grid is client-rendered, but this JSON-LD block is
+ * server-rendered). Throws on a failed fetch or a Cloudflare bot challenge,
+ * so callers can tell "blocked" apart from "genuinely empty".
+ */
+export async function listDubicarsPage(page: number): Promise<string[]> {
+  const listHtml = await fetchText(`https://www.dubicars.com/uae/used/export-cars?page=${Math.max(1, page)}`);
+  if (isBotChallenge(listHtml)) throw new Error(`Dubicars bot challenge on list page=${page}`);
+  return extractDetailUrls(listHtml);
+}
+
+/** One detail page to one vehicle, or null when it's not importable (left-hand drive, too old, no price) or blocked. */
+export async function fetchDubicarsVehicle(url: string): Promise<ScrapedVehicle | null> {
+  const html = await fetchText(url);
+  if (isBotChallenge(html)) return null;
+  return parseVehicleFromDetail(html, url);
+}
+
+/**
+ * Scrapes one whole page (~30 listings) of Dubicars' UAE export-cars
+ * category, fetching each detail page one at a time. Each detail page is
+ * fully server-rendered with a schema.org Car/Product block carrying price,
+ * specs and a real photo.
  */
 export async function scrapeDubicarsUnit(makeIndex: number): Promise<ScrapedVehicle[]> {
-  const entry = DUBICARS_MAKES[makeIndex];
-  if (!entry) return [];
-  const page = entry.id;
-
-  let listHtml: string;
+  let detailUrls: string[];
   try {
-    listHtml = await fetchText(`https://www.dubicars.com/uae/used/export-cars?page=${page}`);
+    detailUrls = await listDubicarsPage(makeIndex + 1);
   } catch (err) {
-    console.error(`[dubicars] failed to fetch page=${page}:`, err);
+    console.error(`[dubicars] list page failed makeIndex=${makeIndex}:`, err);
     return [];
   }
 
-  if (isBotChallenge(listHtml)) {
-    console.error(`[dubicars] bot challenge on list page=${page}, skipping this run`);
-    return [];
-  }
-
-  const detailUrls = extractDetailUrls(listHtml);
   const vehicles: ScrapedVehicle[] = [];
-
   for (const url of detailUrls) {
     try {
-      const html = await fetchText(url);
-      if (isBotChallenge(html)) continue; // transient - the local backfill sweep re-tries these later
-      const vehicle = parseVehicleFromDetail(html, url);
+      const vehicle = await fetchDubicarsVehicle(url);
       if (vehicle) vehicles.push(vehicle);
     } catch (err) {
       console.error(`[dubicars] failed detail fetch ${url}:`, err);
     }
   }
-
   return vehicles;
 }

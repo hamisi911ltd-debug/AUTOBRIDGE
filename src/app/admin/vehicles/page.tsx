@@ -4,6 +4,7 @@ import { computeSellingPriceUsd } from "@/lib/pricing/engine";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd, sourceSiteLabel } from "@/lib/format";
 import type { Prisma } from "@/generated/prisma/client";
+import { SOURCE_SITE_LABELS } from "@/lib/format";
 
 const PAGE_SIZE = 50;
 
@@ -35,7 +36,7 @@ export default async function AdminVehiclesPage({
       ],
     }));
   }
-  if (source === "beforward" || source === "sbtjapan" || source === "autocom") {
+  if (source && source in SOURCE_SITE_LABELS) {
     where.sourceSite = source;
   } else if (source === "manual") {
     where.sourceSite = null;
@@ -88,9 +89,11 @@ export default async function AdminVehiclesPage({
         />
         <select name="source" defaultValue={source || ""} className="border rounded-lg px-3 py-2 text-sm" style={{ borderColor: "#D8DCE3" }}>
           <option value="">All sources</option>
-          <option value="beforward">BE FORWARD</option>
-          <option value="sbtjapan">SBT Japan</option>
-          <option value="autocom">AUTOCOM</option>
+          {Object.entries(SOURCE_SITE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
           <option value="manual">Hand-entered</option>
         </select>
         <select name="eligible" defaultValue={eligible || ""} className="border rounded-lg px-3 py-2 text-sm" style={{ borderColor: "#D8DCE3" }}>

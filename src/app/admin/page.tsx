@@ -7,6 +7,7 @@ import { MigrateImagesButton } from "@/app/admin/MigrateImagesButton";
 import { BarChart } from "@/components/admin/charts/BarChart";
 import { DonutChart } from "@/components/admin/charts/DonutChart";
 import { formatUsd } from "@/lib/format";
+import { sourceSiteLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -58,9 +59,7 @@ export default async function AdminDashboardPage() {
     totalVehicles,
     eligibleVehicles,
     manualVehicles,
-    beforwardCount,
-    sbtCount,
-    autocomCount,
+    bySourceRaw,
     lastScraped,
     byMakeRaw,
     eligibleRows,
@@ -68,9 +67,7 @@ export default async function AdminDashboardPage() {
     prisma.vehicle.count(),
     prisma.vehicle.count({ where: { eligible: true } }),
     prisma.vehicle.count({ where: { sourceSite: null } }),
-    prisma.vehicle.count({ where: { sourceSite: "beforward" } }),
-    prisma.vehicle.count({ where: { sourceSite: "sbtjapan" } }),
-    prisma.vehicle.count({ where: { sourceSite: "autocom" } }),
+    prisma.vehicle.groupBy({ by: ["sourceSite"], _count: { _all: true } }),
     prisma.vehicle.findFirst({ where: { lastScrapedAt: { not: null } }, orderBy: { lastScrapedAt: "desc" }, select: { lastScrapedAt: true } }),
     prisma.vehicle.groupBy({ by: ["make"], _count: { _all: true }, orderBy: { _count: { make: "desc" } }, take: 8 }),
     // Minimal columns only, no full-row fetch, no per-vehicle pricing
@@ -86,10 +83,17 @@ export default async function AdminDashboardPage() {
   ]);
   const priceRows = eligibleRows;
 
+  const countFor = (site: string) => bySourceRaw.find((r) => r.sourceSite === site)?._count._all ?? 0;
+  const beforwardCount = countFor("beforward");
+  const sbtCount = countFor("sbtjapan");
+  const autocomCount = countFor("autocom");
+  // Every scraped source, largest first, then hand-entered stock.
+  const SOURCE_COLORS = [BRAND_ORANGE, BRAND_MAGENTA, BRAND_TEAL, "#C99A2E", "#5B7DB1", "#7A9E3B", "#A45EA8", "#4A9C9C", "#B85C38"];
   const bySourceSite = [
-    { label: "BE FORWARD", value: beforwardCount, color: BRAND_ORANGE },
-    { label: "SBT Japan", value: sbtCount, color: BRAND_MAGENTA },
-    { label: "AUTOCOM", value: autocomCount, color: BRAND_TEAL },
+    ...bySourceRaw
+      .filter((r) => r.sourceSite)
+      .sort((a, b) => b._count._all - a._count._all)
+      .map((r, i) => ({ label: sourceSiteLabel(r.sourceSite), value: r._count._all, color: SOURCE_COLORS[i % SOURCE_COLORS.length] })),
     { label: "Hand-entered", value: manualVehicles, color: BRAND_VIOLET },
   ].filter((s) => s.value > 0);
 
