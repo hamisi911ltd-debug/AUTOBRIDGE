@@ -6,6 +6,9 @@ import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { BRAND } from "@/lib/brand";
 import type { Page } from "@/components/AutoBridgeApp";
 
+// Minimum figure shown in the header's "Cars" badge (see its use below).
+const CUSTOMER_COUNT_FLOOR = 100_000;
+
 const GRADIENT = "linear-gradient(90deg, #F2762E 0%, #D6336C 50%, #3B1F63 100%)";
 
 /**
@@ -124,7 +127,10 @@ export function Header({
               </span>
               <div className="leading-none">
                 <div className="text-xs sm:text-sm font-bold animate-pulse" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-                  {totalCount.toLocaleString()}+
+                  {/* Owner's choice: the customer-facing badge reads at least
+                     100,000+, rising with the real count past that. The admin
+                     dashboard keeps showing the real numbers. */}
+                  {Math.max(totalCount, CUSTOMER_COUNT_FLOOR).toLocaleString()}+
                 </div>
                 <div className="text-[7px] sm:text-[8px] font-semibold uppercase tracking-wide mt-0.5" style={{ color: COLORS.slate }}>
                   Cars
