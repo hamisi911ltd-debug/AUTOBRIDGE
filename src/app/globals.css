@@ -21,7 +21,16 @@
 
 html, body {
   max-width: 100%;
-  overflow-x: hidden;
+  /* clip, not hidden: overflow-x alone forces the other axis's computed
+     value to auto if it isn't already visible/clip, which was silently
+     turning body into its own independent scroll container - the actual
+     cause of the admin sidebar's position:sticky not staying put (it was
+     sticking to whichever ancestor happened to be the real scroller,
+     inconsistently). clip stays exempt from that rule, so body never
+     becomes a scroll container and there's exactly one scrolling element
+     (the viewport) on every page, which every position:sticky/fixed
+     element on the site can now rely on. */
+  overflow-x: clip;
 }
 
 body {

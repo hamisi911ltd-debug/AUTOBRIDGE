@@ -3,16 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Car, MessageSquare, Plus, X, Star, Users, LogOut } from "lucide-react";
+import { LayoutDashboard, Car, MessageSquare, Plus, X, Star, Users, Tag, LogOut } from "lucide-react";
 import { COLORS } from "@/lib/constants";
 
 const PRIMARY = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/vehicles", label: "Vehicles", icon: Car },
-  { href: "/admin/enquiries", label: "Enquiries", icon: MessageSquare },
+  { href: "/admin/enquiries", label: "Enquiries", icon: MessageSquare, badge: true },
 ];
 
 const MORE = [
+  { href: "/admin/pricing", label: "Pricing rules", icon: Tag },
   { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/users", label: "Users", icon: Users },
 ];
@@ -22,7 +23,15 @@ const MORE = [
  * 3 most-used sections get a direct slot; everything else sits behind a
  * "+" that pops up a sheet rather than cramming 6 icons into one bar.
  */
-export function AdminBottomNav({ email, signOutAction }: { email?: string | null; signOutAction: () => Promise<void> }) {
+export function AdminBottomNav({
+  email,
+  signOutAction,
+  unhandledEnquiries,
+}: {
+  email?: string | null;
+  signOutAction: () => Promise<void>;
+  unhandledEnquiries: number;
+}) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -76,8 +85,18 @@ export function AdminBottomNav({ email, signOutAction }: { email?: string | null
           const Icon = l.icon;
           const active = isActive(l.href);
           return (
-            <Link key={l.href} href={l.href} className="flex-1 flex flex-col items-center justify-center gap-0.5">
-              <Icon size={20} color={active ? COLORS.burgundy : COLORS.slate} strokeWidth={active ? 2.5 : 2} />
+            <Link key={l.href} href={l.href} className="relative flex-1 flex flex-col items-center justify-center gap-0.5">
+              <span className="relative">
+                <Icon size={20} color={active ? COLORS.burgundy : COLORS.slate} strokeWidth={active ? 2.5 : 2} />
+                {l.badge && unhandledEnquiries > 0 && (
+                  <span
+                    className="absolute -top-1 -right-1.5 min-w-[15px] h-[15px] px-0.5 rounded-full text-[9px] font-bold text-white flex items-center justify-center"
+                    style={{ background: COLORS.burgundy }}
+                  >
+                    {unhandledEnquiries > 99 ? "99+" : unhandledEnquiries}
+                  </span>
+                )}
+              </span>
               <span className="text-[10px] font-medium" style={{ color: active ? COLORS.burgundy : COLORS.slate }}>
                 {l.label}
               </span>
