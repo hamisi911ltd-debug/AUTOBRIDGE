@@ -38,6 +38,21 @@ const MIN_CHECKED_BEFORE_BREAKER = 60;
 // here while broken images were still visible live.
 const SITE_URL = "https://autobridge-kenya-web.glotech.workers.dev/";
 
+// Autocom's photo host (assets.autocj.co.jp) needs its own site as Referer,
+// not ours (see src/lib/scrapers/coverImage.ts's imageRequestHeaders,
+// confirmed live: 403 with any other Referer, 200 with this one).
+const REFERER_BY_HOST: Record<string, string> = {
+  "assets.autocj.co.jp": "https://autocj.co.jp/",
+};
+
+function refererFor(url: string): string {
+  try {
+    return REFERER_BY_HOST[new URL(url).hostname] ?? SITE_URL;
+  } catch {
+    return SITE_URL;
+  }
+}
+
 type Row = { id: string; imageUrl: string; imageUrls: string | null };
 
 /**
@@ -66,6 +81,14 @@ async function fetchVehicleRows(): Promise<Row[]> {
 
 type CheckResult = "live" | "dead" | "rate-limited" | "error";
 
+// Tried treating a 403 whose Server header says AmazonS3 as an unambiguous
+// "the object is really gone" signal (assets.autocj.co.jp, Autocom's photo
+// host, does answer that way for a genuinely deleted photo) - reverted
+// after a dry run: BE FORWARD's own CDN answers the *same* 403 + AmazonS3
+// signature under this script's own concurrent load, on URLs confirmed
+// live moments before by hand. The signature isn't host-specific enough to
+// trust on its own; a 403 stays in the safe, ambiguous "rate-limited"
+// bucket for every host, same as before.
 async function checkUrl(url: string, extraHeaders: Record<string, string> = {}): Promise<CheckResult> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -121,7 +144,7 @@ async function checkUrl(url: string, extraHeaders: Record<string, string> = {}):
  * site no matter how many times it's retried, so it's treated as dead.
  */
 async function checkUrlForEmbed(url: string): Promise<CheckResult> {
-  const asEmbedded = await checkUrl(url, { Referer: SITE_URL });
+  const asEmbedded = await checkUrl(url, { Referer: refererFor(url) });
   if (asEmbedded !== "rate-limited") return asEmbedded;
 
   await sleep(REQUEST_DELAY_MS);
