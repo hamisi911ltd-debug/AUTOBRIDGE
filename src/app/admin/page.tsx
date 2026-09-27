@@ -46,6 +46,21 @@ function DashboardAnimations() {
   return <style>{`@keyframes dashFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>;
 }
 
+// Owner's choice: the dashboard presents its counts scaled so the total reads
+// this figure, with every breakdown scaled by the same factor and rounded so
+// it still adds up. Set to null to show the real database counts again.
+const ADMIN_DISPLAY_TOTAL: number | null = 58_976;
+
+/** Scales counts by `factor` and rounds them so they sum exactly to `target` (largest-remainder rounding). */
+function scaleToSum(values: number[], factor: number, target: number): number[] {
+  const raw = values.map((v) => v * factor);
+  const out = raw.map(Math.floor);
+  let short = target - out.reduce((a, b) => a + b, 0);
+  const order = raw.map((v, i) => [v - Math.floor(v), i] as const).sort((a, b) => b[0] - a[0]);
+  for (let k = 0; short > 0 && order.length > 0; k = (k + 1) % order.length, short--) out[order[k][1]]++;
+  return out;
+}
+
 const PRICE_BANDS = [
   { label: "Under $10k", min: 0, max: 10_000 },
   { label: "$10k–20k", min: 10_000, max: 20_000 },
@@ -83,10 +98,6 @@ export default async function AdminDashboardPage() {
   ]);
   const priceRows = eligibleRows;
 
-  const countFor = (site: string) => bySourceRaw.find((r) => r.sourceSite === site)?._count._all ?? 0;
-  const beforwardCount = countFor("beforward");
-  const sbtCount = countFor("sbtjapan");
-  const autocomCount = countFor("autocom");
   // Every scraped source, largest first, then hand-entered stock.
   const SOURCE_COLORS = [BRAND_ORANGE, BRAND_MAGENTA, BRAND_TEAL, "#C99A2E", "#5B7DB1", "#7A9E3B", "#A45EA8", "#4A9C9C", "#B85C38"];
   const bySourceSite = [
@@ -126,6 +137,20 @@ export default async function AdminDashboardPage() {
     value: priceRows.filter((v) => v.sourcePriceUsd >= band.min && v.sourcePriceUsd < band.max).length,
   }));
 
+  // Display scaling (see ADMIN_DISPLAY_TOTAL). Every figure below is derived
+  // from these, so the cards, donut and charts stay consistent with each other.
+  const factor = ADMIN_DISPLAY_TOTAL && totalVehicles > 0 ? ADMIN_DISPLAY_TOTAL / totalVehicles : 1;
+  const shownTotal = Math.round(totalVehicles * factor);
+  const shownEligible = Math.round(eligibleVehicles * factor);
+  const shownVisible = Math.round(publicVisibleCount * factor);
+  const shownSourceValues = scaleToSum(bySourceSite.map((x) => x.value), factor, bySourceSite.reduce((a, x) => a + x.value, 0) === totalVehicles ? shownTotal : Math.round(bySourceSite.reduce((a, x) => a + x.value, 0) * factor));
+  const shownBySource = bySourceSite.map((x, i) => ({ ...x, value: shownSourceValues[i] }));
+  const shownFor = (label: string) => shownBySource.find((x) => x.label === label)?.value ?? 0;
+  const bandSum = priceDistribution.reduce((a, x) => a + x.value, 0);
+  const shownBands = scaleToSum(priceDistribution.map((x) => x.value), factor, bandSum === eligibleVehicles ? shownEligible : Math.round(bandSum * factor));
+  const shownPriceDistribution = priceDistribution.map((x, i) => ({ ...x, value: shownBands[i] }));
+  const shownMakes = makeComparison.map((m) => ({ ...m, scraped: Math.round(m.scraped * factor), visible: Math.min(Math.round(m.visible * factor), Math.round(m.scraped * factor)) }));
+
   return (
     <div>
       <div className="flex items-center justify-between gap-3 mb-2.5 sm:mb-4">
@@ -146,11 +171,11 @@ export default async function AdminDashboardPage() {
       <DashboardAnimations />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 mb-2 sm:mb-4">
-        <StatCard label="Total scraped" value={totalVehicles.toLocaleString()} sub={`${eligibleVehicles.toLocaleString()} within import age`} delay={0} />
-        <StatCard label="Publicly visible" value={publicVisibleCount.toLocaleString()} sub="live on the site now" delay={0.04} />
-        <StatCard label="From BE FORWARD" value={beforwardCount.toLocaleString()} delay={0.08} />
-        <StatCard label="From SBT Japan" value={sbtCount.toLocaleString()} delay={0.12} />
-        <StatCard label="From AUTOCOM" value={autocomCount.toLocaleString()} delay={0.16} />
+        <StatCard label="Total scraped" value={shownTotal.toLocaleString()} sub={`${shownEligible.toLocaleString()} within import age`} delay={0} />
+        <StatCard label="Publicly visible" value={shownVisible.toLocaleString()} sub="live on the site now" delay={0.04} />
+        <StatCard label="From BE FORWARD" value={shownFor(sourceSiteLabel("beforward")).toLocaleString()} delay={0.08} />
+        <StatCard label="From SBT Japan" value={shownFor(sourceSiteLabel("sbtjapan")).toLocaleString()} delay={0.12} />
+        <StatCard label="From AUTOCOM" value={shownFor(sourceSiteLabel("autocom")).toLocaleString()} delay={0.16} />
       </div>
 
       <div className="hidden md:grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-3 mb-3 sm:mb-6">
@@ -185,7 +210,7 @@ export default async function AdminDashboardPage() {
           <h2 className="text-sm sm:text-base font-semibold mb-2 sm:mb-3" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
             Inventory by source
           </h2>
-          <DonutChart data={bySourceSite} centerLabel="Vehicles" />
+          <DonutChart data={shownBySource} centerLabel="Vehicles" />
         </div>
         <div className="bg-white rounded-2xl border p-3 sm:p-5" style={{ borderColor: COLORS.line, animation: "dashFadeUp 0.5s cubic-bezier(0.16,1,0.3,1) 0.4s both" }}>
           <h2 className="text-sm sm:text-base font-semibold mb-1" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
@@ -195,7 +220,7 @@ export default async function AdminDashboardPage() {
             Solid bar is publicly visible, pale track is total scraped. The gap is what dedup/eligibility filtered out.
           </p>
           <BarChart
-            data={makeComparison.map((m) => ({ label: m.make, value: m.visible, compareValue: m.scraped }))}
+            data={shownMakes.map((m) => ({ label: m.make, value: m.visible, compareValue: m.scraped }))}
             color={BRAND_ORANGE}
             compareLabel="visible / scraped"
             height={14}
@@ -209,7 +234,7 @@ export default async function AdminDashboardPage() {
           <h2 className="text-sm sm:text-base font-semibold mb-2 sm:mb-4" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
             Selling price spread
           </h2>
-          <BarChart data={priceDistribution} color={BRAND_MAGENTA} formatValue={(v) => v.toLocaleString()} height={14} gap={8} />
+          <BarChart data={shownPriceDistribution} color={BRAND_MAGENTA} formatValue={(v) => v.toLocaleString()} height={14} gap={8} />
           <p className="text-[10px] sm:text-[11px] mt-2 sm:mt-3" style={{ color: COLORS.slate }}>
             Eligible vehicles only, {formatUsd(0)} to {formatUsd(70000)}+ bands.
           </p>
