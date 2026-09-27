@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Search, SlidersHorizontal, Bell, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Search, SlidersHorizontal, Bell, CheckCircle2, Loader2 } from "lucide-react";
 import { COLORS, FONT_DISPLAY, type Filters } from "@/lib/constants";
 import { matchesFilters, sortVehicles } from "@/lib/search";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import { FilterSidebar } from "@/components/vehicles/FilterSidebar";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
+import { VehicleCardSkeletonGrid } from "@/components/vehicles/VehicleCardSkeleton";
 import { Pagination } from "@/components/vehicles/Pagination";
 
 // Kept small enough that a page of results roughly fits one screen (3-across
@@ -199,10 +200,15 @@ export function SearchPage({
           <h1 className="text-2xl font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
             Search vehicles
           </h1>
-          <p className="text-sm mt-1" style={{ color: COLORS.slate }}>
-            {isLoadingFullCatalogue
-              ? "Loading the full inventory…"
-              : `${filtered.length} vehicle${filtered.length !== 1 ? "s" : ""} match your filters`}
+          <p className="text-sm mt-1 flex items-center gap-1.5" style={{ color: COLORS.slate }}>
+            {isLoadingFullCatalogue ? (
+              <>
+                <Loader2 size={14} className="animate-spin" style={{ color: COLORS.burgundy }} />
+                Loading the full inventory…
+              </>
+            ) : (
+              `${filtered.length} vehicle${filtered.length !== 1 ? "s" : ""} match your filters`
+            )}
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
@@ -251,7 +257,15 @@ export function SearchPage({
           <FilterSidebar filters={filters} setFilters={setFilters} {...facets} />
         </div>
         <div>
-          {paged.length === 0 ? (
+          {isLoadingFullCatalogue ? (
+            // The starter set of vehicles already on hand (initialVehicles)
+            // is small and homepage-shaped, not the real filtered result -
+            // showing it here while the full catalogue streams in read as
+            // "these are your results" when they usually weren't. A
+            // skeleton grid makes it unambiguous that the real list is
+            // still loading rather than already in and just this short.
+            <VehicleCardSkeletonGrid count={PAGE_SIZE} />
+          ) : paged.length === 0 ? (
             <div className="bg-white rounded-2xl border p-12 text-center" style={{ borderColor: COLORS.line }}>
               <p className="font-medium mb-1">No vehicles match yet</p>
               <p className="text-sm" style={{ color: COLORS.slate }}>

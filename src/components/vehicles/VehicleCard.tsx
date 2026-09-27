@@ -43,7 +43,7 @@ export function VehicleCard({
         e.preventDefault();
         onView();
       }}
-      className="bg-white rounded-2xl overflow-hidden border flex flex-col cursor-pointer"
+      className="bg-white rounded-xl sm:rounded-2xl overflow-hidden border flex flex-col cursor-pointer"
       style={{ borderColor: COLORS.line }}
     >
       <div
@@ -54,31 +54,39 @@ export function VehicleCard({
           src={v.imageUrl}
           fallbackSrcs={v.imageUrls.filter((u) => u !== v.imageUrl)}
           alt={`${v.year} ${v.make} ${v.model}`}
-          iconSize={44}
+          iconSize={36}
           banner={{ year: v.year, country: v.sourceCountry, tall: v.sourceSite === "sbtjapan" }}
           priority={priority}
         />
-        {v.eligible ? (
-          <FerbilBadge />
-        ) : (
-          <span className="absolute top-3 left-3 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">
+        {/* The plate mark stays on every card regardless of eligibility - it's
+           the site's own brand mark, not a status indicator, so a rare
+           ineligible listing shouldn't lose it. "Not eligible" gets its own
+           spot lower down instead of replacing the logo. */}
+        <FerbilBadge size="sm" />
+        {!v.eligible && (
+          <span className="absolute top-8 left-1.5 sm:top-9 sm:left-2 text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-100 text-red-700">
             Not eligible
           </span>
         )}
-        <span className="absolute top-2 right-2 sm:top-3 sm:right-3 text-[10px] sm:text-[11px] font-bold px-2 py-1 rounded-md text-white" style={{ background: "#DC2626" }}>
+        <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-md text-white" style={{ background: "#DC2626" }}>
           -{percent}%
         </span>
       </div>
-      <div className="p-2 sm:p-2.5">
-        <h3 className="text-xs sm:text-sm font-semibold leading-snug truncate" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+      <div className="p-1.5 sm:p-2 flex-1 flex flex-col">
+        {/* line-clamp-2, not truncate: a one-line ellipsis was cutting off
+           real, useful details (grade/spec text some sources pack into the
+           name, e.g. "TXL1 RIGHT HAND DRIVE ONLY FOR EXPORT 2.8L FULL
+           OPTION") down to a couple of words. Two lines shows far more of
+           the actual name before it gives up and clips. */}
+        <h3 className="text-[11px] sm:text-xs font-semibold leading-tight line-clamp-2 min-h-[2.2em]" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
           {v.make} {v.model} {v.trim}
         </h3>
-        <div className="flex items-center justify-between gap-1.5 mt-0.5">
-          <div className="flex items-baseline gap-1.5 min-w-0">
-            <span className="text-sm sm:text-base font-bold truncate" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
+        <div className="flex items-center justify-between gap-1 mt-auto pt-1">
+          <div className="flex flex-col min-w-0">
+            <span className="text-xs sm:text-sm font-bold truncate" style={{ color: COLORS.burgundy, fontFamily: FONT_DISPLAY }}>
               {formatUsd(totalUsd)}
             </span>
-            <span className="text-[10px] sm:text-xs line-through shrink-0" style={{ color: "#DC2626" }}>
+            <span className="text-[9px] sm:text-[10px] line-through" style={{ color: "#DC2626" }}>
               {formatUsd(wasUsd)}
             </span>
           </div>
@@ -94,14 +102,11 @@ export function VehicleCard({
               toggleCart(v.id);
             }}
             aria-label={inCart ? "Remove from cart" : "Add to cart"}
-            className="shrink-0 flex items-center justify-center"
+            className="shrink-0 flex items-center justify-center w-6 h-6 -mr-1"
             style={{ color: COLORS.burgundy }}
           >
-            <ShoppingCart size={14} fill={inCart ? "currentColor" : "none"} />
+            <ShoppingCart size={13} fill={inCart ? "currentColor" : "none"} />
           </button>
-        </div>
-        <div className="text-[9px] sm:text-[10px] leading-tight" style={{ color: COLORS.slate }}>
-          Incl. freight &amp; insurance
         </div>
       </div>
     </a>
