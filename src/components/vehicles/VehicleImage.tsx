@@ -7,6 +7,9 @@ import { thumbnailUrl } from "@/lib/thumbnail";
 
 const BRAND_GRADIENT = "linear-gradient(135deg, #3B1F63 0%, #D6336C 55%, #F2762E 100%)";
 
+const MAX_RETRIES_PER_SRC = 2;
+const RETRY_DELAY_MS = 700;
+
 /**
  * Drop-in replacement for a plain vehicle `<img>`. Uses object-cover so the
  * box is always fully filled, with zero letterbox gaps - every caller now
@@ -62,12 +65,34 @@ export function VehicleImage({
       return thumb !== url ? [thumb, url] : [url];
     });
   const [attempt, setAttempt] = useState(0);
+  // A single request failing is not proof the photo is gone - measured live,
+  // ~7% of concurrent requests to BE FORWARD's own CDN fail outright purely
+  // from a page loading many cards' photos at once (the same CDN a single,
+  // unburst request always succeeds against). retryNonce forces the <img> to
+  // reissue the exact same request (remount, same src) a couple of times,
+  // a beat apart, before this gives up on that URL and moves to the next
+  // candidate/placeholder - so a bad instant of network load never
+  // permanently blanks out a perfectly live photo.
+  const [retryNonce, setRetryNonce] = useState(0);
+  const retriesRef = useRef(0);
   const [loaded, setLoaded] = useState(false);
   const [visible, setVisible] = useState(priority);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const currentSrc = candidates[attempt] ?? null;
   const exhausted = attempt >= candidates.length;
+
+  function handleError() {
+    setLoaded(false);
+    if (retriesRef.current < MAX_RETRIES_PER_SRC) {
+      retriesRef.current += 1;
+      const n = retriesRef.current;
+      setTimeout(() => setRetryNonce((v) => v + 1), RETRY_DELAY_MS * n);
+    } else {
+      retriesRef.current = 0;
+      setAttempt((a) => a + 1);
+    }
+  }
 
   useEffect(() => {
     // A priority image is already in the server-rendered HTML, so the
@@ -126,7 +151,7 @@ export function VehicleImage({
           <div className={`absolute inset-0 ${imgClassName}`}>
             {/* eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts */}
             <img
-              key={currentSrc}
+              key={`${currentSrc}-${retryNonce}`}
               ref={imgRef}
               src={currentSrc}
               alt={alt}
@@ -134,10 +159,7 @@ export function VehicleImage({
               fetchPriority={priority ? "high" : "auto"}
               decoding="async"
               onLoad={() => setLoaded(true)}
-              onError={() => {
-                setLoaded(false);
-                setAttempt((a) => a + 1);
-              }}
+              onError={handleError}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
             />
             {banner && (

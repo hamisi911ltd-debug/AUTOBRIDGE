@@ -9,6 +9,16 @@ import { FerbilBadge } from "@/components/vehicles/FerbilBadge";
 
 const BRAND_GRADIENT = "linear-gradient(135deg, #3B1F63 0%, #D6336C 55%, #F2762E 100%)";
 
+// A single request failing is not proof a photo is gone - measured live, a
+// page loading many photos at once briefly fails a real chunk of requests
+// to some source CDNs (BE FORWARD, enhance-auto) purely from that burst,
+// even though the exact same URL always loads fine on its own. Each photo
+// gets a couple of quick retries (forcing the <img> to reissue the
+// identical request) before this drops it, so a bad instant of network
+// load never permanently blanks out a perfectly live photo.
+const MAX_RETRIES_PER_SRC = 2;
+const RETRY_DELAY_MS = 700;
+
 /**
  * Detail-page photo slideshow: a big main slide, arrow + dot navigation, a
  * clickable thumbnail strip, and gentle auto-advance that pauses on
@@ -44,6 +54,19 @@ export function VehicleGallery({
   const [failed, setFailed] = useState<Set<string>>(() => new Set());
   const images = useMemo(() => allImages.filter((u) => !failed.has(u)), [allImages, failed]);
   const markFailed = (url: string) => setFailed((prev) => (prev.has(url) ? prev : new Set(prev).add(url)));
+  // Number of retries already used per URL - also doubles as that URL's
+  // remount key, so each retry naturally forces the <img> to reissue the
+  // identical request. Plain state (not a ref) so it can be reset the same
+  // way `failed` is when the photo set itself changes.
+  const [retries, setRetries] = useState<Record<string, number>>({});
+  function handleImageError(url: string) {
+    const n = (retries[url] ?? 0) + 1;
+    if (n <= MAX_RETRIES_PER_SRC) {
+      setTimeout(() => setRetries((prev) => ({ ...prev, [url]: n })), RETRY_DELAY_MS * n);
+    } else {
+      markFailed(url);
+    }
+  }
   const [rawIndex, setIndex] = useState(0);
   // A failed photo shortens the list - keep the current slide in range.
   const index = rawIndex < images.length ? rawIndex : 0;
@@ -56,6 +79,7 @@ export function VehicleGallery({
     setFailed(new Set());
     setLoadedIdx(new Set());
     setIndex(0);
+    setRetries({});
   }
   const pausedRef = useRef(false);
   const visibleIndices = useMemo(() => getVisibleImageIndices(images.length, index, 1), [images.length, index]);
@@ -107,14 +131,14 @@ export function VehicleGallery({
           // only crops a sliver off the edges.
           // eslint-disable-next-line @next/next/no-img-element -- external R2 CDN
           <img
-            key={`${images[i]}-${i}`}
+            key={`${images[i]}-${i}-${retries[images[i]] ?? 0}`}
             src={images[i]}
             alt={`${alt}, photo ${i + 1} of ${images.length}`}
             loading={i === index ? "eager" : "lazy"}
             fetchPriority={i === index ? "high" : "auto"}
             decoding="async"
             onLoad={() => setLoadedIdx((prev) => (prev.has(i) ? prev : new Set(prev).add(i)))}
-            onError={() => markFailed(images[i])}
+            onError={() => handleImageError(images[i])}
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
             style={{ opacity: i === index ? 1 : 0, pointerEvents: i === index ? "auto" : "none" }}
           />
@@ -191,18 +215,12 @@ export function VehicleGallery({
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- external R2 CDN */}
               <img
+                key={`${src}-${retries[src] ?? 0}`}
                 src={thumbnailUrl(src)}
                 alt=""
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
-                onError={(e) => {
-                  // Not every source photo actually has a downsized variant
-                  // on disk - fall back to the original full-size URL first,
-                  // and drop the photo entirely if that fails too.
-                  const img = e.currentTarget;
-                  if (img.src !== new URL(src, img.baseURI).href) img.src = src;
-                  else markFailed(src);
-                }}
+                onError={() => handleImageError(src)}
               />
             </button>
           ))}
