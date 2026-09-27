@@ -14,6 +14,7 @@ import { CostLadder } from "@/components/vehicles/CostLadder";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
 import { VehicleGallery } from "@/components/vehicles/VehicleGallery";
 import { MorePhotosPoster } from "@/components/vehicles/MorePhotosPoster";
+import { SafeImg } from "@/components/vehicles/SafeImg";
 
 /**
  * A fixed checklist of common equipment most vehicles in this catalogue
@@ -80,10 +81,7 @@ function CompactVehicleRow({ vehicle: v, onView }: { vehicle: PublicVehicle; onV
       style={{ borderColor: COLORS.line }}
     >
       <div className="relative h-full w-24 shrink-0" style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}>
-        {v.imageUrl && (
-          // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
-          <img src={v.imageUrl} alt={`${v.year} ${v.make} ${v.model}`} loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
-        )}
+        <SafeImg srcs={[v.imageUrl, ...v.imageUrls]} alt={`${v.year} ${v.make} ${v.model}`} loading="lazy" iconSize={16} className="absolute inset-0 w-full h-full object-cover" />
       </div>
       <div className="min-w-0">
         <div className="text-xs font-semibold truncate" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>

@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { computeSellingPriceUsd } from "@/lib/pricing/engine";
 import { computeInsuranceUsd } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
+import { displayImageUrl } from "@/lib/imageProxy";
 
 /**
  * Fetches vehicles (optionally capped via `opts.limit`, newest first) and
@@ -163,8 +164,10 @@ async function fetchDiverseVehicles(limit: number): Promise<VehicleRow[]> {
 function toPublicVehicle(v: VehicleRow, rules: Awaited<ReturnType<typeof prisma.pricingRule.findMany>>): PublicVehicle {
   const { sellingPriceUsd } = computeSellingPriceUsd(v, rules);
   const insuranceUsd = computeInsuranceUsd(v.sourcePriceUsd);
-  const imageUrl = v.imageUrl;
-  let imageUrls = v.imageUrls ? (JSON.parse(v.imageUrls) as string[]) : [];
+  // displayImageUrl routes photos from hotlink-blocking hosts through our
+  // /api/img relay, so every page and component gets a URL that loads.
+  const imageUrl = v.imageUrl ? displayImageUrl(v.imageUrl) : null;
+  let imageUrls = (v.imageUrls ? (JSON.parse(v.imageUrls) as string[]) : []).map(displayImageUrl);
 
   if (imageUrl && !imageUrls.includes(imageUrl)) imageUrls = [imageUrl, ...imageUrls];
 

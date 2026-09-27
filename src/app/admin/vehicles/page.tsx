@@ -5,6 +5,8 @@ import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd, sourceSiteLabel } from "@/lib/format";
 import type { Prisma } from "@/generated/prisma/client";
 import { SOURCE_SITE_LABELS } from "@/lib/format";
+import { displayImageUrl } from "@/lib/imageProxy";
+import { SafeImg } from "@/components/vehicles/SafeImg";
 
 const PAGE_SIZE = 50;
 
@@ -135,8 +137,7 @@ export default async function AdminVehiclesPage({
                   <td className="p-1.5 sm:p-3">
                     <div className="w-14 h-10 rounded-md overflow-hidden flex items-center justify-center" style={{ background: COLORS.navy }}>
                       {v.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
-                        <img src={v.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <SafeImg srcs={[displayImageUrl(v.imageUrl)]} alt="" iconSize={12} className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-[10px]" style={{ color: COLORS.goldLight }}>
                           No photo

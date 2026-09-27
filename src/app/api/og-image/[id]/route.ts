@@ -1,4 +1,6 @@
 import { getPublicVehicleById } from "@/lib/getPublicVehicles";
+import { originalImageUrl } from "@/lib/imageProxy";
+import { imageRequestHeaders } from "@/lib/scrapers/coverImage";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +25,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
   let upstream: Response;
   try {
-    upstream = await fetch(vehicle.imageUrl, {
+    // Public vehicle data may carry our own /api/img relay URL - fetch the
+    // original photo directly instead, with the headers its host expects.
+    const src = originalImageUrl(vehicle.imageUrl);
+    upstream = await fetch(new URL(src, origin).toString(), {
       headers: {
+        ...imageRequestHeaders(src),
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
         Accept: "image/*",
       },

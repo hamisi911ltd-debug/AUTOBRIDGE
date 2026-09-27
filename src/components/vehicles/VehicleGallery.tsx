@@ -20,7 +20,7 @@ const BRAND_GRADIENT = "linear-gradient(135deg, #3B1F63 0%, #D6336C 55%, #F2762E
  * visitor is about to enquire about.
  */
 export function VehicleGallery({
-  images,
+  images: allImages,
   alt,
   overlay,
   year,
@@ -38,8 +38,25 @@ export function VehicleGallery({
    * percentage height was sized to cover. */
   tall?: boolean;
 }) {
-  const [index, setIndex] = useState(0);
+  // Photos that failed to load (deleted at the source, blocked host) are
+  // dropped from the slideshow, dots and thumbnails alike, so a shopper only
+  // ever sees photos that actually load - never a broken-image icon.
+  const [failed, setFailed] = useState<Set<string>>(() => new Set());
+  const images = useMemo(() => allImages.filter((u) => !failed.has(u)), [allImages, failed]);
+  const markFailed = (url: string) => setFailed((prev) => (prev.has(url) ? prev : new Set(prev).add(url)));
+  const [rawIndex, setIndex] = useState(0);
+  // A failed photo shortens the list - keep the current slide in range.
+  const index = rawIndex < images.length ? rawIndex : 0;
   const [loadedIdx, setLoadedIdx] = useState<Set<number>>(() => new Set());
+  // Navigating to another vehicle reuses this component - start its photo
+  // set fresh (reset during render, React's pattern for prop-driven resets).
+  const [prevImages, setPrevImages] = useState(allImages);
+  if (prevImages !== allImages) {
+    setPrevImages(allImages);
+    setFailed(new Set());
+    setLoadedIdx(new Set());
+    setIndex(0);
+  }
   const pausedRef = useRef(false);
   const visibleIndices = useMemo(() => getVisibleImageIndices(images.length, index, 1), [images.length, index]);
 
@@ -52,9 +69,6 @@ export function VehicleGallery({
     return () => clearInterval(id);
   }, [images.length]);
 
-  // Reset to the first slide if the photo set itself changes (navigating
-  // between vehicles reuses this component instance).
-  useEffect(() => setIndex(0), [images]);
 
   if (images.length === 0) {
     return (
@@ -100,6 +114,7 @@ export function VehicleGallery({
             fetchPriority={i === index ? "high" : "auto"}
             decoding="async"
             onLoad={() => setLoadedIdx((prev) => (prev.has(i) ? prev : new Set(prev).add(i)))}
+            onError={() => markFailed(images[i])}
             className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
             style={{ opacity: i === index ? 1 : 0, pointerEvents: i === index ? "auto" : "none" }}
           />
@@ -182,10 +197,11 @@ export function VehicleGallery({
                 loading="lazy"
                 onError={(e) => {
                   // Not every source photo actually has a downsized variant
-                  // on disk - fall back to the original full-size URL rather
-                  // than show a broken thumbnail.
+                  // on disk - fall back to the original full-size URL first,
+                  // and drop the photo entirely if that fails too.
                   const img = e.currentTarget;
-                  if (img.src !== src) img.src = src;
+                  if (img.src !== new URL(src, img.baseURI).href) img.src = src;
+                  else markFailed(src);
                 }}
               />
             </button>

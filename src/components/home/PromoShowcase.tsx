@@ -7,6 +7,7 @@ import { discountPercent, formatUsd, wasPriceUsd } from "@/lib/format";
 import { computeFreightUsd } from "@/lib/landedCost";
 import { useCart } from "@/lib/cartContext";
 import type { PublicVehicle } from "@/types/vehicle";
+import { SafeImg } from "@/components/vehicles/SafeImg";
 
 const SLIDE_MS = 3500;
 
@@ -184,9 +185,8 @@ export function PromoShowcase({
               }}
               className="group relative h-56 sm:h-80 lg:h-96 rounded-2xl overflow-hidden text-left shadow-xl ring-1 ring-white/10 block"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- external R2 CDN */}
-              <img
-                src={v.imageUrl!}
+              <SafeImg
+                srcs={[v.imageUrl, ...v.imageUrls]}
                 alt={`${v.year} ${v.make} ${v.model}`}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />

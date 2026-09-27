@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { COLORS, FONT_DISPLAY, POPULAR_MAKES } from "@/lib/constants";
 import type { PublicVehicle } from "@/types/vehicle";
+import { SafeImg } from "@/components/vehicles/SafeImg";
 
 const TILES_PER_CATEGORY = 10;
 const AUTO_ADVANCE_MS = 4000;
@@ -164,8 +165,7 @@ export function BestSellersByCategory({ vehicles, goDetail }: { vehicles: Public
                  never grows out from under a strip that stayed put and
                  re-exposes the watermark it's there to hide. */}
               <div className="absolute inset-0 transition-transform duration-300 group-hover:scale-105">
-                {/* eslint-disable-next-line @next/next/no-img-element -- external R2 CDN */}
-                <img src={t.vehicle.imageUrl!} alt={t.key} className="absolute inset-0 w-full h-full object-cover" />
+                <SafeImg srcs={[t.vehicle.imageUrl, ...t.vehicle.imageUrls]} alt={t.key} className="absolute inset-0 w-full h-full object-cover" />
                 <div
                   className={`absolute bottom-0 inset-x-0 flex items-center justify-center gap-1 ${t.vehicle.sourceSite === "sbtjapan" ? "h-8 sm:h-9" : "h-5 sm:h-[22px]"}`}
                   style={{ background: "#3B1F63" }}

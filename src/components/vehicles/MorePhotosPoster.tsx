@@ -7,6 +7,7 @@ import { whatsAppLink, vehicleDetailBlock } from "@/lib/whatsapp";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import type { PublicVehicle } from "@/types/vehicle";
 import { FerbilBadge } from "@/components/vehicles/FerbilBadge";
+import { SafeImg } from "@/components/vehicles/SafeImg";
 
 const SHOW_AFTER_MS = 1100;
 
@@ -59,9 +60,8 @@ export function MorePhotosPoster({ vehicle }: { vehicle: PublicVehicle }) {
            either side. */}
         <div className="relative w-full" style={{ aspectRatio: ratio, background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyDeep})` }}>
           {vehicle.imageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
-            <img
-              src={vehicle.imageUrl}
+            <SafeImg
+              srcs={[vehicle.imageUrl, ...vehicle.imageUrls]}
               alt={label}
               className="absolute inset-0 w-full h-full object-contain"
               onLoad={(e) => {

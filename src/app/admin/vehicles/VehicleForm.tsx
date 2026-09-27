@@ -5,6 +5,8 @@ import Link from "next/link";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { formatUsd, sourceSiteLabel } from "@/lib/format";
 import { saveVehicle, deleteVehicle } from "@/app/admin/actions";
+import { displayImageUrl } from "@/lib/imageProxy";
+import { SafeImg } from "@/components/vehicles/SafeImg";
 
 export type VehicleFormValues = {
   id?: string;
@@ -68,8 +70,7 @@ export function VehicleForm({ initial }: { initial?: VehicleFormValues }) {
           <div className="grid md:grid-cols-[220px_1fr] gap-6">
             <div className="w-full h-40 rounded-xl overflow-hidden flex items-center justify-center shrink-0" style={{ background: COLORS.navy }}>
               {initial.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element -- external CDN, many hosts
-                <img src={initial.imageUrl} alt="" className="w-full h-full object-cover" />
+                <SafeImg srcs={[displayImageUrl(initial.imageUrl)]} alt="" className="w-full h-full object-cover" />
               ) : (
                 <span className="text-xs" style={{ color: COLORS.goldLight }}>
                   No photo
