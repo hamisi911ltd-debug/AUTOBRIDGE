@@ -44,6 +44,16 @@ export const BEFORWARD_MAKES: { id: number; make: string }[] = [
   // request (over-represented relative to Kenya's actual popular-import
   // mix); keeping it out of the make list stops future scrapes from
   // silently reintroducing it.
+  // High-end makes, added at the owner's explicit request (real stock
+  // counts confirmed live on BE FORWARD's own maker filter).
+  { id: 54, make: "Porsche" },
+  { id: 108, make: "Bentley" },
+  { id: 259, make: "Rolls-Royce" },
+  { id: 295, make: "Maserati" },
+  { id: 102, make: "Ferrari" },
+  { id: 306, make: "Lamborghini" },
+  { id: 402, make: "Aston Martin" },
+  { id: 788, make: "McLaren" },
 ];
 
 // mfg_year_from is BE FORWARD's own "manufactured from" facet. Without it,

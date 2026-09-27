@@ -35,6 +35,14 @@ export const GOONET_MAKES: { slug: string; make: string }[] = [
   { slug: "MINI", make: "Mini" },
   { slug: "JAGUAR", make: "Jaguar" },
   { slug: "FORD", make: "Ford" },
+  // High-end makes, added at the owner's explicit request.
+  { slug: "BENTLEY", make: "Bentley" },
+  { slug: "ROLLS-ROYCE", make: "Rolls-Royce" },
+  { slug: "MASERATI", make: "Maserati" },
+  { slug: "FERRARI", make: "Ferrari" },
+  { slug: "LAMBORGHINI", make: "Lamborghini" },
+  { slug: "ASTON_MARTIN", make: "Aston Martin" },
+  { slug: "MCLAREN", make: "McLaren" },
 ];
 
 export class GoonetRateLimited extends Error {}

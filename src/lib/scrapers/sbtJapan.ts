@@ -38,6 +38,15 @@ export const SBT_MAKES: { id: number; slug: string; make: string }[] = [
   { id: 33, slug: "land-rover", make: "Land Rover" },
   { id: 32, slug: "jaguar", make: "Jaguar" },
   { id: 65, slug: "hyundai", make: "Hyundai" },
+  // High-end makes, added at the owner's explicit request.
+  { id: 52, slug: "porsche", make: "Porsche" },
+  { id: 30, slug: "bentley", make: "Bentley" },
+  { id: 101, slug: "rolls-royce", make: "Rolls-Royce" },
+  { id: 61, slug: "maserati", make: "Maserati" },
+  { id: 57, slug: "ferrari", make: "Ferrari" },
+  { id: 59, slug: "lamborghini", make: "Lamborghini" },
+  { id: 29, slug: "aston-martin", make: "Aston Martin" },
+  { id: 417, slug: "mclaren", make: "McLaren" },
   // Kia deliberately excluded - removed from inventory at the user's
   // request (over-represented relative to Kenya's actual popular-import
   // mix); keeping it out of the make list stops future scrapes from
