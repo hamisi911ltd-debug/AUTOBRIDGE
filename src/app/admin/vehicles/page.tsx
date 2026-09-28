@@ -7,6 +7,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { SOURCE_SITE_LABELS } from "@/lib/format";
 import { displayImageUrl } from "@/lib/imageProxy";
 import { SafeImg } from "@/components/vehicles/SafeImg";
+import { getAdminDisplayFactor, scaleCount } from "@/lib/adminDisplay";
 
 const PAGE_SIZE = 50;
 
@@ -46,7 +47,7 @@ export default async function AdminVehiclesPage({
   if (eligible === "yes") where.eligible = true;
   if (eligible === "no") where.eligible = false;
 
-  const [vehicles, total, rules] = await Promise.all([
+  const [vehicles, total, rules, displayFactor] = await Promise.all([
     prisma.vehicle.findMany({
       where,
       orderBy: { createdAt: "desc" },
@@ -55,8 +56,15 @@ export default async function AdminVehiclesPage({
     }),
     prisma.vehicle.count({ where }),
     prisma.pricingRule.findMany({ where: { active: true } }),
+    getAdminDisplayFactor(),
   ]);
 
+  // Pagination itself always uses the real count (`total`) - only the
+  // number shown in the header is scaled, matching the dashboard's figure
+  // (see src/lib/adminDisplay.ts). A search/filter narrows the real result
+  // set the same as ever; its displayed count just scales by the same
+  // factor as everything else in the admin section.
+  const shownTotal = scaleCount(total, displayFactor);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   function pageHref(overrides: Record<string, string | undefined>) {
@@ -73,7 +81,7 @@ export default async function AdminVehiclesPage({
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
-          Vehicles <span className="text-base font-normal" style={{ color: COLORS.slate }}>({total})</span>
+          Vehicles <span className="text-base font-normal" style={{ color: COLORS.slate }}>({shownTotal.toLocaleString()})</span>
         </h1>
         <Link href="/admin/vehicles/new" className="text-sm font-semibold px-4 py-2 rounded-full text-white" style={{ background: COLORS.navy }}>
           + New vehicle

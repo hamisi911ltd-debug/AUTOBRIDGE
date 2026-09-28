@@ -48,11 +48,8 @@ export function AdminSidebar({
       {/* Desktop sidebar */}
       <aside className="hidden md:flex flex-col w-60 shrink-0 h-screen fixed top-0 left-0 bg-white border-r z-30" style={{ borderColor: COLORS.line }}>
         <Link href="/" className="flex items-center gap-2.5 h-16 px-5 shrink-0 border-b" style={{ borderColor: COLORS.line }}>
-          <span className="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center" style={{ background: GRADIENT }}>
-            <span className="text-[13px] font-bold text-white" style={{ fontFamily: FONT_DISPLAY }}>
-              {BRAND.shortName.slice(0, 1)}
-            </span>
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
+          <img src={BRAND.logoSrc} alt="" className="w-9 h-9 shrink-0" />
           <div className="min-w-0">
             <div className="text-sm font-semibold leading-tight truncate" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
               {BRAND.shortName}
@@ -126,6 +123,8 @@ export function AdminSidebar({
         <div className="rounded-2xl shadow-md overflow-hidden" style={{ padding: "2px", background: GRADIENT }}>
           <div className="h-11 rounded-[14px] bg-white/95 backdrop-blur flex items-center justify-between px-3.5">
             <Link href="/" className="flex items-center gap-1.5 text-sm font-semibold" style={{ fontFamily: FONT_DISPLAY, color: COLORS.navy }}>
+              {/* eslint-disable-next-line @next/next/no-img-element -- tiny static logo mark */}
+              <img src={BRAND.logoSrc} alt="" className="w-7 h-7" />
               <span>{BRAND.shortName}</span>
             </Link>
             <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: COLORS.slate }}>

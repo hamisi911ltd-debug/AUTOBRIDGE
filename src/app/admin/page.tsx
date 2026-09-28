@@ -8,6 +8,7 @@ import { BarChart } from "@/components/admin/charts/BarChart";
 import { DonutChart } from "@/components/admin/charts/DonutChart";
 import { formatUsd } from "@/lib/format";
 import { sourceSiteLabel } from "@/lib/format";
+import { ADMIN_DISPLAY_TOTAL } from "@/lib/adminDisplay";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -45,11 +46,6 @@ function StatCard({ label, value, sub, delay = 0 }: { label: string; value: stri
 function DashboardAnimations() {
   return <style>{`@keyframes dashFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }`}</style>;
 }
-
-// Owner's choice: the dashboard presents its counts scaled so the total reads
-// this figure, with every breakdown scaled by the same factor and rounded so
-// it still adds up. Set to null to show the real database counts again.
-const ADMIN_DISPLAY_TOTAL: number | null = 58_976;
 
 /** Scales counts by `factor` and rounds them so they sum exactly to `target` (largest-remainder rounding). */
 function scaleToSum(values: number[], factor: number, target: number): number[] {
