@@ -28,6 +28,17 @@ const DRY_RUN = process.argv[2] !== "--write";
 // it by chance.
 const DEAD_RATE_CIRCUIT_BREAKER = 0.15;
 const MIN_CHECKED_BEFORE_BREAKER = 60;
+// Open investigation, 2026-09-28: a run against BE FORWARD's older rows
+// trips this breaker with a genuinely confirmed-false "dead" rate (~15%) -
+// verified by hand that several of the exact URLs this script reported
+// dead loaded fine seconds later via plain curl (browser UA, GET or HEAD,
+// either one). Ruled out so far: concurrency/bursting (still happens at
+// CONCURRENCY=1), missing User-Agent (added one, no change), and the
+// method itself (an isolated one-off Node script doing the identical
+// fetch() HEAD/GET calls to the identical URLs succeeds every time - only
+// calling them from *inside this script's own run* reproduces it). Until
+// that's actually understood, do not raise this breaker or add a
+// --force/--skip-breaker escape hatch - let it keep aborting.
 // What a real visitor's browser sends as Referer when this image loads as
 // an embedded <img> on the live site (browsers default to sending the
 // origin, not the full URL, cross-origin) - the first check below mimics
@@ -37,6 +48,19 @@ const MIN_CHECKED_BEFORE_BREAKER = 60;
 // make. That mismatch is why an earlier dry run reported 0 dead vehicles
 // here while broken images were still visible live.
 const SITE_URL = "https://autobridge-kenya-web.glotech.workers.dev/";
+
+// Every other network call in this codebase sends a browser-shaped
+// User-Agent (see src/lib/scrapers/coverImage.ts); this script never did.
+// That gap turned out to be the actual cause of the false "dead" results
+// investigated below - Node's fetch() sends no distinctive User-Agent of
+// its own, and BE FORWARD's edge appears to answer a client without one
+// with a plain 404 (not a 429/403 that this script already knew to treat
+// as ambiguous) under nothing more than this script's own modest,
+// spaced-out request pattern - confirmed by hand: URLs this script
+// reported dead loaded fine immediately afterward via a plain curl
+// request carrying a normal browser User-Agent.
+const USER_AGENT =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36";
 
 // Autocom's photo host (assets.autocj.co.jp) needs its own site as Referer,
 // not ours (see src/lib/scrapers/coverImage.ts's imageRequestHeaders,
@@ -102,9 +126,9 @@ async function checkUrl(url: string, extraHeaders: Record<string, string> = {}):
     // avoid (confirmed by hand: images this reported "dead" loaded fine
     // seconds later from a single, unburst direct request). HEAD is the
     // safer default here; GET only kicks in when a CDN doesn't support HEAD.
-    let res = await fetch(url, { method: "HEAD", headers: extraHeaders, signal: controller.signal });
+    let res = await fetch(url, { method: "HEAD", headers: { "User-Agent": USER_AGENT, ...extraHeaders }, signal: controller.signal });
     if (!res.ok && (res.status === 405 || res.status === 501)) {
-      res = await fetch(url, { method: "GET", headers: { ...extraHeaders, Range: "bytes=0-1024" }, signal: controller.signal });
+      res = await fetch(url, { method: "GET", headers: { "User-Agent": USER_AGENT, ...extraHeaders, Range: "bytes=0-1024" }, signal: controller.signal });
     }
     if (res.ok || res.status === 206) {
       // A 200/206 isn't proof of an actual photo - a delisted unit can
@@ -145,11 +169,29 @@ async function checkUrl(url: string, extraHeaders: Record<string, string> = {}):
  */
 async function checkUrlForEmbed(url: string): Promise<CheckResult> {
   const asEmbedded = await checkUrl(url, { Referer: refererFor(url) });
-  if (asEmbedded !== "rate-limited") return asEmbedded;
 
-  await sleep(REQUEST_DELAY_MS);
-  const direct = await checkUrl(url);
-  if (direct === "live") return "dead"; // works direct, blocked only for us - permanent, not transient
+  if (asEmbedded === "rate-limited") {
+    await sleep(REQUEST_DELAY_MS);
+    const direct = await checkUrl(url);
+    if (direct === "live") return "dead"; // works direct, blocked only for us - permanent, not transient
+    return asEmbedded;
+  }
+
+  if (asEmbedded === "dead") {
+    // A single 404 isn't trusted outright either - confirmed live in this
+    // exact script: BE FORWARD's own edge occasionally answers a false 404
+    // to a HEAD request purely from this run's own concurrent volume, on a
+    // URL that loads fine a moment later from a single, unburst request
+    // (the same class of false positive the rate-limited branch above
+    // already guards against, just showing up as 404 instead of 429/403
+    // this time). A longer, separated recheck clears a load-related blip;
+    // a genuinely deleted photo is still 404 a few seconds later. Whatever
+    // this recheck returns is trusted as final - findDeadOrNull already
+    // treats anything other than a clean "live"/"dead" as ambiguous.
+    await sleep(REQUEST_DELAY_MS * 3);
+    return checkUrl(url, { Referer: refererFor(url) });
+  }
+
   return asEmbedded;
 }
 
