@@ -9,6 +9,7 @@ import { whatsAppLink, vehicleDetailBlock } from "@/lib/whatsapp";
 import type { LandedCost } from "@/lib/landedCost";
 import type { PublicVehicle } from "@/types/vehicle";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
+import { trackQuoteDownload } from "@/lib/track";
 import { Pagination } from "@/components/vehicles/Pagination";
 
 // Same page size as the homepage's own catalogue grid.
@@ -249,7 +250,10 @@ export function InvoicePage({
         </button>
         {lead && (
           <button
-            onClick={() => window.print()}
+            onClick={() => {
+              if (vehicle) trackQuoteDownload({ id: vehicle.id, make: vehicle.make, model: vehicle.model, year: vehicle.year }, `/car/${vehicle.id}`);
+              window.print();
+            }}
             className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-white"
             style={{ background: MAROON }}
           >

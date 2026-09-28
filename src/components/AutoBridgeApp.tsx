@@ -16,6 +16,7 @@ import { DetailPage } from "@/components/pages/DetailPage";
 import { InvoicePage } from "@/components/pages/InvoicePage";
 import { CartPage } from "@/components/pages/CartPage";
 import { CartProvider } from "@/lib/cartContext";
+import { trackPageView, trackVehicleView } from "@/lib/track";
 
 export type Page = "home" | "search" | "detail" | "quote" | "cart";
 
@@ -178,6 +179,36 @@ export function AutoBridgeApp({
   }
 
   const selectedVehicle = vehicles.find((v) => v.id === selectedId) || null;
+
+  // Anonymous traffic log for the admin "Activity" page (see
+  // src/lib/track.ts) - one page-view per page the visitor lands on, plus
+  // a vehicle-view specifically when that page is a car's own detail page
+  // (covers both clicking through in-app and a direct /car/[id] share-link
+  // landing, since selectedVehicle is already populated on mount for that
+  // case too).
+  const syntheticPath =
+    page === "home"
+      ? "/"
+      : page === "search"
+        ? "/search"
+        : page === "detail" && selectedVehicle
+          ? `/car/${selectedVehicle.id}`
+          : page === "quote"
+            ? "/quote"
+            : page === "cart"
+              ? "/cart"
+              : `/${page}`;
+
+  useEffect(() => {
+    trackPageView(syntheticPath);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once per page/vehicle change, not on every render
+  }, [page, selectedId]);
+
+  useEffect(() => {
+    if (page !== "detail" || !selectedVehicle) return;
+    trackVehicleView({ id: selectedVehicle.id, make: selectedVehicle.make, model: selectedVehicle.model, year: selectedVehicle.year }, syntheticPath);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once per vehicle actually selected, not on every render
+  }, [page, selectedVehicle?.id]);
 
   return (
     <CartProvider value={{ cart, toggleCart }}>

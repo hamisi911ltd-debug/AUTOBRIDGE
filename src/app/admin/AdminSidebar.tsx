@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Car, MessageSquare, Star, Users, Tag, LogOut, ExternalLink } from "lucide-react";
+import { LayoutDashboard, Car, MessageSquare, Star, Users, Tag, Activity, LogOut, ExternalLink } from "lucide-react";
 import { COLORS, FONT_DISPLAY } from "@/lib/constants";
 import { BRAND } from "@/lib/brand";
 
@@ -11,6 +11,7 @@ const GRADIENT = "linear-gradient(135deg, #F2762E 0%, #D6336C 55%, #3B1F63 100%)
 const LINKS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/vehicles", label: "Vehicles", icon: Car },
+  { href: "/admin/activity", label: "Activity", icon: Activity },
   { href: "/admin/enquiries", label: "Enquiries", icon: MessageSquare, badgeKey: "enquiries" as const },
   { href: "/admin/pricing", label: "Pricing rules", icon: Tag },
   { href: "/admin/reviews", label: "Reviews", icon: Star },

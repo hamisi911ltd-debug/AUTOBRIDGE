@@ -171,3 +171,32 @@ model Review {
   published      Boolean  @default(true)
   createdAt      DateTime @default(now())
 }
+
+enum SiteEventType {
+  PAGE_VIEW
+  VEHICLE_VIEW
+  QUOTE_DOWNLOAD
+}
+
+// Anonymous traffic log - no name, email, phone or IP stored (visitorId is
+// a random id the browser generates for itself, not tied to any real
+// identity). Powers the admin "Activity" page: page views, which cars get
+// clicked, and how many quotes get downloaded. vehicleId is a loose
+// reference (no foreign key) with the vehicle's own details snapshotted
+// alongside it on purpose - a car that later sells or gets removed should
+// still show up correctly in past activity, not vanish or block deletion.
+model SiteEvent {
+  id           String        @id @default(cuid())
+  type         SiteEventType
+  path         String?
+  vehicleId    String?
+  vehicleMake  String?
+  vehicleModel String?
+  vehicleYear  Int?
+  visitorId    String?
+  createdAt    DateTime      @default(now())
+
+  @@index([type, createdAt])
+  @@index([vehicleId])
+  @@index([visitorId])
+}

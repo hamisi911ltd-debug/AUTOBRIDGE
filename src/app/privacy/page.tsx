@@ -43,6 +43,16 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
+        <Section title="Anonymous traffic data">
+          <p>
+            We keep a basic, anonymous log of site activity: which pages are viewed, which vehicles are clicked into, and when a
+            quote is downloaded. Each browser is given a random id it stores itself so repeat visits from the same browser can be
+            told apart from new ones - this id isn&apos;t linked to your name, contact details, or anything else that identifies
+            you, and we don&apos;t store your IP address alongside it. It exists purely so we can see which listings and pages get
+            real interest.
+          </p>
+        </Section>
+
         <Section title="What we don't collect">
           <p>
             We don&apos;t collect payment details on this site. Vehicle purchases are arranged directly with our team. We don&apos;t

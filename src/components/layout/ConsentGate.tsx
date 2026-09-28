@@ -45,8 +45,9 @@ export function ConsentGate() {
           Your privacy
         </h2>
         <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.slate }}>
-          We use your browser&apos;s local storage to remember saved cars and comparisons, and we only collect contact details you
-          submit yourself through an enquiry. Read the full{" "}
+          We use your browser&apos;s local storage to remember saved cars and comparisons, keep an anonymous record of pages viewed
+          and vehicles clicked (no name or contact details attached), and only collect contact details you submit yourself through an
+          enquiry. Read the full{" "}
           <a href="/privacy" target="_blank" rel="noopener noreferrer" className="font-semibold underline" style={{ color: COLORS.burgundy }}>
             Privacy Policy
           </a>{" "}
