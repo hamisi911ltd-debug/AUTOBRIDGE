@@ -58,6 +58,14 @@ model Vehicle {
   // src/lib/imageMigration.ts. Lets the batch migration skip already-done
   // rows on every run without re-checking URL contents.
   imageMigrated    Boolean   @default(false)
+  // True once a real multi-photo gallery has been looked for on this
+  // vehicle's own detail page (found or not) - lets the "Fetch more
+  // photos" admin backfill skip vehicles it's already checked instead of
+  // re-fetching the same page forever. Defaults true for a fresh install;
+  // production's existing rows are explicitly reset to false by the
+  // migration that adds this column, since those predate gallery
+  // extraction and genuinely haven't been checked yet.
+  galleryChecked   Boolean   @default(true)
   condition        String
   badge            String?
   lifestyle        String // JSON-encoded string[] (SQLite has no native array type)

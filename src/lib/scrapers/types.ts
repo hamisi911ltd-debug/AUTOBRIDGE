@@ -26,6 +26,13 @@ export type ScrapedVehicle = {
   // undefined when the upgrade failed and imageUrl is still the (possibly
   // unreliable) listing-page thumbnail - that case still needs measuring.
   imageWidthPx?: number;
+  // Extra real gallery photos of this exact vehicle (beyond imageUrl,
+  // which is always imageUrls[0] when this is set) - only populated for
+  // sources whose detail-page fetch happens to expose more than one photo
+  // in the same request already spent on imageUrl/specs, so it's never
+  // worth an extra fetch on its own. Left undefined (a single-photo
+  // vehicle) for every other case.
+  imageUrls?: string[];
   sourceUrl: string;
   // Extended spec sheet from the source detail page (BE FORWARD's
   // table.specification / p.vehicle-option-list) - all optional since only

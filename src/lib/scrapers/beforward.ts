@@ -246,6 +246,11 @@ async function upgradeCoverImage(v: ScrapedVehicle): Promise<void> {
     v.imageUrl = detail.image.url;
     v.imageWidthPx = detail.image.widthPx;
   }
+  // The same detail-page fetch above often carries several more real
+  // photos of this exact car beyond the cover - free to keep once the page
+  // is already in hand, so a listing isn't stuck at just one photo the way
+  // every scraper here used to leave it.
+  if (detail.gallery.length > 1) v.imageUrls = detail.gallery;
   Object.assign(v, detail.specs);
   v.sourceCountry = deriveBeforwardSourceCountry(detail.specs.location);
   if (detail.mombasaTotalUsd) {

@@ -56,7 +56,11 @@ export async function fetchCoverImage(
 export async function fetchBeforwardDetail(
   site: "beforward" | "sbtjapan",
   detailUrl: string
-): Promise<{ image: { url: string; widthPx: number } | null; specs: BeforwardSpecs; mombasaTotalUsd: number | null } | "rate-limited" | null> {
+): Promise<
+  | { image: { url: string; widthPx: number } | null; gallery: string[]; specs: BeforwardSpecs; mombasaTotalUsd: number | null }
+  | "rate-limited"
+  | null
+> {
   try {
     const detailRes = await fetch(detailUrl, {
       headers: {
@@ -80,7 +84,8 @@ export async function fetchBeforwardDetail(
     const html = await detailRes.text();
 
     let image: { url: string; widthPx: number } | null = null;
-    const imageUrl = extractCoverImageUrl(site, html);
+    const gallery = extractGalleryImageUrls(site, html);
+    const imageUrl = gallery[0] ?? null;
     if (imageUrl) {
       const widthPx = await measureImageWidthPx(imageUrl);
       if (widthPx) image = { url: imageUrl, widthPx };
@@ -92,7 +97,7 @@ export async function fetchBeforwardDetail(
     const specs = site === "beforward" ? extractBeforwardSpecs(html) : {};
     const mombasaTotalUsd = site === "beforward" ? extractMombasaTotalUsd(html) : null;
 
-    return { image, specs, mombasaTotalUsd };
+    return { image, gallery, specs, mombasaTotalUsd };
   } catch (err) {
     console.error(`[fetchBeforwardDetail] threw for ${detailUrl}:`, err instanceof Error ? err.message : err);
     return null;
@@ -270,16 +275,34 @@ export function extractBeforwardSpecs(html: string): BeforwardSpecs {
 }
 
 export function extractCoverImageUrl(site: "beforward" | "sbtjapan", html: string): string | null {
+  return extractGalleryImageUrls(site, html)[0] ?? null;
+}
+
+// How many of a vehicle's real photos are kept beyond the cover - matches
+// VehicleGallery/the detail page, which only ever needs a handful for the
+// thumbnail strip, not every photo the source happens to host.
+const MAX_GALLERY_PHOTOS = 5;
+
+/**
+ * Every real photo of this exact vehicle findable in its own detail-page
+ * HTML, cover first - BE FORWARD's detail page typically carries 2-5 full-
+ * size shots at the same URL pattern the old cover-only version of this
+ * function only ever kept the first of. SBT Japan gets just the one
+ * (imwidth-normalized) match, same as before - its detail page isn't
+ * fetched at all today (see sbtJapan.ts), so this only ever runs against
+ * whatever single thumbnail URL the listing page itself already carries.
+ */
+export function extractGalleryImageUrls(site: "beforward" | "sbtjapan", html: string): string[] {
   if (site === "beforward") {
-    const match = html.match(/https?:\/\/image-cdn\.beforward\.jp\/large\/[^\s"'<>]+\.jpe?g/i);
-    return match ? match[0] : null;
+    const matches = html.matchAll(/https?:\/\/image-cdn\.beforward\.jp\/large\/[^\s"'<>]+\.jpe?g/gi);
+    return [...new Set([...matches].map((m) => m[0]))].slice(0, MAX_GALLERY_PHOTOS);
   }
 
   const match = html.match(/https?:\/\/img\.sbtjapan\.com\/img\/carphoto\/[^\s"'<>]+\.jpe?g/i);
-  if (!match) return null;
+  if (!match) return [];
   const url = new URL(match[0]);
   url.searchParams.set("imwidth", "1200");
-  return url.toString();
+  return [url.toString()];
 }
 
 function jpegWidth(buf: Buffer): number | null {

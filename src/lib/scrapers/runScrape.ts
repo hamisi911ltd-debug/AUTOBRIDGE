@@ -241,6 +241,7 @@ async function createVehicle(v: ScrapedVehicle): Promise<"created" | "existing" 
         sourcePriceUsd: v.sourcePriceUsd,
         freightIncluded: v.freightIncluded ?? false,
         imageUrl: v.imageUrl,
+        imageUrls: v.imageUrls && v.imageUrls.length > 0 ? JSON.stringify(v.imageUrls) : null,
         imageWidthPx,
         condition: "Foreign Used",
         lifestyle: JSON.stringify(lifestyle),

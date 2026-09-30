@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { isScrapeSite, runScrapeUnit, SCRAPE_SITES, type ScrapeSite, type UnitScrapeSummary } from "@/lib/scrapers/runScrape";
 import { migrateImageBatch, type ImageMigrationResult } from "@/lib/imageMigration";
+import { fetchMoreImagesBatch, type GalleryBackfillResult } from "@/lib/galleryBackfill";
 import type { MarkupType, Role, ScopeType } from "@/generated/prisma/enums";
 
 async function requireAdmin() {
@@ -182,6 +183,18 @@ export async function revalidateAfterScrape() {
 export async function migrateImageBatchNow(): Promise<ImageMigrationResult> {
   await requireAdmin();
   return migrateImageBatch();
+}
+
+/**
+ * One small batch of the multi-photo gallery backfill (see
+ * src/lib/galleryBackfill.ts) - same "loop client-side, small server work
+ * per call" pattern as the buttons above. Fills in real extra photos for
+ * vehicles that only ever got a single cover photo, from sources whose own
+ * detail page turns out to carry more.
+ */
+export async function fetchMoreImagesBatchNow(): Promise<GalleryBackfillResult> {
+  await requireAdmin();
+  return fetchMoreImagesBatch();
 }
 
 export async function toggleEnquiryHandled(formData: FormData) {

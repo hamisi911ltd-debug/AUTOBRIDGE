@@ -54,6 +54,10 @@ export async function fetchDelightsVehicle(url: string): Promise<ScrapedVehicle 
   const text = html.replace(/<script[\s\S]*?<\/script>/g, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ");
   const driveRaw = text.match(/\bDrive\s+(\S+)/)?.[1] ?? "";
   const upper = name.toUpperCase();
+  // DELIGHTS' own detail page carries a real photo gallery (often 8-10+
+  // shots) beyond the single og:image meta tag every listing was reduced
+  // to before - free to collect from this same already-fetched page.
+  const galleryUrls = [...new Set([...html.matchAll(/https:\/\/cdn\.delights\.jp\/img\/stock\/[^\s"'<>]+\.jpe?g/gi)].map((m) => m[0]))].slice(0, 5);
 
   return {
     sourceSite: "delights",
@@ -76,6 +80,7 @@ export async function fetchDelightsVehicle(url: string): Promise<ScrapedVehicle 
     sourcePriceUsd: Math.round(parseNumber(price)),
     freightIncluded: true,
     imageUrl: html.match(/<meta property="og:image" content="([^"]+)"/)?.[1] ?? null,
+    imageUrls: galleryUrls.length > 0 ? galleryUrls : undefined,
     steering: "Right",
     registrationYearMonth: month ? `${yearStr}/${month}` : undefined,
   };
